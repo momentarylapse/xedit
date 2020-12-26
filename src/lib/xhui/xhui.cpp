@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "../file/msg.h"
 #include "../nix/nix.h"
+#include <unistd.h>
 
 namespace hui {
 
@@ -20,6 +21,7 @@ void run() {
 
 		for (auto w: _windows_)
 			w->_poll_events();
+		usleep(8000);
 	};
 }
 

@@ -22,7 +22,7 @@ float sum(const Array<float> &a) {
 
 Grid::Grid(Window *w, const string &_id) : Control(w, _id) {
 	ignore_hover = true;
-	spacing = 10;
+	spacing = 8;
 
 	expand_x = true;
 	expand_y = true;
@@ -86,18 +86,16 @@ void Grid::negotiate_area(const rect &available) {
 	get_grid_min_sizes(w, h);
 	int total_min_w, total_min_h;
 	get_content_min_size(total_min_w, total_min_h);
-	int diff_x = available.width() - total_min_w;
-	int diff_y = available.height() - total_min_h;
+	float diff_x = max(available.width() - total_min_w, 0.0f);
+	float diff_y = max(available.height() - total_min_h, 0.0f);
 
 	Array<float> gx, gy;
 	get_grid_greed_factors(gx, gy);
 	float total_greed_x, total_greed_y;
 	get_greed_factor(total_greed_x, total_greed_y);
 
-	float greed_to_x = (total_greed_x > 0) ? (float)diff_x / (float)total_greed_x : 0;
-	float greed_to_y = (total_greed_y > 0) ? (float)diff_y / (float)total_greed_y : 0;
-	
-	int spacing = 10;
+	float greed_to_x = (total_greed_x > 0) ? diff_x / total_greed_x : 0;
+	float greed_to_y = (total_greed_y > 0) ? diff_y / total_greed_y : 0;
 
 	for (int i=0; i<w.num; i++)
 		w[i] += greed_to_x * gx[i];

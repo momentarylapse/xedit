@@ -34,6 +34,7 @@ public:
 
 	void redraw(const string &id);
 
+	void add(Control *c);
 	void event(const string &id, Callback f);
 
 private:

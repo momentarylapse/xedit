@@ -1,9 +1,7 @@
 #include "Window.h"
 #include "xhui.h"
 #include "Painter.h"
-#include "Controls/Button.h"
-#include "Controls/Label.h"
-#include "Controls/Grid.h"
+#include "Controls/Control.h"
 #include "../file/msg.h"
 
 
@@ -17,17 +15,8 @@ Window::Window(const string &title, int w, int h) {
 
 	glfwSetWindowUserPointer(window, this);
 
+	control = nullptr;
 	padding = 10;
-	auto g = new Grid(this, "grid");
-	auto ll = new Label(this, "label", "test");
-	g->add(ll, 0, 0);
-	g->add(new Button(this, "button1", "a small test"), 1, 0);
-	g->add(new Button(this, "button2", "more test"), 1, 1);
-	g->add(new Button(this, "button3", "x"), 2, 1);
-	control = g;
-
-	event("button1", [=] { msg_write("event button1 click"); });
-	event("button2", [=] { msg_write("event button2 click"); ll->set_string("x"); });
 
 	hover_control = nullptr;
 	focus_control = nullptr;
@@ -44,6 +33,10 @@ Window::Window(const string &title, int w, int h) {
 
 Window::~Window() {
 	glfwDestroyWindow(window);
+}
+
+void Window::add(Control *c) {
+	control = c;
 }
 
 
