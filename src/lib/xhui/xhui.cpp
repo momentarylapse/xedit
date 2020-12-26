@@ -19,7 +19,7 @@ void run() {
 		glfwPollEvents();
 
 		for (auto w: _windows_)
-			w->_handle_events();
+			w->_poll_events();
 	};
 }
 

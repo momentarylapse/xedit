@@ -7,8 +7,11 @@ namespace hui {
 
 class Control;
 
+typedef std::function<void()> Callback;
+
 class Window : public VirtualBase {
 	friend class Painter;
+	friend class Control;
 public:
 
 	Window(const string &title, int width, int height);
@@ -27,9 +30,11 @@ public:
 	virtual void on_key_down(int key) {}
 	virtual void on_key_up(int key) {}
 
-	void _handle_events();
+	void _poll_events();
 
 	void redraw(const string &id);
+
+	void event(const string &id, Callback f);
 
 private:
 	GLFWwindow *window;
@@ -69,6 +74,17 @@ private:
 	Control *hover_control;
 	Control *focus_control;
 	float padding;
+
+	class EventHandler {
+		public:
+		EventHandler() {};
+		string id, msg;
+		Callback f;
+	};
+	Array<EventHandler> event_handlers;
+
+public:
+	void handle_event(const string &id, const string &msg);
 };
 
 }

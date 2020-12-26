@@ -2,7 +2,7 @@
 #include "xhui.h"
 #include "Painter.h"
 #include "Controls/Button.h"
-#include <stdio.h>
+#include "../file/msg.h"
 
 
 namespace hui {
@@ -17,6 +17,8 @@ Window::Window(const string &title, int w, int h) {
 
 	padding = 10;
 	control = new Button(this, "button", "a small test");
+
+	event("button", [=] { msg_write("event button click"); });
 
 	hover_control = nullptr;
 	focus_control = nullptr;
@@ -245,7 +247,6 @@ void Window::_on_key_up(int k) {
 
 
 void Window::_on_draw() {
-	//printf("draw...\n");
 
 	auto p = new Painter(this);
 	auto a = p->area();
@@ -258,7 +259,7 @@ void Window::_on_draw() {
 	delete p;
 }
 
-void Window::_handle_events() {
+void Window::_poll_events() {
 
 	if (_refresh_requested)
 		_on_draw();
@@ -266,11 +267,24 @@ void Window::_handle_events() {
 	if (glfwWindowShouldClose(window)) {
 		//glfwWin
 		//ddd
-		printf("fake...close...\n");
+		msg_write("fake...close...");
 		exit(0);
 	}
 }
 
+void Window::event(const string &id, Callback f) {
+	EventHandler e;
+	e.id = id;
+	e.f = f;
+	event_handlers.add(e);
+}
+
+void Window::handle_event(const string &id, const string &msg) {
+	for (auto &e: event_handlers)
+		if (e.id == id) {
+			e.f();
+		}
+}
 
 
 }

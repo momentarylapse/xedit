@@ -16,7 +16,8 @@ void Button::on_left_button_down() {
 void Button::on_left_button_up() {
 	state = State::HOVER;
 	request_redraw();
-	
+
+	window->handle_event(id, "hui:click");
 }
 void Button::on_mouse_enter() {
 	state = State::HOVER;
@@ -28,8 +29,11 @@ void Button::on_mouse_leave() {
 }
 
 void Button::_draw(Painter *p) {
-	if ((state == State::HOVER) or (state == State::PRESSED)) {
+	if (state == State::HOVER) {
 		p->set_color(color(1, 0.25f, 0.25f, 0.25f));
+		p->draw_rect(_area);
+	} else if (state == State::PRESSED) {
+		p->set_color(color(1, 0.3f, 0.3f, 0.5f));
 		p->draw_rect(_area);
 	}
 	p->set_color(color(1, 0.9f, 0.9f, 0.9f));
