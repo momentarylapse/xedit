@@ -16,7 +16,11 @@ gldep = dependency('GL')
 add_project_arguments('-DHAS_LIB_GL=1', language : ['cpp'])
 glfwdep = dependency('glfw')
 add_project_arguments('-DHAS_LIB_GLFW=1', language : ['cpp'])
-deps = [mdep, threaddep, zlibdep, gldep, glfwdep]
+pangocairodep = dependency('pangocairo')
+add_project_arguments('-DHAS_LIB_PANGOCAIRO=1', language : ['cpp'])
+gtk3dep = dependency('gtk+-3.0')
+add_project_arguments('-DHAS_LIB_GTK3=1', language : ['cpp'])
+deps = [mdep, threaddep, zlibdep, gldep, glfwdep, pangocairodep, gtk3dep]
 
 
 sources = [
