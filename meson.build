@@ -56,6 +56,7 @@ sources = [
 	'src/lib/nix/nix_textures.cpp',
 	'src/lib/nix/nix_vertexbuffer.cpp',
 	'src/lib/nix/nix_view.cpp',
+	'src/lib/xhui/Painter.cpp',
 	'src/lib/xhui/Window.cpp',
 	'src/lib/xhui/xhui.cpp',
 	'src/main.cpp'
