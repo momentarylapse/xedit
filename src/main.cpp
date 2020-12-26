@@ -8,7 +8,7 @@ int main() {
 
 	hui::init();
 
-	auto w = new hui::Window("test", 1024, 768);
+	auto w = new hui::Window("test", 800, 600);
 	hui::run();
 
 	delete w;

@@ -8,6 +8,10 @@
 //#include <pango/pango.h>
 #include <gtk/gtk.h>
 
+namespace nix {
+	matrix create_pixel_projection_matrix();
+}
+
 
 namespace hui {
 
@@ -66,7 +70,9 @@ void init_nix() {
 		"	color *= _color_;\n"
 		"}\n"
 		"</FragmentShader>");
-		shader->filename = "-my-shader-";
+	shader->filename = "-my-shader-";
+
+	_nix_inited = true;
 }
 
 Painter::Painter(Window *w) {
@@ -75,14 +81,20 @@ Painter::Painter(Window *w) {
 	if (!_nix_inited)
 		init_nix();
 	_color = White;
-	font_size = 32;
+	font_size = 16;
 	font_name = "CAC Champagne";
 	fill = true;
 
 
+	int ww, hh;
+	glfwGetWindowSize(window->window, &ww, &hh);
+	width = (float)ww / ui_scale;
+	height = (float)hh / ui_scale;
+
+
 
 	nix::StartFrameGLFW(window->window);
-	nix::SetProjectionOrtho(false);
+	nix::SetProjectionMatrix(nix::create_pixel_projection_matrix() * matrix::scale(ui_scale, ui_scale, 1));
 	nix::ResetToColor(color(1, 0.2f, 0.2f, 0.2f));
 	nix::SetCull(CULL_NONE);
 	nix::SetZ(false, false);
@@ -107,10 +119,10 @@ void Painter::set_color(const color &c) {
 
 void Painter::draw_str(float x, float y, const string &str) {
 	Image im;
-	cairo_render_text(font_name, font_size, str, Align::LEFT, im);
+	cairo_render_text(font_name, font_size * ui_scale, str, Align::LEFT, im);
 	tex_text->overwrite(im);
-	int w = im.width;
-	int h = im.height;
+	float w = im.width / ui_scale;
+	float h = im.height / ui_scale;
 	nix::SetWorldMatrix(matrix::translation(vector(x, y, 0)) * matrix::scale(w, h, 1));
 
 	nix::SetShader(shader);
@@ -122,7 +134,10 @@ void Painter::draw_str(float x, float y, const string &str) {
 }
 
 float Painter::get_str_width(const string &str) {
-	return 0;
+	Image im;
+	cairo_render_text(font_name, font_size * ui_scale, str, Align::LEFT, im);
+	tex_text->overwrite(im);
+	return im.width / ui_scale;
 }
 
 void Painter::draw_rect(const rect &r) {

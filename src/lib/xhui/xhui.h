@@ -7,6 +7,8 @@ namespace hui {
 void init();
 void run();
 
+extern float ui_scale;
+
 
 enum Align {
 	RIGHT = 1,

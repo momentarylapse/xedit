@@ -1,6 +1,7 @@
 #include "Window.h"
 #include "xhui.h"
 #include "Painter.h"
+#include "Controls/Button.h"
 #include <stdio.h>
 
 
@@ -10,10 +11,11 @@ Array<Window*> _windows_;
 
 
 Window::Window(const string &title, int w, int h) {
-	window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
+	window = glfwCreateWindow(w * ui_scale, h * ui_scale, title.c_str(), nullptr, nullptr);
 
 	glfwSetWindowUserPointer(window, this);
 
+	control = new Button(this, "button", "a small test");
 
 	glfwSetKeyCallback(window, _key_callback);
 	glfwSetCursorPosCallback(window, _cursor_position_callback);
@@ -206,9 +208,9 @@ void Window::_on_draw() {
 	//printf("draw...\n");
 
 	auto p = new Painter(this);
-	p->draw_str(100, 100, "a small test");
-	p->set_color(color(1, 0.8f, 0.2f, 0.2f));
-	p->draw_rect(rect(200,250, 200,300));
+	auto a = p->area();
+	control->_area = rect(a.x1 + 10, a.x2 - 10, a.y1 + 10, a.y2 - 10);
+	control->_draw(p);
 	p->end();
 	_refresh_requested = false;
 	delete p;

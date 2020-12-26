@@ -5,6 +5,8 @@
 
 namespace hui {
 
+class Control;
+
 class Window : public VirtualBase {
 	friend class Painter;
 public:
@@ -55,6 +57,8 @@ private:
 
 	bool _refresh_requested = true;
 	void _on_draw();
+
+	Control *control;
 };
 
 }
