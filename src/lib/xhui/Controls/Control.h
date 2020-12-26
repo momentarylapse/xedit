@@ -34,6 +34,15 @@ public:
 	string id;
 	Window *window;
 
+	int min_width_req, min_height_req;
+	int min_width, min_height;
+	//float min_width, min_height;
+	bool expand_x, expand_y;
+	bool ignore_hover = false;
+
+	virtual void negotiate_min_size();
+	virtual void negotiate_area(const rect &available);
+
 
 	enum class State {
 		DEFAULT,

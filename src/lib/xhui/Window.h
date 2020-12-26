@@ -70,7 +70,10 @@ private:
 	bool _refresh_requested = true;
 	void _on_draw();
 
+	Control *get_hover_control(float x, float y);
+
 	Control *control;
+	Array<Control*> controls;
 	Control *hover_control;
 	Control *focus_control;
 	float padding;

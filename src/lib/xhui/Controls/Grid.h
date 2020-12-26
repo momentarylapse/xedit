@@ -1,0 +1,27 @@
+#pragma once
+
+#include "Control.h"
+
+namespace hui {
+
+
+class Grid : public Control {
+public:
+	Grid(Window *win, const string &id);
+
+	void _draw(Painter *p) override;
+
+	struct Child {
+		Control *control;
+		int x, y;
+	};
+	Array<Child> children;
+
+	void add(Control *c, int x, int y);
+	int nx = 0, ny = 0;
+
+	void negotiate_min_size() override;
+	void negotiate_area(const rect &available) override;
+};
+
+}

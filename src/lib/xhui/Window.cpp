@@ -2,6 +2,7 @@
 #include "xhui.h"
 #include "Painter.h"
 #include "Controls/Button.h"
+#include "Controls/Grid.h"
 #include "../file/msg.h"
 
 
@@ -16,7 +17,10 @@ Window::Window(const string &title, int w, int h) {
 	glfwSetWindowUserPointer(window, this);
 
 	padding = 10;
-	control = new Button(this, "button", "a small test");
+	auto g = new Grid(this, "grid");
+	g->add(new Button(this, "button", "a small test"), 0, 0);
+	g->add(new Button(this, "button", "more test"), 0, 1);
+	control = g;
 
 	event("button", [=] { msg_write("event button click"); });
 
@@ -212,16 +216,13 @@ void Window::_on_right_button_up() {
 	on_right_button_up();
 }
 void Window::_on_mouse_move(float mx, float my) {
-	if (hover_control) {
-		if (!hover_control->_area.inside(mx, my)) {
+	auto hover = get_hover_control(mx, my);
+	if (hover != hover_control) {
+		if (hover_control)
 			hover_control->on_mouse_leave();
-			hover_control = nullptr;
-		}
-	} else if (control) {
-		if (control->_area.inside(mx, my)) {
-			control->on_mouse_enter();
-			hover_control = control;
-		}
+		hover_control = hover;
+		if (hover_control)
+			hover_control->on_mouse_enter();
 	}
 	on_mouse_move(mx, my);
 }
@@ -251,7 +252,7 @@ void Window::_on_draw() {
 	auto p = new Painter(this);
 	auto a = p->area();
 	if (control) {
-		control->_area = rect(a.x1 + padding, a.x2 - padding, a.y1 + padding, a.y2 - padding);
+		control->negotiate_area(rect(a.x1 + padding, a.x2 - padding, a.y1 + padding, a.y2 - padding));
 		control->_draw(p);
 	}
 	p->end();
@@ -284,6 +285,13 @@ void Window::handle_event(const string &id, const string &msg) {
 		if (e.id == id) {
 			e.f();
 		}
+}
+
+Control *Window::get_hover_control(float x, float y) {
+	for (auto c: controls)
+		if (c->_area.inside(x, y) and !c->ignore_hover)
+			return c;
+	return nullptr;
 }
 
 

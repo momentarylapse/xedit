@@ -39,6 +39,7 @@ OBJ = lib/base/array.o \
  lib/nix/nix_view.o \
  lib/xhui/Controls/Button.o \
  lib/xhui/Controls/Control.o \
+ lib/xhui/Controls/Grid.o \
  lib/xhui/Painter.o \
  lib/xhui/Window.o \
  lib/xhui/xhui.o
@@ -144,16 +145,19 @@ lib/nix/nix_vertexbuffer.o : lib/nix/nix_vertexbuffer.cpp lib/nix/nix.h lib/conf
 lib/nix/nix_view.o : lib/nix/nix_view.cpp lib/nix/nix.h lib/config.h lib/nix/nix_config.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/file/file.h lib/file/msg.h lib/file/file_op.h lib/file/path.h lib/math/math.h lib/image/color.h lib/math/vector.h lib/math/matrix.h lib/math/matrix3.h lib/math/quaternion.h lib/math/plane.h lib/math/rect.h lib/math/complex.h lib/math/interpolation.h lib/math/random.h lib/math/ray.h lib/nix/nix_draw.h lib/nix/nix_light.h lib/nix/nix_vertexbuffer.h lib/nix/nix_shader.h lib/nix/nix_view.h lib/nix/nix_textures.h lib/nix/nix_common.h lib/image/image.h
 	$(CPP) -c lib/nix/nix_view.cpp -o $@ $(CXXFLAGS)
 
-lib/xhui/Controls/Button.o : lib/xhui/Controls/Button.cpp lib/xhui/Controls/Button.h lib/xhui/Controls/Control.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/math/rect.h lib/xhui/Painter.h lib/xhui/xhui.h lib/xhui/Window.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h
+lib/xhui/Controls/Button.o : lib/xhui/Controls/Button.cpp lib/xhui/Controls/Button.h lib/xhui/Controls/Control.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/math/rect.h lib/xhui/Painter.h lib/xhui/xhui.h lib/xhui/Window.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h lib/file/msg.h
 	$(CPP) -c lib/xhui/Controls/Button.cpp -o $@ $(CXXFLAGS)
 
 lib/xhui/Controls/Control.o : lib/xhui/Controls/Control.cpp lib/xhui/Controls/Control.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/math/rect.h lib/xhui/Painter.h lib/xhui/xhui.h lib/xhui/Window.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h
 	$(CPP) -c lib/xhui/Controls/Control.cpp -o $@ $(CXXFLAGS)
 
+lib/xhui/Controls/Grid.o : lib/xhui/Controls/Grid.cpp lib/xhui/Controls/Grid.h lib/xhui/Controls/Control.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/math/rect.h
+	$(CPP) -c lib/xhui/Controls/Grid.cpp -o $@ $(CXXFLAGS)
+
 lib/xhui/Painter.o : lib/xhui/Painter.cpp lib/xhui/Painter.h lib/xhui/xhui.h lib/xhui/Window.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h lib/math/rect.h lib/nix/nix.h lib/config.h lib/nix/nix_config.h lib/file/file.h lib/file/msg.h lib/file/file_op.h lib/file/path.h lib/math/math.h lib/math/vector.h lib/math/matrix.h lib/math/matrix3.h lib/math/quaternion.h lib/math/plane.h lib/math/complex.h lib/math/interpolation.h lib/math/random.h lib/math/ray.h lib/nix/nix_draw.h lib/nix/nix_light.h lib/nix/nix_vertexbuffer.h lib/nix/nix_shader.h lib/nix/nix_view.h lib/nix/nix_textures.h lib/image/image.h
 	$(CPP) -c lib/xhui/Painter.cpp -o $@ $(CXXFLAGS)
 
-lib/xhui/Window.o : lib/xhui/Window.cpp lib/xhui/Window.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/xhui/xhui.h lib/xhui/Painter.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h lib/math/rect.h
+lib/xhui/Window.o : lib/xhui/Window.cpp lib/xhui/Window.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/xhui/xhui.h lib/xhui/Painter.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h lib/math/rect.h lib/xhui/Controls/Button.h lib/xhui/Controls/Control.h lib/xhui/Controls/Grid.h lib/file/msg.h
 	$(CPP) -c lib/xhui/Window.cpp -o $@ $(CXXFLAGS)
 
 lib/xhui/xhui.o : lib/xhui/xhui.cpp lib/xhui/xhui.h lib/xhui/Window.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/file/msg.h lib/nix/nix.h lib/config.h lib/nix/nix_config.h lib/file/file.h lib/file/file_op.h lib/file/path.h lib/math/math.h lib/image/color.h lib/math/vector.h lib/math/matrix.h lib/math/matrix3.h lib/math/quaternion.h lib/math/plane.h lib/math/rect.h lib/math/complex.h lib/math/interpolation.h lib/math/random.h lib/math/ray.h lib/nix/nix_draw.h lib/nix/nix_light.h lib/nix/nix_vertexbuffer.h lib/nix/nix_shader.h lib/nix/nix_view.h lib/nix/nix_textures.h
