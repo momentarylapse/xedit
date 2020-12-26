@@ -81,7 +81,7 @@ Painter::Painter(Window *w) {
 	if (!_nix_inited)
 		init_nix();
 	_color = White;
-	font_size = 16;
+	font_size = 14;
 	font_name = "CAC Champagne";
 	fill = true;
 

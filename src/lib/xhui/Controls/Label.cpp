@@ -4,23 +4,30 @@
 namespace hui {
 
 Label::Label(Window *w, const string &_id, const string &t) : Control(w, _id) {
-	title = t;
+	text_w = text_h = 0;
 	state = State::DEFAULT;
 
 	expand_x = false;
 	expand_y = false;
+
+	set_string(t);
 }
 
 void Label::set_string(const string &s) {
 	title = s;
+	text_w = text_h = -1;
 	request_redraw();
 }
 
 void Label::get_content_min_size(int &w, int &h) {
-	auto p = new Painter(window);
-	w = p->get_str_width(title) + 20;
-	h = max(40, int(p->font_size + 20));
-	delete p;
+	if (text_w < 0) {
+		auto p = new Painter(window);
+		text_w = p->get_str_width(title);
+		text_h = int(p->font_size);
+		delete p;
+	}
+	w = text_w + 12;
+	h = text_h + 12;
 }
 
 void Label::_draw(Painter *p) {

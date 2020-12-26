@@ -4,19 +4,11 @@
 
 namespace hui {
 
-Button::Button(Window *w, const string &_id, const string &t) : Control(w, _id) {
-	state = State::DEFAULT;
+Button::Button(Window *w, const string &_id, const string &t) : Label(w, _id, t) {
 
 	can_grab_focus = true;
 	expand_x = true;
 	expand_y = false;
-
-	set_string(t);
-}
-
-void Button::set_string(const string &s) {
-	title = s;
-	request_redraw();
 }
 
 void Button::on_left_button_down() {
@@ -36,13 +28,6 @@ void Button::on_mouse_enter() {
 void Button::on_mouse_leave() {
 	state = State::DEFAULT;
 	request_redraw();
-}
-
-void Button::get_content_min_size(int &w, int &h) {
-	auto p = new Painter(window);
-	w = p->get_str_width(title) + 20;
-	h = max(40, int(p->font_size + 20));
-	delete p;
 }
 
 void Button::_draw(Painter *p) {

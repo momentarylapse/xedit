@@ -17,6 +17,8 @@ public:
 
 	string title;
 	State state;
+
+	int text_w, text_h;
 };
 
 }
