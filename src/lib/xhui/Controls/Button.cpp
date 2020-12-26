@@ -7,6 +7,7 @@ namespace hui {
 Button::Button(Window *w, const string &_id, const string &t) : Control(w, _id) {
 	state = State::DEFAULT;
 
+	can_grab_focus = true;
 	expand_x = true;
 	expand_y = false;
 

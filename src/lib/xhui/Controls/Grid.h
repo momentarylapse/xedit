@@ -22,7 +22,9 @@ public:
 	int spacing;
 
 	void get_grid_min_sizes(Array<int> &w, Array<int> &h);
+	void get_grid_greed_factors(Array<float> &x, Array<float> &y);
 	
+	void get_greed_factor(float &x, float &y) override;
 	void get_content_min_size(int &w, int &h) override;
 	void negotiate_area(const rect &available) override;
 };

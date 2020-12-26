@@ -4,9 +4,28 @@
 
 namespace hui {
 
+
+
+int sum(const Array<int> &a) {
+	int r = 0;
+	for (int i=0; i<a.num; i++)
+		r += a[i];
+	return r;
+}
+
+float sum(const Array<float> &a) {
+	float r = 0;
+	for (int i=0; i<a.num; i++)
+		r += a[i];
+	return r;
+}
+
 Grid::Grid(Window *w, const string &_id) : Control(w, _id) {
 	ignore_hover = true;
 	spacing = 10;
+
+	expand_x = true;
+	expand_y = true;
 }
 
 void Grid::add(Control *c, int x, int y) {
@@ -21,14 +40,11 @@ void Grid::_draw(Painter *p) {
 }
 
 void Grid::get_grid_min_sizes(Array<int> &w, Array<int> &h) {
+	w.resize(nx);
+	h.resize(ny);
 	for (auto &c: children) {
 		int ww, hh;
 		c.control->get_effective_min_size(ww, hh);
-
-		if (c.x >= w.num)
-			w.resize(c.x + 1);
-		if (c.y >= h.num)
-			h.resize(c.y + 1);
 		w[c.x] = max(w[c.x], ww);
 		h[c.y] = max(h[c.y], hh);
 	}
@@ -37,12 +53,30 @@ void Grid::get_grid_min_sizes(Array<int> &w, Array<int> &h) {
 void Grid::get_content_min_size(int &_w, int &_h) {
 	Array<int> w, h;
 	get_grid_min_sizes(w, h);
-	_w = spacing * (w.num - 1);
-	for (int i=0; i<w.num; i++)
-		_w += w[i];
-	_h = spacing * (h.num - 1);
-	for (int i=0; i<h.num; i++)
-		_h += h[i];
+	_w = sum(w) + spacing * (w.num - 1);
+	_h = sum(h) + spacing * (h.num - 1);
+}
+
+void Grid::get_greed_factor(float &_x, float &_y) {
+	Array<float> xx, yy;
+	get_grid_greed_factors(xx, yy);
+	_x = 0;
+	_y = 0;
+	if (expand_x)
+		_x = sum(xx);
+	if (expand_y)
+		_y = sum(yy);
+}
+
+void Grid::get_grid_greed_factors(Array<float> &x, Array<float> &y) {
+	x.resize(nx);
+	y.resize(ny);
+	for (auto &c: children) {
+		float cx, cy;
+		c.control->get_greed_factor(cx, cy);
+		x[c.x] = max(x[c.x], cx);
+		y[c.y] = max(y[c.y], cy);
+	}
 }
 
 void Grid::negotiate_area(const rect &available) {
@@ -50,8 +84,25 @@ void Grid::negotiate_area(const rect &available) {
 
 	Array<int> w, h;
 	get_grid_min_sizes(w, h);
+	int total_min_w, total_min_h;
+	get_content_min_size(total_min_w, total_min_h);
+	int diff_x = available.width() - total_min_w;
+	int diff_y = available.height() - total_min_h;
+
+	Array<float> gx, gy;
+	get_grid_greed_factors(gx, gy);
+	float total_greed_x, total_greed_y;
+	get_greed_factor(total_greed_x, total_greed_y);
+
+	float greed_to_x = (total_greed_x > 0) ? (float)diff_x / (float)total_greed_x : 0;
+	float greed_to_y = (total_greed_y > 0) ? (float)diff_y / (float)total_greed_y : 0;
 	
 	int spacing = 10;
+
+	for (int i=0; i<w.num; i++)
+		w[i] += greed_to_x * gx[i];
+	for (int i=0; i<h.num; i++)
+		h[i] += greed_to_y * gy[i];
 
 	for (auto &c: children) {
 		int x0 = _area.x1;

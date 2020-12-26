@@ -38,8 +38,10 @@ public:
 
 	int min_width_user, min_height_user;
 	bool expand_x, expand_y;
+	bool can_grab_focus = false;
 	bool ignore_hover = false;
 
+	virtual void get_greed_factor(float &x, float &y);
 	virtual void get_content_min_size(int &w, int &h);
 	void get_effective_min_size(int &w, int &h);
 

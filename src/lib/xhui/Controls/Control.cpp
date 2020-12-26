@@ -23,6 +23,14 @@ void Control::get_content_min_size(int &w, int &h) {
 	h = 0;
 }
 
+void Control::get_greed_factor(float &x, float &y) {
+	x = y = 0;
+	if (expand_x)
+		x = 1;
+	if (expand_y)
+		y = 1;
+}
+
 void Control::get_effective_min_size(int &w, int &h) {
 	get_content_min_size(w, h);
 	if (min_width_user >= 0)
