@@ -19,8 +19,11 @@ public:
 
 	void add(Control *c, int x, int y);
 	int nx = 0, ny = 0;
+	int spacing;
 
-	void negotiate_min_size() override;
+	void get_grid_min_sizes(Array<int> &w, Array<int> &h);
+	
+	void get_content_min_size(int &w, int &h) override;
 	void negotiate_area(const rect &available) override;
 };
 

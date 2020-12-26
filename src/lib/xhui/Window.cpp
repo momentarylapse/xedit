@@ -2,6 +2,7 @@
 #include "xhui.h"
 #include "Painter.h"
 #include "Controls/Button.h"
+#include "Controls/Label.h"
 #include "Controls/Grid.h"
 #include "../file/msg.h"
 
@@ -18,11 +19,13 @@ Window::Window(const string &title, int w, int h) {
 
 	padding = 10;
 	auto g = new Grid(this, "grid");
-	g->add(new Button(this, "button", "a small test"), 0, 0);
-	g->add(new Button(this, "button", "more test"), 0, 1);
+	g->add(new Label(this, "label", "test"), 0, 0);
+	g->add(new Button(this, "button1", "a small test"), 1, 0);
+	g->add(new Button(this, "button2", "more test"), 1, 1);
 	control = g;
 
-	event("button", [=] { msg_write("event button click"); });
+	event("button1", [=] { msg_write("event button1 click"); });
+	event("button2", [=] { msg_write("event button2 click"); });
 
 	hover_control = nullptr;
 	focus_control = nullptr;

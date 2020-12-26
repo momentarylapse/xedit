@@ -13,6 +13,8 @@ class Control : public VirtualBase {
 public:
 	Control(Window *win, const string &id);
 
+	virtual void set_string(const string &s) {};
+
 	virtual void on_left_button_down() {}
 	virtual void on_left_button_up() {}
 	virtual void on_middle_button_down() {}
@@ -34,13 +36,14 @@ public:
 	string id;
 	Window *window;
 
-	int min_width_req, min_height_req;
-	int min_width, min_height;
-	//float min_width, min_height;
+	int min_width_user, min_height_user;
 	bool expand_x, expand_y;
 	bool ignore_hover = false;
 
-	virtual void negotiate_min_size();
+	virtual void get_content_min_size(int &w, int &h);
+	void get_effective_min_size(int &w, int &h);
+
+	//virtual void negotiate_min_size();
 	virtual void negotiate_area(const rect &available);
 
 

@@ -59,6 +59,7 @@ sources = [
 	'src/lib/xhui/Controls/Button.cpp',
 	'src/lib/xhui/Controls/Control.cpp',
 	'src/lib/xhui/Controls/Grid.cpp',
+	'src/lib/xhui/Controls/Label.cpp',
 	'src/lib/xhui/Painter.cpp',
 	'src/lib/xhui/Window.cpp',
 	'src/lib/xhui/xhui.cpp',
