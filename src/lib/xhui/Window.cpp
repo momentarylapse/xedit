@@ -15,10 +15,15 @@ Window::Window(const string &title, int w, int h) {
 
 	glfwSetWindowUserPointer(window, this);
 
+	padding = 10;
 	control = new Button(this, "button", "a small test");
+
+	hover_control = nullptr;
+	focus_control = nullptr;
 
 	glfwSetKeyCallback(window, _key_callback);
 	glfwSetCursorPosCallback(window, _cursor_position_callback);
+	glfwSetCursorEnterCallback(window, _cursor_enter_callback);
 	glfwSetMouseButtonCallback(window, _mouse_button_callback);
 	glfwSetScrollCallback(window, _scroll_callback);
 	glfwSetWindowRefreshCallback(window, _refresh_callback);
@@ -127,11 +132,17 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 void Window::_cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 	//std::cout << "mouse " << xpos << " " << ypos << "\n";
 	auto w = (Window*)glfwGetWindowUserPointer(window);
-	w->state.mx = xpos;
-	w->state.my = ypos;
-	w->_on_mouse_move(xpos, ypos);
+	w->state.mx = xpos/ui_scale;
+	w->state.my = ypos/ui_scale;
+	w->_on_mouse_move(xpos/ui_scale, ypos/ui_scale);
+}
 
-	//SEND_EVENT(on_mouse_move);
+void Window::_cursor_enter_callback(GLFWwindow *window, int enter) {
+	auto w = (Window*)glfwGetWindowUserPointer(window);
+	if (enter == 1)
+		w->_on_mouse_enter();
+	else
+		w->_on_mouse_leave();
 }
 
 void Window::_mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
@@ -167,15 +178,23 @@ void Window::_refresh_callback(GLFWwindow *window) {
 	w->_refresh_requested = true;
 }
 
+void Window::redraw(const string &id) {
+	_refresh_requested = true;
+}
+
 struct ColorScheme {
 	color background;
 	color text;
 };
 
 void Window::_on_left_button_down() {
+	if (hover_control)
+		hover_control->on_left_button_down();
 	on_left_button_down();
 }
 void Window::_on_left_button_up() {
+	if (hover_control)
+		hover_control->on_left_button_up();
 	on_left_button_up();
 }
 void Window::_on_middle_button_down() {
@@ -191,7 +210,28 @@ void Window::_on_right_button_up() {
 	on_right_button_up();
 }
 void Window::_on_mouse_move(float mx, float my) {
+	if (hover_control) {
+		if (!hover_control->_area.inside(mx, my)) {
+			hover_control->on_mouse_leave();
+			hover_control = nullptr;
+		}
+	} else if (control) {
+		if (control->_area.inside(mx, my)) {
+			control->on_mouse_enter();
+			hover_control = control;
+		}
+	}
 	on_mouse_move(mx, my);
+}
+void Window::_on_mouse_enter() {
+	on_mouse_enter();
+}
+void Window::_on_mouse_leave() {
+	if (hover_control) {
+		hover_control->on_mouse_leave();
+		hover_control = nullptr;
+	}
+	on_mouse_leave();
 }
 void Window::_on_mouse_wheel(float dx, float dy) {
 	on_mouse_wheel(dx, dy);
@@ -209,8 +249,10 @@ void Window::_on_draw() {
 
 	auto p = new Painter(this);
 	auto a = p->area();
-	control->_area = rect(a.x1 + 10, a.x2 - 10, a.y1 + 10, a.y2 - 10);
-	control->_draw(p);
+	if (control) {
+		control->_area = rect(a.x1 + padding, a.x2 - padding, a.y1 + padding, a.y2 - padding);
+		control->_draw(p);
+	}
 	p->end();
 	_refresh_requested = false;
 	delete p;

@@ -21,11 +21,15 @@ public:
 	virtual void on_right_button_down() {}
 	virtual void on_right_button_up() {}
 	virtual void on_mouse_move(float mx, float my) {}
+	virtual void on_mouse_enter() {}
+	virtual void on_mouse_leave() {}
 	virtual void on_mouse_wheel(float dx, float dy) {}
 	virtual void on_key_down(int key) {}
 	virtual void on_key_up(int key) {}
 
 	void _handle_events();
+
+	void redraw(const string &id);
 
 private:
 	GLFWwindow *window;
@@ -39,6 +43,7 @@ private:
 
 	static void _key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 	static void _cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
+	static void _cursor_enter_callback(GLFWwindow *window, int enter);
 	static void _mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 	static void _scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 	static void _refresh_callback(GLFWwindow *window);
@@ -51,6 +56,8 @@ private:
 	void _on_right_button_down();
 	void _on_right_button_up();
 	void _on_mouse_move(float mx, float my);
+	void _on_mouse_enter();
+	void _on_mouse_leave();
 	void _on_mouse_wheel(float dx, float dy);
 	void _on_key_down(int key);
 	void _on_key_up(int key);
@@ -59,6 +66,9 @@ private:
 	void _on_draw();
 
 	Control *control;
+	Control *hover_control;
+	Control *focus_control;
+	float padding;
 };
 
 }
