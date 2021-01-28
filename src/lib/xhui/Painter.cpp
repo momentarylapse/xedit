@@ -3,6 +3,9 @@
 #include "../nix/nix.h"
 #include "../image/image.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 
 #include <cairo/cairo.h>
 //#include <pango/pango.h>
@@ -20,10 +23,13 @@ nix::Texture *tex_text = nullptr;
 nix::Texture *tex_white = nullptr;
 nix::VertexBuffer *vb_rect = nullptr;
 nix::Shader *shader = nullptr;
+nix::Texture *tex_xxx = nullptr;
 
 void cairo_render_text(const string &font_name, float font_size, const string &text, Align align, Image &im);
 
 
+FT_Library ft2;
+FT_Face face;
 bool _nix_inited = false;
 
 void init_nix() {
@@ -72,6 +78,37 @@ void init_nix() {
 		"</FragmentShader>");
 	shader->filename = "-my-shader-";
 
+
+	auto error = FT_Init_FreeType(&ft2);
+	if (error) {
+		throw Exception("can not initialize freetype2 library");
+	}
+	error = FT_New_Face(ft2, "/usr/share/fonts/noto/NotoSans-Regular.ttf", 0, &face);
+	if (error == FT_Err_Unknown_File_Format) {
+		throw Exception("font unsupported");
+	} else if (error) {
+		throw Exception("font can not be loaded");
+	}
+	FT_Set_Char_Size(face, 0, 32*64, 300, 300);
+	auto glyph_index = FT_Get_Char_Index(face, 'A');
+	msg_write(glyph_index);
+	//errpr = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT); //load_flags);
+	//error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL); //render_mode);
+	error = FT_Load_Char(face, 'A', FT_LOAD_RENDER);
+	msg_write(error);
+	msg_write(face->glyph->bitmap.rows);
+	msg_write(face->glyph->bitmap.width);
+	msg_write(face->glyph->bitmap.pixel_mode);
+
+	tex_xxx = new nix::Texture();
+	im.create(face->glyph->bitmap.width, face->glyph->bitmap.rows, White);
+	for (int i=0; i<face->glyph->bitmap.width; i++)
+		for (int j=0; j<face->glyph->bitmap.rows; j++) {
+			float f = (float)face->glyph->bitmap.buffer[i + j*face->glyph->bitmap.width] / 255.0f;
+			im.set_pixel(i,j, color(f, 1,1,1));
+		}
+	tex_xxx->overwrite(im);
+
 	_nix_inited = true;
 }
 
@@ -98,6 +135,18 @@ Painter::Painter(Window *w) {
 	nix::ResetToColor(color(1, 0.15f, 0.15f, 0.15f));
 	nix::SetCull(CULL_NONE);
 	nix::SetZ(false, false);
+
+
+
+	nix::SetWorldMatrix(matrix::translation(vector(100, 100, 0)) * matrix::scale(100, 100, 1));
+
+	nix::SetShader(shader);
+	_color = White;
+	nix::SetAlpha(ALPHA_SOURCE_ALPHA, ALPHA_SOURCE_INV_ALPHA);
+	shader->set_color(shader->get_location("_color_"), _color);
+	nix::SetTexture(tex_xxx);
+	nix::DrawTriangles(vb_rect);
+	nix::SetAlpha(ALPHA_NONE);
 }
 
 void Painter::end() {
