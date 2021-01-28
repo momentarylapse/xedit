@@ -26,6 +26,7 @@ nix::Shader *shader = nullptr;
 nix::Texture *tex_xxx = nullptr;
 
 void cairo_render_text(const string &font_name, float font_size, const string &text, Align align, Image &im);
+void ft_render_text(const string &font_name, float font_size, const string &text, Align align, Image &im);
 
 
 FT_Library ft2;
@@ -107,6 +108,7 @@ void init_nix() {
 			float f = (float)face->glyph->bitmap.buffer[i + j*face->glyph->bitmap.width] / 255.0f;
 			im.set_pixel(i,j, color(f, 1,1,1));
 		}
+	ft_render_text("xxx", 20, "Hallo, test", Align::LEFT, im);
 	tex_xxx->overwrite(im);
 
 	_nix_inited = true;
@@ -138,7 +140,7 @@ Painter::Painter(Window *w) {
 
 
 
-	nix::SetWorldMatrix(matrix::translation(vector(100, 100, 0)) * matrix::scale(100, 100, 1));
+	nix::SetWorldMatrix(matrix::translation(vector(100, 100, 0)) * matrix::scale(tex_xxx->width, tex_xxx->height, 1));
 
 	nix::SetShader(shader);
 	_color = White;
@@ -199,6 +201,33 @@ void Painter::draw_rect(const rect &r) {
 	nix::DrawTriangles(vb_rect);
 }
 
+
+void ft_render_text(const string &font_name, float font_size, const string &text, Align align, Image &im) {
+	auto utf32 = text.utf8_to_utf32();
+
+	FT_Set_Char_Size(face, 0, 10*64, 300, 300);
+	//auto glyph_index = FT_Get_Char_Index(face, 'A');
+	//msg_write(glyph_index);
+	//errpr = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT); //load_flags);
+	//error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL); //render_mode);
+
+	im.create(1024, 50, color(0,0,0,0));
+
+	int x=0, y=45;
+
+	for (int u: utf32) {
+		int error = FT_Load_Char(face, u, FT_LOAD_RENDER);
+		if (error)
+			continue;
+
+		for (int i=0; i<face->glyph->bitmap.width; i++)
+			for (int j=0; j<face->glyph->bitmap.rows; j++) {
+				float f = (float)face->glyph->bitmap.buffer[i + j*face->glyph->bitmap.width] / 255.0f;
+				im.set_pixel(x+face->glyph->bitmap_left+i,y-face->glyph->bitmap_top+j, color(f, 1,1,1));
+			}
+		x += face->glyph->advance.x >> 6;
+	}
+}
 
 
 void cairo_render_text(const string &font_name, float font_size, const string &text, Align align, Image &im) {
