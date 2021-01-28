@@ -81,7 +81,7 @@ Painter::Painter(Window *w) {
 	if (!_nix_inited)
 		init_nix();
 	_color = White;
-	font_size = 14;
+	font_size = 12;
 	font_name = "CAC Champagne";
 	fill = true;
 
@@ -95,7 +95,7 @@ Painter::Painter(Window *w) {
 
 	nix::StartFrameGLFW(window->window);
 	nix::SetProjectionMatrix(nix::create_pixel_projection_matrix() * matrix::scale(ui_scale, ui_scale, 1));
-	nix::ResetToColor(color(1, 0.2f, 0.2f, 0.2f));
+	nix::ResetToColor(color(1, 0.15f, 0.15f, 0.15f));
 	nix::SetCull(CULL_NONE);
 	nix::SetZ(false, false);
 }

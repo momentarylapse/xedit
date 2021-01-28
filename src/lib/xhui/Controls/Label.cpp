@@ -26,8 +26,8 @@ void Label::get_content_min_size(int &w, int &h) {
 		text_h = int(p->font_size);
 		delete p;
 	}
-	w = text_w + 12;
-	h = text_h + 12;
+	w = text_w + 16;
+	h = text_h + 16;
 }
 
 void Label::_draw(Painter *p) {
