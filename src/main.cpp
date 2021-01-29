@@ -13,7 +13,7 @@ int main() {
 	auto ll = new hui::Label(w, "label", "test");
 	g->add(ll, 0, 0);
 	g->add(new hui::Button(w, "button1", "a small test"), 1, 0);
-	g->add(new hui::Button(w, "button2", "more test"), 1, 1);
+	g->add(new hui::Button(w, "button2", "more test A"), 1, 1);
 	g->add(new hui::Button(w, "button3", "x"), 2, 1);
 	w->add(g);
 
