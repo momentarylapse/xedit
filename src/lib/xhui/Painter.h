@@ -22,7 +22,7 @@ class Painter : public ::Painter {
 	void _cdecl set_line_width(float w) override {};
 	void _cdecl set_line_dash(const Array<float> &dash, float offset) override {};
 	void _cdecl set_fill(bool fill) override { this->fill = fill; };
-	void _cdecl set_clip(const rect &r) override {};
+	void _cdecl set_clip(const rect &r) override;
 	void _cdecl draw_point(float x, float y) override {};
 	void _cdecl draw_line(float x1, float y1, float x2, float y2) override {};
 	void _cdecl draw_lines(const Array<complex> &p) override {};
@@ -34,6 +34,7 @@ class Painter : public ::Painter {
 	float _cdecl get_str_width(const string &str) override;
 	void _cdecl draw_image(float x, float y, const Image *image) override {};
 	void _cdecl draw_mask_image(float x, float y, const Image *image) override {};
+	void _cdecl set_transform(float rot[], const complex &offset) override;
 
 	rect clip() const override { return rect::ID; };
 
@@ -44,6 +45,7 @@ class Painter : public ::Painter {
 	//float dash_offset;
 	//float line_width;
 	//bool anti_aliasing;
+	float offset_x, offset_y;
 	bool fill;
 
 	Window *window;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window.h"
+#include "Painter.h"
 
 namespace hui {
 

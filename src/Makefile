@@ -39,6 +39,7 @@ OBJ = lib/base/array.o \
  lib/nix/nix_view.o \
  lib/xhui/Controls/Button.o \
  lib/xhui/Controls/Control.o \
+ lib/xhui/Controls/DrawingArea.o \
  lib/xhui/Controls/Grid.o \
  lib/xhui/Controls/Label.o \
  lib/xhui/Painter.o \
@@ -151,6 +152,9 @@ lib/xhui/Controls/Button.o : lib/xhui/Controls/Button.cpp lib/xhui/Controls/Butt
 
 lib/xhui/Controls/Control.o : lib/xhui/Controls/Control.cpp lib/xhui/Controls/Control.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/math/rect.h lib/xhui/Painter.h lib/xhui/xhui.h lib/xhui/Window.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h lib/file/msg.h
 	$(CPP) -c lib/xhui/Controls/Control.cpp -o $@ $(CXXFLAGS)
+
+lib/xhui/Controls/DrawingArea.o : lib/xhui/Controls/DrawingArea.cpp lib/xhui/Controls/DrawingArea.h lib/xhui/Controls/Control.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/math/rect.h lib/xhui/Painter.h lib/xhui/xhui.h lib/xhui/Window.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h
+	$(CPP) -c lib/xhui/Controls/DrawingArea.cpp -o $@ $(CXXFLAGS)
 
 lib/xhui/Controls/Grid.o : lib/xhui/Controls/Grid.cpp lib/xhui/Controls/Grid.h lib/xhui/Controls/Control.h lib/base/base.h lib/base/macros.h lib/base/array.h lib/base/strings.h lib/math/rect.h lib/xhui/Painter.h lib/xhui/xhui.h lib/xhui/Window.h lib/image/ImagePainter.h lib/image/Painter.h lib/image/color.h lib/file/msg.h
 	$(CPP) -c lib/xhui/Controls/Grid.cpp -o $@ $(CXXFLAGS)

@@ -115,6 +115,9 @@ Painter::Painter(Window *w) {
 	font_name = "CAC Champagne";
 	fill = true;
 
+	offset_x = 0;
+	offset_y = 0;
+
 
 	int ww, hh;
 	glfwGetWindowSize(window->window, &ww, &hh);
@@ -128,18 +131,6 @@ Painter::Painter(Window *w) {
 	nix::ResetToColor(color(1, 0.15f, 0.15f, 0.15f));
 	nix::SetCull(CULL_NONE);
 	nix::SetZ(false, false);
-
-
-
-	nix::SetWorldMatrix(matrix::translation(vector(100, 100, 0)) * matrix::scale(tex_xxx->width, tex_xxx->height, 1));
-
-	nix::SetShader(shader);
-	_color = White;
-	nix::SetAlpha(ALPHA_SOURCE_ALPHA, ALPHA_SOURCE_INV_ALPHA);
-	shader->set_color(shader->get_location("_color_"), _color);
-	nix::SetTexture(tex_xxx);
-	nix::DrawTriangles(vb_rect);
-	nix::SetAlpha(ALPHA_NONE);
 }
 
 void Painter::end() {
@@ -165,7 +156,7 @@ void Painter::draw_str(float x, float y, const string &str) {
 	tex_text->overwrite(im);
 	float w = im.width / ui_scale;
 	float h = im.height / ui_scale;
-	nix::SetWorldMatrix(matrix::translation(vector(x, y, 0)) * matrix::scale(w, h, 1));
+	nix::SetWorldMatrix(matrix::translation(vector(offset_x + x, offset_y + y, 0)) * matrix::scale(w, h, 1));
 
 	nix::SetShader(shader);
 	nix::SetAlpha(ALPHA_SOURCE_ALPHA, ALPHA_SOURCE_INV_ALPHA);
@@ -186,7 +177,7 @@ float Painter::get_str_width(const string &str) {
 }
 
 void Painter::draw_rect(const rect &r) {
-	nix::SetWorldMatrix(matrix::translation(vector(r.x1, r.y1, 0)) * matrix::scale(r.width(), r.height(), 1));
+	nix::SetWorldMatrix(matrix::translation(vector(offset_x + r.x1, offset_y + r.y1, 0)) * matrix::scale(r.width(), r.height(), 1));
 
 	nix::SetShader(shader);
 	//nix::SetAlpha(ALPHA_SOURCE_ALPHA, ALPHA_SOURCE_INV_ALPHA);
@@ -195,6 +186,16 @@ void Painter::draw_rect(const rect &r) {
 	nix::DrawTriangles(vb_rect);
 }
 
+
+
+void Painter::set_transform(float rot[], const complex &offset) {
+	offset_x = offset.x;
+	offset_y = offset.y;
+}
+
+void Painter::set_clip(const rect &r) {
+	nix::SetScissor(r);
+}
 
 
 void ft_set_font(const string &font_name, float font_size) {

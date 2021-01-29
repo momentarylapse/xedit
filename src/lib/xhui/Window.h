@@ -3,11 +3,15 @@
 #include "../base/base.h"
 #include <GLFW/glfw3.h>
 
+class Painter;
+
 namespace hui {
 
 class Control;
+class Painter;
 
 typedef std::function<void()> Callback;
+typedef std::function<void(::Painter*)> CallbackP;
 
 class Window : public VirtualBase {
 	friend class Painter;
@@ -36,6 +40,8 @@ public:
 
 	void add(Control *c);
 	void event(const string &id, Callback f);
+	void event_x(const string &id, const string &msg, Callback f);
+	void event_xp(const string &id, const string &msg, CallbackP f);
 
 private:
 	GLFWwindow *window;
@@ -84,11 +90,13 @@ private:
 		EventHandler() {};
 		string id, msg;
 		Callback f;
+		CallbackP fp;
 	};
 	Array<EventHandler> event_handlers;
 
 public:
 	void handle_event(const string &id, const string &msg);
+	void handle_event_p(const string &id, const string &msg, Painter *p);
 };
 
 }

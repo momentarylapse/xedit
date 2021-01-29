@@ -278,10 +278,33 @@ void Window::event(const string &id, Callback f) {
 	event_handlers.add(e);
 }
 
+void Window::event_x(const string &id, const string &msg, Callback f) {
+	EventHandler e;
+	e.id = id;
+	e.msg = msg;
+	e.f = f;
+	event_handlers.add(e);
+}
+
+void Window::event_xp(const string &id, const string &msg, CallbackP f) {
+	EventHandler e;
+	e.id = id;
+	e.msg = msg;
+	e.fp = f;
+	event_handlers.add(e);
+}
+
 void Window::handle_event(const string &id, const string &msg) {
 	for (auto &e: event_handlers)
-		if (e.id == id) {
+		if (e.id == id and e.f) {
 			e.f();
+		}
+}
+
+void Window::handle_event_p(const string &id, const string &msg, Painter *p) {
+	for (auto &e: event_handlers)
+		if (e.id == id and e.fp) {
+			e.fp(p);
 		}
 }
 
