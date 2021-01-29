@@ -16,13 +16,9 @@ gldep = dependency('GL')
 add_project_arguments('-DHAS_LIB_GL=1', language : ['cpp'])
 glfwdep = dependency('glfw')
 add_project_arguments('-DHAS_LIB_GLFW=1', language : ['cpp'])
-pangocairodep = dependency('pangocairo')
-add_project_arguments('-DHAS_LIB_PANGOCAIRO=1', language : ['cpp'])
-gtk3dep = dependency('gtk+-3.0')
-add_project_arguments('-DHAS_LIB_GTK3=1', language : ['cpp'])
 freetype2dep = dependency('freetype2')
 add_project_arguments('-DHAS_LIB_FREETYPE2=1', language : ['cpp'])
-deps = [mdep, threaddep, zlibdep, gldep, glfwdep, pangocairodep, gtk3dep, freetype2dep]
+deps = [mdep, threaddep, zlibdep, gldep, glfwdep, freetype2dep]
 
 
 sources = [

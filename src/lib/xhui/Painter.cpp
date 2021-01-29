@@ -6,10 +6,14 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+//#define USE_CAIRO 1
 
+
+#ifdef USE_CAIRO
 #include <cairo/cairo.h>
 //#include <pango/pango.h>
 #include <gtk/gtk.h>
+#endif
 
 namespace nix {
 	matrix create_pixel_projection_matrix();
@@ -172,11 +176,13 @@ void Painter::draw_str(float x, float y, const string &str) {
 }
 
 float Painter::get_str_width(const string &str) {
-	return ft_get_text_width(font_name, font_size /* * ui_scale*/, str);
+#ifdef USE_CAIRO
 	Image im;
 	cairo_render_text(font_name, font_size * ui_scale, str, Align::LEFT, im);
 	tex_text->overwrite(im);
 	return im.width / ui_scale;
+#endif
+	return ft_get_text_width(font_name, font_size /* * ui_scale*/, str);
 }
 
 void Painter::draw_rect(const rect &r) {
@@ -264,6 +270,7 @@ void ft_render_text(const string &font_name, float font_size, const string &text
 	}
 }
 
+#ifdef USE_CAIRO
 
 void cairo_render_text(const string &font_name, float font_size, const string &text, Align align, Image &im) {
 
@@ -332,5 +339,7 @@ void cairo_render_text(const string &font_name, float font_size, const string &t
 		cairo_surface_destroy(surface);
 	}
 }
+
+#endif
 
 }

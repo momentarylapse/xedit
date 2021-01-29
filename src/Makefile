@@ -1,8 +1,8 @@
 BIN = ../xhui
 CPP = g++
-GLOBALFLAGS = -fno-omit-frame-pointer -O2 -g -std=c++17  -DHAS_LIB_ZLIB=1 -DHAS_LIB_GL=1 -DHAS_LIB_GLFW=1 -DHAS_LIB_PANGOCAIRO=1 -DHAS_LIB_GTK3=1 -DHAS_LIB_FREETYPE2=1
-CXXFLAGS =   `pkg-config --cflags pangocairo pango cairo` `pkg-config --cflags gtk+-3.0` `pkg-config --cflags freetype2` $(GLOBALFLAGS)
-CXXFLAGSLINKING =   -lz -lGL -lglfw `pkg-config --cflags --libs pangocairo pango cairo` `pkg-config --cflags --libs gtk+-3.0` `pkg-config --cflags --libs freetype2` $(GLOBALFLAGS)
+GLOBALFLAGS = -fno-omit-frame-pointer -O2 -g -std=c++17  -DHAS_LIB_ZLIB=1 -DHAS_LIB_GL=1 -DHAS_LIB_GLFW=1 -DHAS_LIB_FREETYPE2=1
+CXXFLAGS =   `pkg-config --cflags freetype2` $(GLOBALFLAGS)
+CXXFLAGSLINKING =   -lz -lGL -lglfw `pkg-config --cflags --libs freetype2` $(GLOBALFLAGS)
 prefix = /usr/local
 
 OBJ = lib/base/array.o \
