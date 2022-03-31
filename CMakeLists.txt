@@ -46,7 +46,9 @@ set(SOURCE
 	src/lib/xhui/Controls/DrawingArea.cpp
 	src/lib/xhui/Controls/Grid.cpp
 	src/lib/xhui/Controls/Label.cpp
+	src/lib/xhui/Config.cpp
 	src/lib/xhui/Painter.cpp
+	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp
 	src/main.cpp

@@ -1,4 +1,5 @@
 #include "Painter.h"
+#include "Theme.h"
 
 #include "../nix/nix.h"
 #include "../image/image.h"
@@ -146,9 +147,9 @@ Painter::Painter(Window *w) {
 	glfwMakeContextCurrent(w->window);
 	if (!_nix_inited)
 		init_nix();
-	_color = White;
-	font_size = 12;
-	font_name = "CAC Champagne";
+	_color = Theme::_default.text;
+	font_size = Theme::_default.font_size;
+	font_name = Theme::_default.font_name;//"CAC Champagne";
 	fill = true;
 
 	offset_x = 0;
@@ -164,7 +165,7 @@ Painter::Painter(Window *w) {
 
 	nix::start_frame_glfw(window->window);
 	nix::set_projection_matrix(nix::create_pixel_projection_matrix() * matrix::scale(ui_scale, ui_scale, 1));
-	nix::clear(color(1, 0.15f, 0.15f, 0.15f));
+	nix::clear(Theme::_default.background);//color(1, 0.15f, 0.15f, 0.15f));
 	//nix::clear(color(1, 0.15f, 0.15f, 0.3f));
 	nix::set_cull(nix::CullMode::NONE);
 	nix::set_z(false, false);

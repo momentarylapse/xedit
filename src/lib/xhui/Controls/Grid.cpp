@@ -1,6 +1,6 @@
 #include "Grid.h"
 #include "../Painter.h"
-#include "../../file/msg.h"
+#include "../Theme.h"
 
 namespace hui {
 
@@ -22,7 +22,7 @@ float sum(const Array<float> &a) {
 
 Grid::Grid(Window *w, const string &_id) : Control(w, _id) {
 	ignore_hover = true;
-	spacing = 8;
+	spacing = Theme::_default.spacing;
 
 	expand_x = true;
 	expand_y = true;

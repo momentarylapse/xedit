@@ -1,6 +1,7 @@
 #include "Window.h"
 #include "xhui.h"
 #include "Painter.h"
+#include "Theme.h"
 #include "Controls/Control.h"
 #include "../file/msg.h"
 
@@ -19,7 +20,7 @@ Window::Window(const string &title, int w, int h) {
 	glfwSetWindowUserPointer(window, this);
 
 	control = nullptr;
-	padding = 10;
+	padding = Theme::_default.window_margin;
 
 	hover_control = nullptr;
 	focus_control = nullptr;
@@ -258,8 +259,6 @@ void Window::_on_draw() {
 		control->_draw(p);
 	}
 
-	/*p->set_color(White);
-	p->draw_rect(rect(10,500, 10,500));*/
 	p->end();
 	_refresh_requested = false;
 	delete p;

@@ -1,11 +1,10 @@
 #include "Button.h"
 #include "../Painter.h"
-#include "../../file/msg.h"
+#include "../Theme.h"
 
 namespace hui {
 
 Button::Button(Window *w, const string &_id, const string &t) : Label(w, _id, t) {
-
 	can_grab_focus = true;
 	expand_x = true;
 	expand_y = false;
@@ -32,13 +31,13 @@ void Button::on_mouse_leave() {
 
 void Button::_draw(Painter *p) {
 	if (state == State::HOVER) {
-		p->set_color(color(1, 0.25f, 0.25f, 0.25f));
+		p->set_color(Theme::_default.background_hover);
 		p->draw_rect(_area);
 	} else if (state == State::PRESSED) {
-		p->set_color(color(1, 0.3f, 0.3f, 0.5f));
+		p->set_color(Theme::_default.background_active);
 		p->draw_rect(_area);
 	}
-	p->set_color(color(1, 0.9f, 0.9f, 0.9f));
+	p->set_color(Theme::_default.text);
 	float w = p->get_str_width(title);
 	//if (state == State::PRESSED)
 	//	p->draw_str(_area.mx() - w/2 + 1, _area.my() - p->font_size * 0.8f + 1, title);
