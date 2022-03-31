@@ -191,15 +191,9 @@ void DynamicArray::simple_assign(const DynamicArray *a)
 }
 
 void DynamicArray::exchange(DynamicArray &a) {
-	int tnum = num;
-	num = a.num;
-	a.num = tnum;
-	void *tdata = data;
-	data = a.data;
-	a.data = tdata;
-	int tall = allocated;
-	allocated = a.allocated;
-	a.allocated = tall;
+	std::swap(num, a.num);
+	std::swap(data, a.data);
+	std::swap(allocated, a.allocated);
 }
 
 void DynamicArray::simple_clear() {
@@ -242,13 +236,14 @@ void* DynamicArray::simple_element(int index) {
 	return &((char*)data)[element_size * index];
 }
 
+const int DynamicArray::MAGIC_END_INDEX = 0x81234567;
 
-DynamicArray DynamicArray::ref_subarray(int start, int end) {
+DynamicArray DynamicArray::ref_subarray(int start, int end) const {
 	DynamicArray s;
 	s.init(element_size);
 
 	// magic value (-_-)'
-	if ((unsigned)end == 0x81234567)
+	if ((unsigned)end == (unsigned)MAGIC_END_INDEX)
 		end = num;
 
 	if (start < 0)
@@ -260,7 +255,7 @@ DynamicArray DynamicArray::ref_subarray(int start, int end) {
 	if (end > num)
 		end = num;
 	s.num = max(end - start, 0);
-	s.data = simple_element(start);
+	s.data = const_cast<DynamicArray*>(this)->simple_element(start);
 	return s;
 }
 

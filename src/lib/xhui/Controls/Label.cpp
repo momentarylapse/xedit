@@ -33,7 +33,7 @@ void Label::get_content_min_size(int &w, int &h) {
 void Label::_draw(Painter *p) {
 	p->set_color(color(1, 0.7f, 0.7f, 0.7f));
 	float w = p->get_str_width(title);
-	p->draw_str(_area.mx() - w/2, _area.my() - p->font_size * 0.8f, title);
+	p->draw_str({_area.mx() - w/2, _area.my() - p->font_size * 0.8f}, title);
 }
 
 }

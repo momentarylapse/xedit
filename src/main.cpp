@@ -19,14 +19,19 @@ int main() {
 	g->add(new hui::DrawingArea(w, "area"), 2, 2);
 	w->add(g);
 
-	w->event("button1", [=] { msg_write("event button1 click"); });
-	w->event("button2", [=] { msg_write("event button2 click"); ll->set_string("x"); });
-	w->event_xp("area", "hui:draw", [=](Painter *p) {
+	w->event("button1", [] {
+			msg_write("event button1 click");
+	});
+	w->event("button2", [ll] {
+		msg_write("event button2 click");
+		ll->set_string("x");
+	});
+	w->event_xp("area", "hui:draw", [] (Painter *p) {
 		p->set_color(Black);
 		p->draw_rect(p->area());
 		p->set_color(Red);
 		p->set_font_size(25);
-		p->draw_str(0, 0, "Test");
+		p->draw_str({0, 0}, "Test");
 
 	});
 

@@ -13,6 +13,9 @@ Array<Window*> _windows_;
 Window::Window(const string &title, int w, int h) {
 	window = glfwCreateWindow(w * ui_scale, h * ui_scale, title.c_str(), nullptr, nullptr);
 
+	if (false)
+		glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+
 	glfwSetWindowUserPointer(window, this);
 
 	control = nullptr;
@@ -136,9 +139,9 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 void Window::_cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 	//std::cout << "mouse " << xpos << " " << ypos << "\n";
 	auto w = (Window*)glfwGetWindowUserPointer(window);
-	w->state.mx = xpos/ui_scale;
-	w->state.my = ypos/ui_scale;
-	w->_on_mouse_move(xpos/ui_scale, ypos/ui_scale);
+	w->state.m.x = xpos/ui_scale;
+	w->state.m.y = ypos/ui_scale;
+	w->_on_mouse_move(w->state.m);
 }
 
 void Window::_cursor_enter_callback(GLFWwindow *window, int enter) {
@@ -172,9 +175,9 @@ void Window::_mouse_button_callback(GLFWwindow *window, int button, int action, 
 void Window::_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 	//std::cout << "scroll " << xoffset << " " << yoffset << "\n";
 	auto w = (Window*)glfwGetWindowUserPointer(window);
-	w->state.scroll_x = xoffset;
-	w->state.scroll_y = yoffset;
-	w->_on_mouse_wheel(xoffset, yoffset);
+	w->state.scroll.x = xoffset;
+	w->state.scroll.y = yoffset;
+	w->_on_mouse_wheel(w->state.scroll);
 }
 
 void Window::_refresh_callback(GLFWwindow *window) {
@@ -213,8 +216,8 @@ void Window::_on_right_button_down() {
 void Window::_on_right_button_up() {
 	on_right_button_up();
 }
-void Window::_on_mouse_move(float mx, float my) {
-	auto hover = get_hover_control(mx, my);
+void Window::_on_mouse_move(const vec2 &m) {
+	auto hover = get_hover_control(m);
 	if (hover != hover_control) {
 		if (hover_control)
 			hover_control->on_mouse_leave();
@@ -222,7 +225,7 @@ void Window::_on_mouse_move(float mx, float my) {
 		if (hover_control)
 			hover_control->on_mouse_enter();
 	}
-	on_mouse_move(mx, my);
+	on_mouse_move(m);
 }
 void Window::_on_mouse_enter() {
 	on_mouse_enter();
@@ -234,8 +237,8 @@ void Window::_on_mouse_leave() {
 	}
 	on_mouse_leave();
 }
-void Window::_on_mouse_wheel(float dx, float dy) {
-	on_mouse_wheel(dx, dy);
+void Window::_on_mouse_wheel(const vec2 &d) {
+	on_mouse_wheel(d);
 }
 void Window::_on_key_down(int k) {
 	on_key_down(k);
@@ -249,10 +252,14 @@ void Window::_on_draw() {
 
 	auto p = new Painter(this);
 	auto a = p->area();
+
 	if (control) {
 		control->negotiate_area(rect(a.x1 + padding, a.x2 - padding, a.y1 + padding, a.y2 - padding));
 		control->_draw(p);
 	}
+
+	/*p->set_color(White);
+	p->draw_rect(rect(10,500, 10,500));*/
 	p->end();
 	_refresh_requested = false;
 	delete p;
@@ -308,9 +315,9 @@ void Window::handle_event_p(const string &id, const string &msg, Painter *p) {
 		}
 }
 
-Control *Window::get_hover_control(float x, float y) {
+Control *Window::get_hover_control(const vec2 &p) {
 	for (auto c: controls)
-		if (c->_area.inside(x, y) and !c->ignore_hover)
+		if (c->_area.inside(p) and !c->ignore_hover)
 			return c;
 	return nullptr;
 }

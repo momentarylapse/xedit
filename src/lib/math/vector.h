@@ -1,23 +1,27 @@
 
-#ifndef _MATH_VECTOR_INCLUDED_
-#define _MATH_VECTOR_INCLUDED_
+#pragma once
 
-#include <math.h>
+
+#include "math.h"
 
 class matrix;
 class matrix3;
+class vec2;
 
-class vector
-{
+class vector {
 public:
 	float x, y, z;
 	vector(){};
 	vector(float x, float y, float z);
+	vector(const vec2 &xy, float z);
+
+	vec2 &xy();
+
 	// assignment operators
-	vector& _cdecl operator += (const vector& v);
-	vector& _cdecl operator -= (const vector& v);
-	vector& _cdecl operator *= (float f);
-	vector& _cdecl operator /= (float f);
+	void _cdecl operator += (const vector& v);
+	void _cdecl operator -= (const vector& v);
+	void _cdecl operator *= (float f);
+	void _cdecl operator /= (float f);
 	// unitary operator(s)
 	vector _cdecl operator - () const;
 	// binary operators
@@ -43,11 +47,11 @@ public:
 	vector _cdecl dir2ang2(const vector &up) const;
 	vector _cdecl ortho() const;
 	int _cdecl important_plane() const;
-	vector _cdecl rotate(const vector &ang) const;
-	vector _cdecl transform(const matrix &m) const;
-	vector _cdecl transform_normal(const matrix &m) const;
-	vector _cdecl untransform(const matrix &m) const;
-	vector _cdecl transform3(const matrix3 &m) const;
+//	vector _cdecl rotate(const vector &ang) const;
+//	vector _cdecl transform(const matrix &m) const;
+//	vector _cdecl transform_normal(const matrix &m) const;
+//	vector _cdecl untransform(const matrix &m) const;
+//	vector _cdecl transform3(const matrix3 &m) const;
 	void _cdecl _min(const vector &test_partner);
 	void _cdecl _max(const vector &test_partner);
 	bool _cdecl between(const vector &a, const vector &b) const;
@@ -59,9 +63,12 @@ public:
 	static float _cdecl dot(const vector &v1, const vector &v2);
 	static vector _cdecl cross(const vector &v1, const vector &v2);
 };
+using vec3 = vector;
+//typedef vec3 vector;
+
 // vectors
-vector _cdecl VecAngAdd(const vector &ang1, const vector &ang2);
-vector _cdecl VecAngInterpolate(const vector &ang1, const vector &ang2, float t);
+//vector _cdecl VecAngAdd(const vector &ang1, const vector &ang2);
+//vector _cdecl VecAngInterpolate(const vector &ang1, const vector &ang2, float t);
 float _cdecl VecLineDistance(const vector &p, const vector &l1, const vector &l2);
 vector _cdecl VecLineNearestPoint(const vector &p, const vector &l1, const vector &l2);
 
@@ -75,5 +82,5 @@ void _vec_normalize_(vector &v);
 bool _vec_between_(const vector &v,const vector &a,const vector &b);
 float _vec_factor_between_(const vector &v,const vector &a,const vector &b);
 
+bool inf_v(const vector &v);
 
-#endif

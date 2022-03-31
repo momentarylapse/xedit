@@ -16,9 +16,9 @@ void DrawingArea::_draw(Painter *p) {
 	p->width = _area.width();
 	p->height = _area.height();
 	//p->set_clip(_area);
-	p->set_transform({}, complex(_area.x1, _area.y1));
+	p->set_transform({}, vec2(_area.x1, _area.y1));
 	window->handle_event_p(id, "hui:draw", p);
-	p->set_transform({}, complex(0, 0));
+	p->set_transform({}, vec2(0, 0));
 	p->width = w;
 	p->height = h;
 	//p->set_clip(p->area());

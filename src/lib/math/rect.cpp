@@ -1,7 +1,9 @@
-#include "math.h"
+#include "rect.h"
+#include "vec2.h"
 
-const rect rect::ID = rect(0,1,0,1);
-const rect rect::EMPTY = rect(0,0,0,0);
+const rect rect::ID = rect(0,1, 0,1);
+const rect rect::ID_SYM = rect(-1,1, -1,1);
+const rect rect::EMPTY = rect(0,0, 0,0);
 
 rect::rect(float x1, float x2, float y1, float y2) {
 	this->x1 = x1;
@@ -30,12 +32,16 @@ float rect::my() const {
 	return (y1 + y2) / 2;
 }
 
+vec2 rect::m() const {
+	return {mx(), my()};
+}
+
 float rect::area() const {
 	return (x2 - x1) * (y2 - y1);
 }
 
-bool rect::inside(float x, float y) const {
-	return (x >= x1) and (x <= x2) and (y >= y1) and (y <= y2);
+bool rect::inside(const vec2 &p) const {
+	return (p.x >= x1) and (p.x <= x2) and (p.y >= y1) and (p.y <= y2);
 }
 
 // r in this?
@@ -46,13 +52,13 @@ bool rect::covers(const rect &r) const {
 bool rect::overlaps(const rect &r) const {
 	if (covers(r) or r.covers(*this))
 		return true;
-	if (inside(r.x1, r.y1))
+	if (inside({r.x1, r.y1}))
 		return true;
-	if (inside(r.x2, r.y1))
+	if (inside({r.x2, r.y1}))
 		return true;
-	if (inside(r.x1, r.y2))
+	if (inside({r.x1, r.y2}))
 		return true;
-	if (inside(r.x2, r.y2))
+	if (inside({r.x2, r.y2}))
 		return true;
 	return false;
 }
@@ -72,9 +78,20 @@ void range_intersect(float a1, float a2, float b1, float b2, float &o1, float &o
 	//o2 = max(o1, o2);
 }
 
+// intersection
 rect rect::operator &&(const rect &r) const {
 	rect o = r;
 	range_intersect(x1, x2, r.x1, r.x2, o.x1, o.x2);
 	range_intersect(y1, y2, r.y1, r.y2, o.y1, o.y2);
+	return o;
+}
+
+// hull
+rect rect::operator ||(const rect &r) const {
+	rect o;
+	o.x1 = min(x1, r.x1);
+	o.y1 = min(y1, r.y1);
+	o.x2 = max(x2, r.x2);
+	o.y2 = max(y2, r.y2);
 	return o;
 }

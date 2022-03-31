@@ -30,9 +30,12 @@ set(SOURCE
 	src/lib/math/random.cpp
 	src/lib/math/ray.cpp
 	src/lib/math/rect.cpp
+	src/lib/math/vec2.cpp
 	src/lib/math/vector.cpp
 	src/lib/nix/nix.cpp
+	src/lib/nix/nix_buffer.cpp
 	src/lib/nix/nix_draw.cpp
+	src/lib/nix/nix_framebuffer.cpp
 	src/lib/nix/nix_light.cpp
 	src/lib/nix/nix_shader.cpp
 	src/lib/nix/nix_textures.cpp

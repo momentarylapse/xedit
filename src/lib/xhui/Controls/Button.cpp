@@ -43,7 +43,7 @@ void Button::_draw(Painter *p) {
 	//if (state == State::PRESSED)
 	//	p->draw_str(_area.mx() - w/2 + 1, _area.my() - p->font_size * 0.8f + 1, title);
 	//else
-		p->draw_str(_area.mx() - w/2, _area.my() - p->font_size * 0.8f, title);
+		p->draw_str({_area.mx() - w/2, _area.my() - p->font_size * 0.8f}, title);
 	//p->set_color(color(1, 0.8f, 0.2f, 0.2f));
 	//p->draw_rect(rect(200,250, 200,300));
 }

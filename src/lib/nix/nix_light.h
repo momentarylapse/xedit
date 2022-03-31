@@ -7,20 +7,24 @@
 
 #if HAS_LIB_GL
 
-#ifndef _NIX_LIGHT_EXISTS_
-#define _NIX_LIGHT_EXISTS_
+#pragma once
+
+
+#include "../math/matrix.h"
+#include "../math/vector.h"
+#include "../image/color.h"
 
 
 namespace nix{
 
-void _cdecl SetMaterial(const color &diffuse, float ambient, float specular, float shininess, const color &emission);
+void _cdecl set_material(const color &albedo, float roughness, float metal, const color &emission);
 
 
 
 struct Material {
-	color diffusive;
+	color albedo;
 	color emission;
-	float ambient, specular, shininess;
+	float roughness, metal;
 };
 extern Material material;
 
@@ -35,7 +39,5 @@ struct BasicLight {
 };
 
 };
-
-#endif
 
 #endif

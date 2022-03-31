@@ -1,8 +1,12 @@
-#include "math.h"
+#include "vector.h"
+#include "vec2.h"
+#include "matrix.h"
+#include "plane.h"
+#include <math.h>
 
-//------------------------------------------------------------------------------------------------//
-//                                            vectors                                             //
-//------------------------------------------------------------------------------------------------//
+bool inf_v(const vector &v)
+{   return (inf_f(v.x) || inf_f(v.y) || inf_f(v.z));  }
+
 
 
 const vector vector::ZERO = vector(0, 0, 0);
@@ -16,33 +20,39 @@ vector::vector(float x, float y, float z) {
 	this->z = z;
 }
 
+vector::vector(const vec2 &xy, float z) {
+	this->x = xy.x;
+	this->y = xy.y;
+	this->z = z;
+}
+
+vec2 &vector::xy() {
+	return *(vec2*)&x;
+}
+
 // assignment operators
-vector& vector::operator += (const vector& v) {
+void vector::operator += (const vector& v) {
 	x += v.x;
 	y += v.y;
 	z += v.z;
-	return *this;
 }
 
-vector& vector::operator -= (const vector& v) {
+void vector::operator -= (const vector& v) {
 	x -= v.x;
 	y -= v.y;
 	z -= v.z;
-	return *this;
 }
 
-vector& vector::operator *= (float f) {
+void vector::operator *= (float f) {
 	x *= f;
 	y *= f;
 	z *= f;
-	return *this;
 }
 
-vector& vector::operator /= (float f) {
+void vector::operator /= (float f) {
 	x /= f;
 	y /= f;
 	z /= f;
-	return *this;
 }
 
 // unitary operator(s)
@@ -75,13 +85,15 @@ bool vector::operator != (const vector &v) const {
 	return !((x==v.x) and (y==v.y) and (z==v.z));
 }
 
+#if 1
 float vector::operator * (const vector &v) const {
-	return x*v.x + y*v.y + z*v.z;
+	return dot(*this, v);
 }
 
 vector vector::operator ^ (const vector &v) const {
-	return vector( y*v.z-z*v.y, z*v.x-x*v.z, x*v.y-y*v.x );
+	return cross(*this, v);
 }
+#endif
 
 string vector::str() const {
 	return format("(%f, %f, %f)", x, y, z);
@@ -182,6 +194,7 @@ vector vector::cross(const vector &v1,const vector &v2) {
 
 }
 
+#if 0
 // Koordinaten-Transformation
 // matrix * vector(x,y,z,1)
 vector vector::transform(const matrix &m) const {
@@ -210,6 +223,7 @@ vector vector::transform3(const matrix3 &m) const {
 	vo.z= x*m._20 + y*m._21 + z*m._22;
 	return vo;
 }
+#endif
 
 // vector(0,0,1) wird um ang rotiert
 // ZXY, da nur im Spiel-Koordinaten-System
@@ -246,6 +260,8 @@ vector vector::dir2ang2(const vector &up) const {
 	return QuaternionToAngle(q);*/
 }
 
+
+#if 0
 // adds two angles (juxtaposition of rotations)
 vector VecAngAdd(const vector &ang1,const vector &ang2) {
 	auto q1 = quaternion::rotation(ang1);
@@ -267,6 +283,7 @@ vector vector::rotate(const vector &ang) const {
 	matrix m = matrix::rotation(ang);
 	return transform(m);
 }
+#endif
 
 // which one is the largest coordinate of this vector
 int vector::important_plane() const {
@@ -319,7 +336,7 @@ void vector::_max(const vector &test_partner) {
 
 
 float _vec_length_(const vector &v) {
-	return sqrt(v*v);
+	return sqrt(vector::dot(v, v));
 }
 
 float _vec_length_fuzzy_(const vector &v) {
@@ -331,7 +348,7 @@ float _vec_length_fuzzy_(const vector &v) {
 }
 
 void _vec_normalize_(vector &v) {
-	float inv_norm = 1.0f / sqrt(v*v);
+	float inv_norm = 1.0f / v.length();
 	v *= inv_norm;
 }
 
@@ -341,5 +358,10 @@ bool _vec_between_(const vector &v,const vector &a,const vector &b) {
 }
 
 float _vec_factor_between_(const vector &v,const vector &a,const vector &b) {
-	return ((v-a)*(b-a)) / ((b-a)*(b-a));
+	return vector::dot(v-a, b-a) / vector::dot(b-a, b-a);
 }
+
+
+
+
+

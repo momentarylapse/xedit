@@ -10,75 +10,73 @@
 #include "nix.h"
 #include "nix_common.h"
 
-namespace nix{
-
-extern Shader *current_shader;
+namespace nix {
 
 
 
 
 
 
-void DrawTriangles(VertexBuffer *vb) {
+void draw_triangles(VertexBuffer *vb) {
 	if (vb->count() == 0)
 		return;
-	current_shader->set_default_data();
+	Shader::_current_->set_default_data();
 
-	SetVertexBuffer(vb);
+	bind_vertex_buffer(vb);
 
-	glDrawArrays(GL_TRIANGLES, 0, vb->count()); // Starting from vertex 0; 3 vertices total -> 1 triangle
-
-	TestGLError("DrawTriangles");
+	if (vb->is_indexed())
+		glDrawElements(GL_TRIANGLES, vb->index.count, vb->index.type, (void*)0);
+	else
+		glDrawArrays(GL_TRIANGLES, 0, vb->count()); // Starting from vertex 0; 3 vertices total -> 1 triangle
 }
 
-void DrawInstancedTriangles(VertexBuffer *vb, int count) {
+void draw_instanced_triangles(VertexBuffer *vb, int count) {
 	if (vb->count() == 0)
 		return;
-	current_shader->set_default_data();
+	Shader::_current_->set_default_data();
 
-	SetVertexBuffer(vb);
+	bind_vertex_buffer(vb);
 
 	glDrawArraysInstanced(GL_TRIANGLES, 0, vb->count(), count); // Starting from vertex 0; 3 vertices total -> 1 triangle
-
-	TestGLError("DrawTriangles");
 }
 
 
-void DrawLines(VertexBuffer *vb, bool contiguous) {
+void draw_lines(VertexBuffer *vb, bool contiguous) {
 	if (vb->count() == 0)
 		return;
-	current_shader->set_default_data();
+	Shader::_current_->set_default_data();
 
-	SetVertexBuffer(vb);
+	bind_vertex_buffer(vb);
 
 	if (contiguous)
 		glDrawArrays(GL_LINE_STRIP, 0, vb->count());
 	else
 		glDrawArrays(GL_LINES, 0, vb->count());
-	TestGLError("DrawLines");
 }
 
-void DrawPoints(VertexBuffer *vb) {
+void draw_points(VertexBuffer *vb) {
 	if (vb->count() == 0)
 		return;
-	current_shader->set_default_data();
+	Shader::_current_->set_default_data();
 
-	SetVertexBuffer(vb);
+	bind_vertex_buffer(vb);
 
 	glDrawArrays(GL_POINTS, 0, vb->count());
-	TestGLError("DrawPoints");
 }
 
 
-void ResetToColor(const color &c) {
+void clear(const color &c) {
 	glClearColor(c.r, c.g, c.b, c.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	TestGLError("ResetToColor");
 }
 
-void ResetZ() {
+void clear_color(const color &c) {
+	glClearColor(c.r, c.g, c.b, c.a);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void clear_z() {
 	glClear(GL_DEPTH_BUFFER_BIT);
-	TestGLError("ResetZ");
 }
 
 };

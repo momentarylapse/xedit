@@ -1,6 +1,8 @@
 
-#ifndef _MATH_MATRIX3_INCLUDED_
-#define _MATH_MATRIX3_INCLUDED_
+#pragma once
+
+
+#include "math.h"
 
 class vector;
 
@@ -42,6 +44,7 @@ public:
 
 
 	static const matrix3 ID;
+	static const matrix3 ZERO;
 	
 	
 	matrix3 _cdecl inverse() const;
@@ -51,6 +54,3 @@ public:
 };
 
 
-
-
-#endif

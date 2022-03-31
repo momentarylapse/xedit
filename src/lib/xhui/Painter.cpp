@@ -3,6 +3,8 @@
 #include "../nix/nix.h"
 #include "../image/image.h"
 
+#include "../file/msg.h"
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -17,6 +19,7 @@
 
 namespace nix {
 	matrix create_pixel_projection_matrix();
+	extern matrix projection_matrix,view_matrix,model_matrix;
 }
 
 
@@ -41,49 +44,82 @@ static int dpi = 96;
 bool _nix_inited = false;
 
 void init_nix() {
-	nix::Init();
+	nix::init();
 	tex_text = new nix::Texture();
 	tex_white = new nix::Texture();
 	Image im;
 	im.create(8, 8, White);
-	tex_white->overwrite(im);
+	tex_white->override(im);
 	vb_rect = new nix::VertexBuffer("3f,3f,2f");
-	vb_rect->create_rect(rect::ID, rect::ID);
+	vb_rect->create_quad(rect::ID, rect::ID);
+
+
+
+#if 0
+	<VertexShader>
+	#version 330 core
+	#extension GL_ARB_separate_shader_objects : enable
+
+	struct Matrix { mat4 model, view, project; };
+	/*layout(binding = 0)*/ uniform Matrix matrix;
+
+	layout(location = 0) in vec3 in_position;
+	layout(location = 1) in vec3 in_normal;
+	layout(location = 2) in vec2 in_uv;
+
+	layout(location = 0) out vec2 out_uv;
+
+	void main() {
+		gl_Position = matrix.project * matrix.view * matrix.model * vec4(in_position, 1);
+		out_uv = in_uv;
+	}
+
+	</VertexShader>
+#endif
+
 
 	shader  = nix::Shader::create(
-		"<VertexShader>\n"
-		"#version 330 core\n"
-		"#extension GL_ARB_separate_shader_objects : enable"
-		"\n"
-		"struct Matrix { mat4 model, view, project; };\n"
-		"/*layout(binding = 0)*/ uniform Matrix matrix;\n"
-		"\n"
-		"layout(location = 0) in vec3 in_position;\n"
-		"layout(location = 1) in vec3 in_normal;\n"
-		"layout(location = 2) in vec2 in_uv;\n"
-		"\n"
-		"layout(location = 0) out vec2 out_uv;\n"
-		"\n"
-		"void main() {\n"
-		"	gl_Position = matrix.project * matrix.view * matrix.model * vec4(in_position, 1);\n"
-		"	out_uv = in_uv;\n"
-		"}\n"
-		"\n"
-		"</VertexShader>\n"
-		"<FragmentShader>\n"
-		"#version 330 core\n"
-		"#extension GL_ARB_separate_shader_objects : enable"
-		"\n"
-		"layout(location = 0) in vec2 in_uv;\n"
-		"uniform sampler2D tex0;\n"
-		"uniform vec4 _color_;\n"
-		"out vec4 color;\n"
-		"\n"
-		"void main() {\n"
-		"	color = texture(tex0, in_uv);\n"
-		"	color *= _color_;\n"
-		"}\n"
-		"</FragmentShader>");
+			R"foodelim(
+<Layout>
+	version = 330 core
+</Layout>
+<VertexShader>
+
+#extension GL_ARB_separate_shader_objects : enable
+
+struct Matrix { mat4 model, view, project; };
+/*layout(binding = 0)*/ uniform Matrix matrix;
+
+layout(location = 0) in vec3 in_position;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_uv;
+
+layout(location = 0) out vec3 out_normal;
+layout(location = 1) out vec2 out_uv;
+layout(location = 2) out vec4 out_pos; // camera space
+
+void main() {
+	gl_Position = matrix.project * matrix.view * matrix.model * vec4(in_position, 1);
+	out_normal = (matrix.view * matrix.model * vec4(in_normal, 0)).xyz;
+	out_uv = in_uv;
+}
+</VertexShader>
+<FragmentShader>
+#extension GL_ARB_separate_shader_objects : enable
+
+layout(location = 0) in vec3 in_normal;
+layout(location = 1) in vec2 in_uv;
+layout(location = 2) in vec4 in_pos;
+uniform sampler2D tex0;
+uniform vec4 _color_;
+out vec4 out_color;
+
+void main() {
+	out_color = texture(tex0, in_uv);
+	out_color *= _color_;
+}
+</FragmentShader>
+)foodelim");
 	shader->filename = "-my-shader-";
 
 
@@ -100,7 +136,7 @@ void init_nix() {
 
 	tex_xxx = new nix::Texture();
 	ft_render_text("xxx", 25, u8"Hallo, test bla bla bla 923847298347\nÖÄÜßöäü 典范条目", Align::LEFT, im);
-	tex_xxx->overwrite(im);
+	tex_xxx->override(im);
 
 	_nix_inited = true;
 }
@@ -126,15 +162,16 @@ Painter::Painter(Window *w) {
 
 
 
-	nix::StartFrameGLFW(window->window);
-	nix::SetProjectionMatrix(nix::create_pixel_projection_matrix() * matrix::scale(ui_scale, ui_scale, 1));
-	nix::ResetToColor(color(1, 0.15f, 0.15f, 0.15f));
-	nix::SetCull(CULL_NONE);
-	nix::SetZ(false, false);
+	nix::start_frame_glfw(window->window);
+	nix::set_projection_matrix(nix::create_pixel_projection_matrix() * matrix::scale(ui_scale, ui_scale, 1));
+	nix::clear(color(1, 0.15f, 0.15f, 0.15f));
+	//nix::clear(color(1, 0.15f, 0.15f, 0.3f));
+	nix::set_cull(nix::CullMode::NONE);
+	nix::set_z(false, false);
 }
 
 void Painter::end() {
-	nix::EndFrameGLFW(window->window);
+	nix::end_frame_glfw(window->window);
 }
 
 void Painter::set_font(const string &font, float size, bool bold, bool italic) {
@@ -150,20 +187,20 @@ void Painter::set_color(const color &c) {
 	_color = c;
 }
 
-void Painter::draw_str(float x, float y, const string &str) {
+void Painter::draw_str(const vec2 &p, const string &str) {
 	Image im;
 	ft_render_text(font_name, font_size * ui_scale, str, Align::LEFT, im);
-	tex_text->overwrite(im);
+	tex_text->override(im);
 	float w = im.width / ui_scale;
 	float h = im.height / ui_scale;
-	nix::SetWorldMatrix(matrix::translation(vector(offset_x + x, offset_y + y, 0)) * matrix::scale(w, h, 1));
+	nix::set_model_matrix(matrix::translation(vector(offset_x + p.x, offset_y + p.y, 0)) * matrix::scale(w, h, 1));
 
-	nix::SetShader(shader);
-	nix::SetAlpha(ALPHA_SOURCE_ALPHA, ALPHA_SOURCE_INV_ALPHA);
-	shader->set_color(shader->get_location("_color_"), _color);
-	nix::SetTexture(tex_text);
-	nix::DrawTriangles(vb_rect);
-	nix::SetAlpha(ALPHA_NONE);
+	nix::set_shader(shader);
+	nix::set_alpha_sd(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA);
+	shader->set_color("_color_", _color);
+	nix::set_texture(tex_text);
+	nix::draw_triangles(vb_rect);
+	nix::disable_alpha();
 }
 
 float Painter::get_str_width(const string &str) {
@@ -177,24 +214,23 @@ float Painter::get_str_width(const string &str) {
 }
 
 void Painter::draw_rect(const rect &r) {
-	nix::SetWorldMatrix(matrix::translation(vector(offset_x + r.x1, offset_y + r.y1, 0)) * matrix::scale(r.width(), r.height(), 1));
-
-	nix::SetShader(shader);
+	nix::set_model_matrix(matrix::translation(vector(offset_x + r.x1, offset_y + r.y1, 0)) * matrix::scale(r.width(), r.height(), 1));
+	nix::set_shader(shader);
 	//nix::SetAlpha(ALPHA_SOURCE_ALPHA, ALPHA_SOURCE_INV_ALPHA);
-	shader->set_color(shader->get_location("_color_"), _color);
-	nix::SetTexture(tex_white);
-	nix::DrawTriangles(vb_rect);
+	shader->set_color("_color_", _color);
+	nix::set_texture(tex_white);
+	nix::draw_triangles(vb_rect);
 }
 
 
 
-void Painter::set_transform(float rot[], const complex &offset) {
+void Painter::set_transform(float rot[], const vec2 &offset) {
 	offset_x = offset.x;
 	offset_y = offset.y;
 }
 
 void Painter::set_clip(const rect &r) {
-	nix::SetScissor(r);
+	nix::set_scissor(r);
 }
 
 

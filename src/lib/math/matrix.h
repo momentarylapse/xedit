@@ -1,6 +1,8 @@
 
-#ifndef _MATH_MATRIX_INCLUDED_
-#define _MATH_MATRIX_INCLUDED_
+#pragma once
+
+
+#include "math.h"
 
 //#define _element(row,col)	e[row+col*4]
 
@@ -8,7 +10,7 @@ class matrix;
 class vector;
 class quaternion;
 class plane;
-matrix MatrixMultiply2(const matrix &m2, const matrix &m1);
+//matrix MatrixMultiply2(const matrix &m2, const matrix &m1);
 
 
 class matrix {
@@ -64,12 +66,10 @@ public:
 	static matrix _cdecl rotation(const quaternion &q) { return rotation_q(q); }
 	static matrix _cdecl scale(float fx,float fy,float fz);
 	static matrix _cdecl reflection(const plane &pl);
-	static matrix _cdecl perspective(float fovy, float aspect, float z_near, float z_far);
+	static matrix _cdecl perspective(float fovy, float aspect, float z_near, float z_far, bool z_sym);
 };
 
 
 //inline vector *_matrix_get_translation_(const matrix &m)
 //{	return (vector*)&m._03;	} // (_03, _13, _23) happens to be aligned the right way...
 
-
-#endif

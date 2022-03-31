@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../base/base.h"
+#include "../math/vec2.h"
 #include <GLFW/glfw3.h>
 
 class Painter;
@@ -27,10 +28,10 @@ public:
 	virtual void on_middle_button_up() {}
 	virtual void on_right_button_down() {}
 	virtual void on_right_button_up() {}
-	virtual void on_mouse_move(float mx, float my) {}
+	virtual void on_mouse_move(const vec2 &m) {}
 	virtual void on_mouse_enter() {}
 	virtual void on_mouse_leave() {}
-	virtual void on_mouse_wheel(float dx, float dy) {}
+	virtual void on_mouse_wheel(const vec2 &d) {}
 	virtual void on_key_down(int key) {}
 	virtual void on_key_up(int key) {}
 
@@ -47,8 +48,8 @@ private:
 	GLFWwindow *window;
 
 	struct InputState {
-		float mx, my;
-		float scroll_x, scroll_y;
+		vec2 m;;
+		vec2 scroll;
 		bool lbut, mbut, rbut;
 		bool key[256];
 	} state, state_prev;
@@ -67,17 +68,17 @@ private:
 	void _on_middle_button_up();
 	void _on_right_button_down();
 	void _on_right_button_up();
-	void _on_mouse_move(float mx, float my);
+	void _on_mouse_move(const vec2 &m);
 	void _on_mouse_enter();
 	void _on_mouse_leave();
-	void _on_mouse_wheel(float dx, float dy);
+	void _on_mouse_wheel(const vec2 &d);
 	void _on_key_down(int key);
 	void _on_key_up(int key);
 
 	bool _refresh_requested = true;
 	void _on_draw();
 
-	Control *get_hover_control(float x, float y);
+	Control *get_hover_control(const vec2 &p);
 
 	Control *control;
 	Array<Control*> controls;

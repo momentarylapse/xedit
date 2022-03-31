@@ -1,8 +1,6 @@
-#include "math.h"
-
-//------------------------------------------------------------------------------------------------//
-//                                             planes                                             //
-//------------------------------------------------------------------------------------------------//
+#include "plane.h"
+#include "matrix.h"
+#include "vec2.h"
 
 
 plane::plane(const vector &_n, float _d) {
@@ -14,14 +12,14 @@ string plane::str() const {
 	return format("(%f, %f, %f, %f)", n.x, n.y, n.z, d);
 }
 
-float LineIntersectsTriangleF, LineIntersectsTriangleG;
+vec2 line_intersects_triangle_fg;
 
 // plane containing a, b, c
 plane plane::from_points(const vector &a,const vector &b,const vector &c) {
 	plane pl;
-	pl.n = (b-a) ^ (c - a);
+	pl.n = vector::cross(b - a, c - a);
 	pl.n.normalize();
-	pl.d = - (pl.n*a);
+	pl.d = - vector::dot(pl.n, a);
 	return pl;
 }
 
@@ -29,7 +27,7 @@ plane plane::from_points(const vector &a,const vector &b,const vector &c) {
 plane plane::from_point_normal(const vector &p,const vector &n) {
 	plane pl;
 	pl.n = n;
-	pl.d = -(n*p);
+	pl.d = - vector::dot(n, p);
 	return pl;
 }
 
@@ -38,7 +36,7 @@ plane plane::from_point_normal(const vector &p,const vector &n) {
 plane plane::transform(const matrix &m) const {
 	plane plo;
 	// transform the normal vector  (n' = R n)
-	plo.n = n.transform_normal(m);
+	plo.n = m.transform_normal(n);
 	// offset (d' = d - < T, n' >)
 	plo.d= d - plo.n.x*m._03 - plo.n.y*m._13 - plo.n.z*m._23;
 	return plo;
@@ -48,14 +46,14 @@ plane plane::transform(const matrix &m) const {
 // (false if parallel!)
 bool plane::intersect_line(const vector &l1, const vector &l2, vector &i) const  {
 	float _d = -d;
-	float e = n*l1;
-	float f = n*l2;
+	float e = vector::dot(n, l1);
+	float f = vector::dot(n, l2);
 	if (e==f) // parallel?
 		return false;
-	float t=(_d-f)/(e-f);
+	float t= (_d-f) / (e-f);
 	//if ((t>=0)&&(t<=1)){
 		//i = l1 + t*(l2-l1);
-		i = l2 + t*(l1-l2);
+		i = l2 + t * (l1-l2);
 		return true;
 }
 
@@ -64,59 +62,58 @@ plane plane::inverse() const {
 	return plane(-n, d);
 }
 
-// P = A + f*( B - A ) + g*( C - A )
-void GetBaryCentric(const vector &P,const vector &A,const vector &B,const vector &C,float &f,float &g) {
-	// Bezugs-System: A
-	vector ba=B-A,ca=C-A,dir;
-	plane pl = plane::from_points(A,B,C); // Ebene des Dreiecks
-	dir=pl.n; // Normalen-Vektor
-	vector pvec;
-	pvec=vector::cross(dir,ca); // Laenge: |ca|         Richtung: Dreiecks-Ebene, orth zu ca
-	float det=vector::dot(ba,pvec); // = |ba| * |ca| * cos( pvec->ba )   -> =Flaeche des Parallelogramms
+vec2 bary_centric2(const plane &pl, const vector &P, const vector &A, const vector &B, const vector &C) {
+	// relative to: A
+	vector ba = B - A;
+	vector ca = C - A;
+	vector dir = pl.n; // normal vector
+	vector pvec = vector::cross(dir, ca); // length: |ca|         direction: triangle area, orthogonal to ca
+	float det = vector::dot(ba, pvec); // = |ba| * |ca| * cos( pvec->ba )   -> = area of parallelogram
 	vector pa;
-	if (det>0) {
-		pa=P-A;
+	if (det > 0) {
+		pa = P - A;
 	} else {
-		pa=A-P;
-		det=-det;
+		pa = A - P;
+		det = -det;
 	}
-	f=vector::dot(pa,pvec);
-	vector qvec;
-	qvec=vector::cross(pa,ba);
-	g=vector::dot(dir,qvec);
-	//float t=VecDotProduct(ca,qvec);
-	float InvDet=1.0f/det;
-	//t*=InvDet;
-	f*=InvDet;
-	g*=InvDet;
+	float f = vector::dot(pa, pvec);
+	vector qvec = vector::cross(pa,ba);
+	float g = vector::dot(dir, qvec);
+	float inv_det = 1.0f / det;
+	return vec2(f, g) * inv_det;
 }
 
-// wird das Dreieck(t1,t2,t3) von der Geraden(l1,l2) geschnitten?
-// Schnittpunkt = col
-bool LineIntersectsTriangle(const vector &t1,const vector &t2,const vector &t3,const vector &l1,const vector &l2,vector &col,bool vm) {
-	plane p = plane::from_points(t1,t2,t3);
-	if (!p.intersect_line(l1, l2, col))
-		return false;
-	GetBaryCentric(col,t1,t2,t3,LineIntersectsTriangleF,LineIntersectsTriangleG);
-	if ((LineIntersectsTriangleF>0)&&(LineIntersectsTriangleG>0)&&(LineIntersectsTriangleF+LineIntersectsTriangleG<1))
-		return true;
-	return false;
+// P = A + f*( B - A ) + g*( C - A )
+vec2 bary_centric(const vector &P, const vector &A, const vector &B, const vector &C) {
+	plane pl = plane::from_points(A, B, C); // plane of the triangle
+	return bary_centric2(pl, P, A, B, C);
 }
- 
-// wird das Dreieck(t1,t2,t3) von der Geraden(l1,l2) geschnitten?
-// Schnittpunkt = col
-// ------------ GetBaryCentric....
-bool LineIntersectsTriangle2(const plane &pl,const vector &t1,const vector &t2,const vector &t3,const vector &l1,const vector &l2,vector &col,bool vm) {
+
+// do the triangle(t1,t2,t3) and the line(l1,l2) intersect?
+//   intersection = col
+bool line_intersects_triangle(const vector &t1,const vector &t2,const vector &t3,const vector &l1,const vector &l2,vector &col) {
+	plane p = plane::from_points(t1,t2,t3);
+	return line_intersects_triangle2(p, t1, t2, t3, l1, l2, col);
+}
+
+// do the triangle(t1,t2,t3) and the line(l1,l2) intersect?
+//   intersection = col
+bool line_intersects_triangle2(const plane &pl,const vector &t1,const vector &t2,const vector &t3,const vector &l1,const vector &l2,vector &col) {
 	if (!pl.intersect_line(l1, l2, col))
 		return false;
-	GetBaryCentric(col,t1,t2,t3,LineIntersectsTriangleF,LineIntersectsTriangleG);
-	if ((LineIntersectsTriangleF>0)&&(LineIntersectsTriangleG>0)&&(LineIntersectsTriangleF+LineIntersectsTriangleG<1))
+	line_intersects_triangle_fg = bary_centric2(pl, col,t1,t2,t3);
+	if ((line_intersects_triangle_fg.x>0) and (line_intersects_triangle_fg.y>0) and (line_intersects_triangle_fg.x+line_intersects_triangle_fg.y<1))
 		return true;
 	return false;
 }
 
 // distance <point p> to <plane pl>
 float plane::distance(const vector &p) const {
-	return n * p + d;
+	return vector::dot(n, p) + d;
+}
+
+
+bool inf_pl(plane p) {
+	return (inf_v(p.n) or inf_f(p.d));
 }
 

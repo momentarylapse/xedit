@@ -1,12 +1,11 @@
 
-#ifndef _MATH_RECT_INCLUDED_
-#define _MATH_RECT_INCLUDED_
+#pragma once
 
-#include "../base/base.h"
+#include "math.h"
 
 class string;
+class vec2;
 
-// types
 class rect {
 public:
 	float x1, x2, y1, y2;
@@ -18,16 +17,17 @@ public:
 	float _cdecl area() const;
 	float _cdecl mx() const;
 	float _cdecl my() const;
-	bool _cdecl inside(float x, float y) const;
+	vec2 _cdecl m() const;
+	bool _cdecl inside(const vec2 &p) const;
 	bool _cdecl covers(const rect &r) const;
 	bool _cdecl overlaps(const rect &r) const;
 
 	bool _cdecl operator==(const rect &r) const;
 	bool _cdecl operator!=(const rect &r) const;
 	rect _cdecl operator&&(const rect &r) const;
+	rect _cdecl operator||(const rect &r) const;
 
 	static const rect ID;
+	static const rect ID_SYM;
 	static const rect EMPTY;
 };
-
-#endif
