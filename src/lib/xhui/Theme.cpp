@@ -14,6 +14,7 @@ void Theme::load_default() {
 
 	_default.spacing = c.get_float("spacing", 8);
 	_default.window_margin = c.get_float("window.margin", 8);
+	_default.label_margin = c.get_float("label.margin", 8);
 
 	_default.background = color::parse(c.get_str("colors.background", "#000000"));
 	_default.background_hover = color::parse(c.get_str("colors.background-hover", "#404040"));

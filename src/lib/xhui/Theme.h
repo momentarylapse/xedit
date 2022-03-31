@@ -10,6 +10,7 @@ public:
 	float font_size;
 
 	float spacing, window_margin;
+	float label_margin;
 
 	color background, background_hover, background_active;
 	color text, text_label;

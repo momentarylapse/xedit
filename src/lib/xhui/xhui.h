@@ -11,7 +11,7 @@ void run();
 extern float ui_scale;
 
 
-enum Align {
+enum class Align {
 	RIGHT = 1,
 	CENTER_H = 2,
 	LEFT = 4

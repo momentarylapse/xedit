@@ -190,11 +190,6 @@ void Window::redraw(const string &id) {
 	_refresh_requested = true;
 }
 
-struct ColorScheme {
-	color background;
-	color text;
-};
-
 void Window::_on_left_button_down() {
 	if (hover_control)
 		hover_control->on_left_button_down();
@@ -253,6 +248,8 @@ void Window::_on_draw() {
 
 	auto p = new Painter(this);
 	auto a = p->area();
+
+	p->clear(Theme::_default.background);
 
 	if (control) {
 		control->negotiate_area(rect(a.x1 + padding, a.x2 - padding, a.y1 + padding, a.y2 - padding));

@@ -35,6 +35,7 @@ class Painter : public ::Painter {
 	void _cdecl draw_image(const vec2 &p, const Image *image) override {};
 	void _cdecl draw_mask_image(const vec2 &p, const Image *image) override {};
 
+	void clear(const color &c);
 	void _cdecl set_transform(float rot[], const vec2 &offset);
 
 	rect clip() const override { return rect::ID; };

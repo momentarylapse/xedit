@@ -1,8 +1,7 @@
 #include "xhui.h"
 #include "Window.h"
 #include "Theme.h"
-#include "../file/msg.h"
-#include "../nix/nix.h"
+#include "draw/font.h"
 #include <unistd.h>
 
 namespace hui {
@@ -16,6 +15,8 @@ void init() {
 	glfwInit();
 
 	Theme::load_default();
+
+	font_init();
 }
 
 void run() {
