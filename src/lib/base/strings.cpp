@@ -273,7 +273,7 @@ string::string(const char *str) : bytes(str) {}
 
 string::string(const void *str, int l) : bytes(str, l) {}
 
-#if __cplusplus >= 202002L
+#if __cpp_char8_t
 string::string(const char8_t *str) : bytes((const char*)str) {}
 #endif
 
@@ -716,6 +716,29 @@ MAKE_ARRAY_STR(ba2s, bool, b2s);
 MAKE_ARRAY_STR(sa2s, string, str_quote);
 
 
+template<> string str(const int& i) {
+	return i2s(i);
+}
+template<> string str(const unsigned int& i) {
+	return i2s(i);
+}
+template<> string str(const int64& i) {
+	return i642s(i);
+}
+template<> string str(const float& f) {
+	return f2sf(f);
+}
+template<> string str(const double& d) {
+	return f642sf(d);
+}
+template<> string str(const bool& b) {
+	return b2s(b);
+}
+template<> string str(const Array<string> &a) {
+	return sa2s(a);
+}
+
+
 struct xf_format_data {
 	bool sign, left_justify, fill_zeros, sharp;
 	int width;
@@ -897,8 +920,7 @@ bool _xf_split_first_(const string &s, string &pre, string &f, string &post) {
 
 
 // convert a string to an integer
-int string::_int() const
-{
+int string::_int() const {
 	bool minus = false;
 	int res = 0;
 	for (int i=0; i<num; i++) {
@@ -913,10 +935,9 @@ int string::_int() const
 	return res;
 }
 
-long long string::i64() const
-{
+int64 string::i64() const {
 	bool minus = false;
-	long long res = 0;
+	int64 res = 0;
 	for (int i=0; i<num; i++) {
 		char c = (*this)[i];
 		if ((c == '-') and (i == 0))
@@ -929,18 +950,17 @@ long long string::i64() const
 	return res;
 }
 
-int s2i(const string &s)
-{	return s._int();	}
+int s2i(const string &s) {
+	return s._int();
+}
 
 // convert a string to a float
-float string::_float() const
-{
+float string::_float() const {
 	return (float)f64();
 }
 
 // convert a string to a float
-double string::f64() const
-{
+double string::f64() const {
 	bool minus = false;
 	int e = -1;
 	double res = 0;
@@ -969,19 +989,37 @@ double string::f64() const
 }
 
 
-float s2f(const string &s)
-{	return s._float();	}
+float s2f(const string &s) {
+	return s._float();
+}
 
-double s2f64(const string &s)
-{	return s.f64();	}
+double s2f64(const string &s) {
+	return s.f64();
+}
 
-bool string::_bool() const
-{
+bool string::_bool() const {
 	return (*this == "true") or (*this == "yes");
 }
 
-bool s2b(const string &s)
-{	return s._bool();	}
+bool s2b(const string &s) {
+	return s._bool();
+}
+
+
+
+bool str_is_integer(const string &s) {
+	for (char c: s)
+		if ((c < '0' or c > '9') and (c != '-'))
+			return false;
+	return true;
+}
+
+bool str_is_float(const string &s) {
+	for (char c: s)
+		if ((c < '0' or c > '9') and (c != '-') and (c != '.'))
+			return false;
+	return true;
+}
 
 bool is_whitespace_x(char c) {
 	return ((c == ' ') or (c == '\t') or (c == '\n') or (c == '\r') or (c == '\0'));
@@ -1271,7 +1309,7 @@ Array<string> str_parse_tokens(const string &line, const string &splitters) {
 			for (int j=i+1; j<line.num; j++) {
 				if (line[j] == '\\') {
 					j ++;
-				} else if ((line[j] == '\"') or (line[j] == '\'')) {
+				} else if (line[j] == line[start]) {
 					i = j;
 					if (keep_quotes)
 						tokens.add(line.sub(start, i+1));

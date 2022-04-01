@@ -1,6 +1,7 @@
 #include "image.h"
-#include "../file/file.h"
-#include "../math/math.h"
+#include "../os/msg.h"
+#include "../os/path.h"
+#include "../os/filesystem.h"
 
 #include "image_bmp.h"
 #include "image_tga.h"
@@ -45,7 +46,7 @@ void Image::_load_flipped(const Path &filename) {
 	data.clear();
 
 	// file ok?
-	if (!file_exists(filename)) {
+	if (!os::fs::exists(filename)) {
 		msg_error("Image.load: file does not exist: " + filename.str());
 		return;
 	}
@@ -123,7 +124,7 @@ void Image::clear()
 	data.clear();
 }
 
-Image* Image::scale(int _width, int _height) const {
+xfer<Image> Image::scale(int _width, int _height) const {
 	Image *r = new Image(_width, _height, Black);
 
 	for (int x=0;x<_width;x++)
@@ -239,7 +240,7 @@ color Image::get_pixel_interpolated(float x, float y) const {
 	return (c00 * (1 - sy) + c01 * sy) * (1 - sx) + (c10 * (1 - sy) + c11 * sy) * sx;
 }
 
-Image *Image::load(const Path &filename) {
+xfer<Image> Image::load(const Path &filename) {
 	Image *im = new Image;
 	im->_load(filename);
 	if (!im->error)

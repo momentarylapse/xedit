@@ -1,5 +1,6 @@
 #include "image.h"
-#include "../file/file.h"
+#include "../os/file.h"
+#include "../os/msg.h"
 #include "../math/math.h"
 
 #define USE_FAST_COSINE_TRAFO	1
@@ -149,8 +150,6 @@ void jpg_decode_huffman(int ac,int dc,unsigned char *&b,int &bit_off,int &prev,i
 	//msg_write("huffman");
 	int coeff2[80];
 	memset(coeff2,0,4*64);
-
-	unsigned char *b0=b;
 
 	// "dc"
 	int size=jpg_get_huffman(&jpg_htdc[dc],b,bit_off);
@@ -362,7 +361,6 @@ inline void jpg_insert_into_image(float *col0,float *col1,float *col2,int &sx,in
 
 void jpg_decode(unsigned char *b,s_jpg_color_info ci)
 {
-	unsigned char *a=b;
 	//msg_write("start decode!");
 	// size of meta blocks
 	int sx=_max(ci.h[0],_max(ci.h[1],ci.h[2]))*8;
@@ -412,7 +410,7 @@ void jpg_decode(unsigned char *b,s_jpg_color_info ci)
 
 void image_load_jpg(const Path &filename, Image &image)
 {
-	string tt = FileRead(filename);
+	bytes tt = os::fs::read_binary(filename);
 	unsigned char *buf = (unsigned char*)tt.data;
 
 	unsigned char *b=buf;

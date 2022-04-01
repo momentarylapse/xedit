@@ -1,18 +1,15 @@
 # created by xmake
 
+cmake_minimum_required(VERSION 3.21)
 project(xhui)
-cmake_minimum_required(VERSION 3.22)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
 set(SOURCE 
+	src/lib/any/any.cpp
 	src/lib/base/array.cpp
 	src/lib/base/pointer.cpp
 	src/lib/base/strings.cpp
-	src/lib/file/file.cpp
-	src/lib/file/file_op.cpp
-	src/lib/file/msg.cpp
-	src/lib/file/path.cpp
 	src/lib/image/color.cpp
 	src/lib/image/image.cpp
 	src/lib/image/image_bmp.cpp
@@ -22,16 +19,17 @@ set(SOURCE
 	src/lib/image/ImagePainter.cpp
 	src/lib/math/complex.cpp
 	src/lib/math/interpolation.cpp
+	src/lib/math/mat3.cpp
+	src/lib/math/mat4.cpp
 	src/lib/math/math.cpp
-	src/lib/math/matrix.cpp
-	src/lib/math/matrix3.cpp
 	src/lib/math/plane.cpp
 	src/lib/math/quaternion.cpp
 	src/lib/math/random.cpp
 	src/lib/math/ray.cpp
 	src/lib/math/rect.cpp
 	src/lib/math/vec2.cpp
-	src/lib/math/vector.cpp
+	src/lib/math/vec3.cpp
+	src/lib/math/vec4.cpp
 	src/lib/nix/nix.cpp
 	src/lib/nix/nix_buffer.cpp
 	src/lib/nix/nix_draw.cpp
@@ -41,13 +39,23 @@ set(SOURCE
 	src/lib/nix/nix_textures.cpp
 	src/lib/nix/nix_vertexbuffer.cpp
 	src/lib/nix/nix_view.cpp
+	src/lib/os/CommandLineParser.cpp
+	src/lib/os/config.cpp
+	src/lib/os/date.cpp
+	src/lib/os/file.cpp
+	src/lib/os/filesystem.cpp
+	src/lib/os/formatter.cpp
+	src/lib/os/msg.cpp
+	src/lib/os/path.cpp
+	src/lib/os/stream.cpp
+	src/lib/os/terminal.cpp
+	src/lib/os/time.cpp
 	src/lib/xhui/Controls/Button.cpp
 	src/lib/xhui/Controls/Control.cpp
 	src/lib/xhui/Controls/DrawingArea.cpp
 	src/lib/xhui/Controls/Grid.cpp
 	src/lib/xhui/Controls/Label.cpp
 	src/lib/xhui/draw/font.cpp
-	src/lib/xhui/Config.cpp
 	src/lib/xhui/Painter.cpp
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp

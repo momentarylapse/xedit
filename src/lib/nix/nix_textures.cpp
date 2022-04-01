@@ -11,7 +11,8 @@
 #include "nix.h"
 #include "nix_common.h"
 #include "../image/image.h"
-#include "../file/file.h"
+#include "../os/msg.h"
+#include "../os/filesystem.h"
 
 // management:
 //  Texture.load()
@@ -21,9 +22,7 @@
 
 namespace nix{
 
-shared_array<Texture> textures;
 Texture *default_texture = nullptr;
-Texture *tex_text = nullptr;
 int tex_cube_level = -1;
 
 
@@ -34,28 +33,16 @@ const unsigned int NO_TEXTURE = 0xffffffff;
 // common stuff
 //--------------------------------------------------------------------------------------------------
 
-void init_textures() {
-
-	default_texture = new Texture(16, 16, "rgba:i8");
+Texture* create_white_texture() {
+	auto t = new Texture(4, 4, "rgba:i8");
 	Image image;
-	image.create(16, 16, White);
-	default_texture->override(image);
-
-	tex_text = new Texture;
+	image.create(4, 4, White);
+	t->write(image);
+	return t;
 }
 
-void release_textures() {
-	for (Texture *t: weak(textures)) {
-		//glBindTexture(GL_TEXTURE_2D, t->texture);
-		glDeleteTextures(1, &t->texture);
-	}
-}
-
-void reincarnate_textures() {
-	for (Texture *t: weak(textures)) {
-		//glGenTextures(1, &t->texture);
-		t->reload();
-	}
+void init_textures() {
+	default_texture = create_white_texture();
 }
 
 
@@ -65,8 +52,12 @@ unsigned int parse_format(const string &_format) {
 		return GL_R8;
 	if (_format == "rgb:i8")
 		return GL_RGB8;
+	if (_format == "srgb:i8")
+		return GL_SRGB8;
 	if (_format == "rgba:i8")
 		return GL_RGBA8;
+	if (_format == "srgba:i8")
+		return GL_SRGB8_ALPHA8;
 	if (_format == "rgba:i4")
 		return GL_RGBA4;
 	if (_format == "r:f32")
@@ -104,11 +95,11 @@ int mip_levels(int width, int height) {
 }
 
 
-void Texture::_create_2d(int w, int h, const string &_format) {
+void Texture::_create_2d(int w, int h, unsigned int _format) {
 	width = w;
 	height = h;
 	type = Type::DEFAULT;
-	internal_format = parse_format(_format);
+	internal_format = _format;
 
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
 	glTextureStorage2D(texture, mip_levels(width, height), internal_format, width, height);
@@ -121,7 +112,7 @@ void Texture::_create_2d(int w, int h, const string &_format) {
 
 Texture::Texture(int w, int h, const string &_format) : Texture() {
 	msg_write(format("creating texture [%d x %d: %s] ", w, h, _format));
-	_create_2d(w, h, _format);
+	_create_2d(w, h, parse_format(_format));
 }
 
 VolumeTexture::VolumeTexture(int w, int h, int _nz, const string &_format) : Texture() {
@@ -143,44 +134,26 @@ VolumeTexture::VolumeTexture(int w, int h, int _nz, const string &_format) : Tex
 
 Texture::~Texture() {
 	unload();
-	/*foreachi(auto t, textures, i)
+	/*for (auto [i, t]: textures)
 		if (t == this) {
 			textures.erase(i);
 			break;
 		}*/
 }
 
-void Texture::__init__(int w, int h, const string &f) {
-	new(this) Texture(w, h, f);
-}
-
-void VolumeTexture::__init__(int nx, int ny, int nz, const string &f) {
-	new(this) VolumeTexture(nx, ny, nz, f);
-}
-
-void Texture::__delete__() {
-	this->~Texture();
-}
-
-void TextureClear() {
-	msg_error("Texture Clear");
-	for (Texture *t: weak(textures))
-		msg_write(t->filename.str());
-}
-
 Texture *Texture::load(const Path &filename) {
+	// return create_white_texture() ?
 	if (filename.is_empty())
 		return nullptr;
 
 	// test existence
-	if (!file_exists(filename))
+	if (!os::fs::exists(filename))
 		throw Exception("texture file does not exist: " + filename.str());
 
 	Texture *t = new Texture;
 	try {
 		t->filename = filename;
 		t->reload();
-		textures.add(t);
 		return t;
 	} catch (...) {
 		delete t;
@@ -192,12 +165,12 @@ void Texture::reload() {
 	msg_write("loading texture: " + filename.str());
 
 	// test the file's existence
-	if (!file_exists(filename))
+	if (!os::fs::exists(filename))
 		throw Exception("texture file does not exist!");
 
 	string extension = filename.extension();
 	auto image = Image::load(filename);
-	override(*image);
+	this->write(*image);
 	delete image;
 }
 
@@ -235,17 +208,17 @@ void Texture::set_options(const string &options) const {
 	}
 }
 
-void Texture::override(const Image &image) {
+void Texture::write(const Image &image) {
 	if (image.error)
 		return;
 
 	if (type == Type::NONE)
-		_create_2d(image.width, image.height, "rgba:i8");
+		_create_2d(image.width, image.height, GL_RGBA8);//GL_SRGB8_ALPHA8);
 
 	if (width != image.width or height != image.height) {
 		//msg_write("texture resize..." + filename.str());
 		glDeleteTextures(1, &texture);
-		_create_2d(image.width, image.height, "rgba:i8");//image.alpha_used ? "rgba:i8" : "rgb:i8");
+		_create_2d(image.width, image.height, internal_format);//image.alpha_used ? "rgba:i8" : "rgb:i8");
 	}
 
 	image.set_mode(Image::Mode::RGBA);
@@ -256,7 +229,7 @@ void Texture::override(const Image &image) {
 		glGenerateTextureMipmap(texture);
 }
 
-void Texture::read(Image &image) {
+void Texture::read(Image &image) const {
 	image.create(width, height, Black);
 	glGetTextureSubImage(texture, 0, 0, 0, 0, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, image.data.num * sizeof(float), image.data.data);
 }
@@ -271,7 +244,7 @@ unsigned int _gl_channels_(int channels) {
 	return GL_RGBA;
 }
 
-void Texture::read_float(Array<float> &data) {
+void Texture::read_float(Array<float> &data) const {
 	int ch = channels();
 	data.resize(width * height * ch);
 	int format = _gl_channels_(ch);
@@ -287,7 +260,7 @@ int Texture::channels() const {
 	return 4;
 }
 
-void Texture::write_float(Array<float> &data) {
+void Texture::write_float(const Array<float> &data) {
 	int ch = channels();
 	int length_expected = width * height * ch;
 	if (type == Type::VOLUME)
@@ -312,20 +285,24 @@ void Texture::unload() {
 	}
 }
 
-void set_texture(Texture *t) {
+void bind_image(int binding, Texture *t, int level, int layer, bool writable) {
+	glBindImageTexture(binding, t->texture, level, GL_FALSE, layer, writable ? GL_READ_WRITE : GL_READ_ONLY, t->internal_format);
+}
+
+void bind_texture(int binding, Texture *t) {
 	//refresh_texture(t);
 	if (!t)
 		t = default_texture;
 
-	tex_cube_level = -1;
-	/*glActiveTexture(GL_TEXTURE0);
+//	tex_cube_level = -1;
+	/*glActiveTexture(GL_TEXTURE0 + binding);
 	if (t->type == Texture::Type::CUBE){
 		glEnable(GL_TEXTURE_CUBE_MAP);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, t->texture);
-		tex_cube_level = 0;
+		tex_cube_level = binding;
 	} else if (t->type == Texture::Type::IMAGE){
 		glBindTexture(GL_TEXTURE_2D, t->texture);
-		glBindImageTexture(0, t->texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, t->internal_format);
+		glBindImageTexture(binding, t->texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, t->internal_format);
 	} else if (t->type == Texture::Type::VOLUME){
 		glBindTexture(GL_TEXTURE_3D, t->texture);
 	} else if (t->type == Texture::Type::MULTISAMPLE){
@@ -335,8 +312,13 @@ void set_texture(Texture *t) {
 	}*/
 
 	if (t->type == Texture::Type::CUBE)
-		tex_cube_level = 0;
-	glBindTextureUnit(0, t->texture);
+		tex_cube_level = binding;
+	glBindTextureUnit(binding, t->texture);
+}
+
+
+void set_texture(Texture *t) {
+	bind_texture(0, t);
 }
 
 void set_textures(const Array<Texture*> &textures) {
@@ -344,7 +326,7 @@ void set_textures(const Array<Texture*> &textures) {
 		if (texture[i] >= 0)
 			refresh_texture(texture[i]);*/
 
-	tex_cube_level = -1;
+	//tex_cube_level = -1;
 	for (int i=0; i<textures.num; i++) {
 		auto t = textures[i];
 		if (!t)
@@ -404,10 +386,6 @@ ImageTexture::ImageTexture(int _width, int _height, const string &_format) {
 	glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-void ImageTexture::__init__(int width, int height, const string &format) {
-	new(this) ImageTexture(width, height, format);
-}
-
 
 DepthBuffer::DepthBuffer(int _width, int _height, const string &_format) {
 	msg_write(format("creating depth texture [%d x %d] ", _width, _height));
@@ -434,10 +412,6 @@ DepthBuffer::DepthBuffer(int _width, int _height, const string &_format) {
 	glTextureParameterfv(texture, GL_TEXTURE_BORDER_COLOR, borderColor);
 }
 
-void DepthBuffer::__init__(int width, int height, const string &format) {
-	new(this) DepthBuffer(width, height, format);
-}
-
 RenderBuffer::RenderBuffer(int w, int h, const string &format) : RenderBuffer(w, h, 0, format) {}
 
 RenderBuffer::RenderBuffer(int w, int h, int _samples, const string &format) {
@@ -451,7 +425,7 @@ RenderBuffer::RenderBuffer(int w, int h, int _samples, const string &format) {
 	glGenRenderbuffers(1, &texture);
 	glBindRenderbuffer(GL_RENDERBUFFER, texture);
 	if (samples > 0)
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, internal_format, width, height);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internal_format, width, height);
 	else
 		glRenderbufferStorage(GL_RENDERBUFFER, internal_format, width, height);
 }
@@ -477,12 +451,8 @@ CubeMap::CubeMap(int size, const string &_format) {
 		Image im;
 		im.create(size, size, Red);
 		for (int i=0; i<6; i++)
-			override_side(i, im);
+			write_side(i, im);
 	}
-}
-
-void CubeMap::__init__(int size, const string &format) {
-	new(this) CubeMap(size, format);
 }
 
 void CubeMap::fill_side(int side, Texture *source) {
@@ -492,10 +462,10 @@ void CubeMap::fill_side(int side, Texture *source) {
 		return;
 	Image image;
 	image.load(source->filename);
-	override_side(side, image);
+	write_side(side, image);
 }
 
-void CubeMap::override_side(int side, const Image &image) {
+void CubeMap::write_side(int side, const Image &image) {
 	//_override(GL_TEXTURE_CUBE_MAP, NixCubeMapTarget[side], image);
 	if (image.error)
 		return;

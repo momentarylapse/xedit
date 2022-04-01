@@ -3,7 +3,7 @@
 #include "Painter.h"
 #include "Theme.h"
 #include "Controls/Control.h"
-#include "../file/msg.h"
+#include "../os/msg.h"
 
 
 namespace hui {

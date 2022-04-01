@@ -10,7 +10,8 @@
 
 #include "nix.h"
 #include "nix_common.h"
-#include "../file/msg.h"
+#include "../base/iter.h"
+#include "../os/msg.h"
 
 
 
@@ -29,7 +30,7 @@ FrameBuffer::FrameBuffer() {
 	multi_samples = 0;
 }
 
-FrameBuffer::FrameBuffer(const Array<Texture*> &attachments) {
+FrameBuffer::FrameBuffer(const shared_array<Texture> &attachments) : FrameBuffer() {
 	glCreateFramebuffers(1, &frame_buffer);
 	update(attachments);
 }
@@ -38,25 +39,17 @@ FrameBuffer::~FrameBuffer() {
 	glDeleteFramebuffers(1, &frame_buffer);
 }
 
-void FrameBuffer::__init__(const Array<Texture*> &attachments) {
-	new(this) FrameBuffer(attachments);
-}
-
-void FrameBuffer::__delete__() {
-	this->~FrameBuffer();
-}
-
-void FrameBuffer::update(const Array<Texture*> &attachments) {
+void FrameBuffer::update(const shared_array<Texture> &attachments) {
 	update_x(attachments, -1);
 }
 
-void FrameBuffer::update_x(const Array<Texture*> &attachments, int cube_face) {
+void FrameBuffer::update_x(const shared_array<Texture> &attachments, int cube_face) {
 	// prevent deleting textures
 	shared<DepthBuffer> new_depth_buffer;
 	shared_array<Texture> new_attachments;
 	int samples = 0;
 
-	for (auto *a: attachments) {
+	for (auto a: weak(attachments)) {
 		if ((a->type == Texture::Type::DEPTH) or (a->type == Texture::Type::RENDERBUFFER))
 			new_depth_buffer = (DepthBuffer*)a;
 		else
@@ -91,7 +84,7 @@ void FrameBuffer::update_x(const Array<Texture*> &attachments, int cube_face) {
 		target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + cube_face;
 	if (samples > 0)
 		target = GL_TEXTURE_2D_MULTISAMPLE;
-	foreachi (auto *t, weak(color_attachments), i) {
+	for (auto [i, t]: enumerate(weak(color_attachments))) {
 		//glNamedFramebufferTexture(frame_buffer, GL_COLOR_ATTACHMENT0 + i, t->texture, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, t->texture, 0);
 		draw_buffers.add(GL_COLOR_ATTACHMENT0 + (unsigned)i);
@@ -123,6 +116,12 @@ rect FrameBuffer::area() const {
 	return rect(0, width, 0, height);
 }
 
+bool FrameBuffer::is_srgb() const {
+	GLint p;
+	glGetNamedFramebufferAttachmentParameteriv(frame_buffer, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &p);
+	return p == GL_SRGB;
+}
+
 void FrameBuffer::clear_color(int index, const color &c) {
 	glClearNamedFramebufferfv(frame_buffer, GL_COLOR, index, (float*)&c);
 }
@@ -136,13 +135,32 @@ void bind_frame_buffer(FrameBuffer *fb) {
 	cur_framebuffer = fb;
 
 	set_viewport(fb->area());
+
+	if (fb->multi_samples > 0)
+		glEnable(GL_MULTISAMPLE);
+	//else
+	//	glDisable(GL_MULTISAMPLE);
 }
 
 void resolve_multisampling(FrameBuffer *target, FrameBuffer *source) {
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->frame_buffer);
-	//glBindFramebuffer(GL_READ_FRAMEBUFFER, source->frame_buffer);
-	//glBlitFramebuffer(0, 0, source->width, source->height, 0, 0, target->width, target->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	glBlitNamedFramebuffer(source->frame_buffer, target->frame_buffer, 0, 0, source->width, source->height, 0, 0, target->width, target->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	if (false) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, source->frame_buffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target->frame_buffer);
+		glBlitFramebuffer(0, 0, source->width, source->height, 0, 0, target->width, target->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	} else {
+		glBlitNamedFramebuffer(source->frame_buffer, target->frame_buffer, 0, 0, source->width, source->height, 0, 0, target->width, target->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+}
+
+bool get_srgb() {
+	return (bool)glIsEnabled(GL_FRAMEBUFFER_SRGB);
+}
+
+void set_srgb(bool enabled) {
+	if (enabled)
+		glEnable(GL_FRAMEBUFFER_SRGB);
+	else
+		glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
 }

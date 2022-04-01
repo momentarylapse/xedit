@@ -9,7 +9,8 @@
 
 #include "nix.h"
 #include "nix_common.h"
-#include "../file/file.h"
+#include "../os/file.h"
+#include "../os/msg.h"
 
 namespace nix {
 
@@ -17,14 +18,12 @@ const int TYPE_LAYOUT = -41;
 const int TYPE_MODULE = -42;
 
 
-Shader *Shader::default_2d = nullptr;
-Shader *Shader::default_3d = nullptr;
+shared<Shader> Shader::default_2d;
+shared<Shader> Shader::default_3d;
 Shader *Shader::_current_ = nullptr;
-Shader *Shader::default_load = nullptr;
+shared<Shader> Shader::default_load;
 
 string vertex_module_default = "vertex-default-nix";
-
-static shared_array<Shader> shaders;
 
 int current_program = 0;
 
@@ -240,11 +239,10 @@ void Shader::update(const string &source) {
 
 	find_locations();
 }
-Shader *Shader::create(const string &source) {
-	shared<Shader> s = new Shader;
+xfer<Shader> Shader::create(const string &source) {
+	auto s = new Shader;
 	s->update(source);
-	shaders.add(s);
-	return s.get();
+	return s;
 }
 
 void Shader::find_locations() {
@@ -275,17 +273,13 @@ void Shader::find_locations() {
 	link_uniform_block("Fog", 3);
 }
 
-Shader *Shader::load(const Path &filename) {
-	if (filename.is_empty())
-		return default_load;
-
-	for (Shader *s: weak(shaders))
-		if (s->filename == filename)
-			return (s->program >= 0) ? s : nullptr;
+xfer<Shader> Shader::load(const Path &filename) {
+	//if (filename.is_empty())
+	//	return default_load;
 
 	msg_write("loading shader: " + filename.str());
 
-	string source = FileRead(filename);
+	string source = os::fs::read_text(filename);
 	Shader *shader = Shader::create(source);
 	if (shader)
 		shader->filename = filename;
@@ -309,12 +303,6 @@ Shader::~Shader() {
 	if (program >= 0)
 		glDeleteProgram(program);
 	program = -1;
-}
-
-void delete_all_shaders() {
-	return;
-	shaders.clear();
-	init_shaders();
 }
 
 void set_shader(Shader *s) {
@@ -379,7 +367,7 @@ void Shader::set_color_l(int location, const color &c) {
 	glProgramUniform4fv(program, location, 1, (float*)&c);
 }
 
-void Shader::set_matrix_l(int location, const matrix &m) {
+void Shader::set_matrix_l(int location, const mat4 &m) {
 	if (location < 0)
 		return;
 	glProgramUniformMatrix4fv(program, location, 1, GL_FALSE, (float*)&m);
@@ -397,7 +385,7 @@ void Shader::set_color(const string &name, const color &c) {
 	set_color_l(get_location(name), c);
 }
 
-void Shader::set_matrix(const string &name, const matrix &m) {
+void Shader::set_matrix(const string &name, const mat4 &m) {
 	set_matrix_l(get_location(name), m);
 }
 
@@ -442,9 +430,9 @@ layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_uv;
 
-layout(location = 0) out vec3 out_normal;
-layout(location = 1) out vec2 out_uv;
-layout(location = 2) out vec4 out_pos; // camera space
+layout(location = 0) out vec4 out_pos; // camera space
+layout(location = 1) out vec3 out_normal;
+layout(location = 2) out vec2 out_uv;
 
 void main() {
 	gl_Position = matrix.project * matrix.view * matrix.model * vec4(in_position, 1);
@@ -475,9 +463,9 @@ struct Light { mat4 proj; vec4 pos, dir, color; float radius, theta, harshness; 
 uniform int num_lights = 0;
 /*layout(binding = 1)*/ uniform LightData { Light light[32]; };
 
-layout(location = 0) in vec3 in_normal;
-layout(location = 1) in vec2 in_uv;
-layout(location = 2) in vec4 in_pos;
+layout(location = 0) in vec4 in_pos;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_uv;
 uniform sampler2D tex0;
 out vec4 out_color;
 
@@ -505,8 +493,8 @@ vec4 basic_lighting(Light l, vec3 n, vec4 tex_col) {
 
 void main() {
 	vec3 n = normalize(in_normal);
-	out_color = material.emission;
 	vec4 tex_col = texture(tex0, in_uv);
+	out_color = material.emission * tex_col;
 	for (int i=0; i<num_lights; i++)
 		out_color += basic_lighting(light[i], n, tex_col);
 	out_color.a = material.albedo.a * tex_col.a;

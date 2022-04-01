@@ -82,7 +82,7 @@ class string : public bytes {
 	string(string &&s);
 	string(const char *str);
 	string(const void *str, int l);
-#if __cplusplus >= 202002L
+#if __cpp_char8_t
 	string(const char8_t *str);
 #endif
 
@@ -116,7 +116,7 @@ class string : public bytes {
 	Array<int> utf8_to_utf32() const;
 	Array<int> utf16_to_utf32() const;
 	int _cdecl _int() const;
-	long long _cdecl i64() const;
+	int64 _cdecl i64() const;
 	float _cdecl _float() const;
 	double _cdecl f64() const;
 	bool _cdecl _bool() const;
@@ -134,6 +134,10 @@ class string : public bytes {
 	{	string r = *this;	r += s;	return r;	}
 	friend string _cdecl operator + (const char *s1, const string &s2)
 	{	return string(s1) + s2;	}
+#if __cpp_char8_t
+	friend string _cdecl operator + (const char8_t *s1, const string &s2)
+	{	return string(s1) + s2;	}
+#endif
 	bool _cdecl operator == (const string &s) const;
 	bool _cdecl operator != (const string &s) const
 	{	return !(*this == s);	}
@@ -179,15 +183,38 @@ string _cdecl f2sf(float f);
 string _cdecl f642sf(double f);
 string _cdecl b2s(bool b);
 string _cdecl p2s(const void *p);
-string _cdecl ia2s(const Array<int> &a);
-string _cdecl fa2s(const Array<float> &a);
-string _cdecl f64a2s(const Array<double> &a);
-string _cdecl ba2s(const Array<bool> &a);
-string _cdecl sa2s(const Array<string> &a);
+
+template<class T>
+string str(const T &t) {
+	return t.str();
+}
+template<> string str(const int& i);
+template<> string str(const unsigned int& i);
+template<> string str(const int64& i);
+template<> string str(const float& f);
+template<> string str(const double& d);
+template<> string str(const bool& b);
+
+template<class T>
+string str(const Array<T> &a) {
+	string r;
+	for (int i=0; i<a.num; i++) {
+		if (i > 0)
+			r += ", ";
+		r += str(a[i]);
+	}
+	return "[" + r + "]";
+}
+template<> string str(const Array<string> &a);
+
+
 int _cdecl s2i(const string &s);
 bool _cdecl s2b(const string &s);
 float _cdecl s2f(const string &s);
 double _cdecl s2f64(const string &s);
+
+bool str_is_integer(const string &s);
+bool str_is_float(const string &s);
 
 string _cdecl d2h(const void *data, int bytes);
 string _cdecl i2h(int64, int bytes);

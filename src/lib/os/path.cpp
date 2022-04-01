@@ -6,7 +6,7 @@
  */
 
 #include "path.h"
-#include "file_op.h"
+#include "filesystem.h"
 
 //const string SEPARATOR = "/";
 //const string SEPARATOR_OTHER = "\\";
@@ -46,7 +46,7 @@ void Path::operator =(const Path &p) {
 	s = p.s;
 }
 
-void Path::operator <<=(const Path &p) {
+void Path::operator |=(const Path &p) {
 	if (is_empty())
 		s = p.s;
 	else if (has_dir_ending())
@@ -55,9 +55,9 @@ void Path::operator <<=(const Path &p) {
 		s += SEPARATOR + p.s;
 }
 
-Path Path::operator <<(const Path &p) const {
+Path Path::operator |(const Path &p) const {
 	Path temp = *this;
-	temp <<= p;
+	temp |= p;
 	return temp;
 }
 
@@ -90,6 +90,14 @@ bool Path::operator >(const Path &p) const {
 	return compare(p) > 0;
 }
 
+bool Path::operator <=(const Path &p) const {
+	return compare(p) <= 0;
+}
+
+bool Path::operator >=(const Path &p) const {
+	return compare(p) >= 0;
+}
+
 Path::operator bool() const {
 	return !is_empty();
 }
@@ -103,6 +111,10 @@ string Path::str() const {
 #else
 	return s.replace("\\", "/");
 #endif
+}
+
+string Path::repr() const {
+	return str().repr();
 }
 
 const char *Path::c_str() const {
@@ -175,7 +187,7 @@ string Path::dirname() const {
 
 Path Path::absolute() const {
 	if (is_relative())
-		return get_current_dir() << *this;
+		return os::fs::current_directory() | *this;
 	return *this;
 }
 

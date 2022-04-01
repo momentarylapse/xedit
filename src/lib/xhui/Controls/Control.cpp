@@ -1,6 +1,6 @@
 #include "Control.h"
 #include "../Painter.h"
-#include "../../file/msg.h"
+#include "../../os/msg.h"
 
 namespace hui {
 

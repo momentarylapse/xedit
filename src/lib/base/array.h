@@ -79,11 +79,6 @@ public:
 
 	}
 
-	// kaba
-	void _cdecl __init__() {
-		init(sizeof(T));
-	}
-
 	~Array() {
 		clear();
 	}
@@ -117,7 +112,7 @@ public:
 	void _cdecl erase(int index) {
 		if ((index >= 0) and (index < num)) {
 			for (int i=index; i<num-1; i++)
-				(*this)[i] = (*this)[i+1];
+				(*this)[i] = std::move((*this)[i+1]);
 			resize(num - 1);
 		}
 	}
@@ -125,7 +120,7 @@ public:
 		resize(num + 1);
 		if (index < num-1)
 			for (int i=num-1; i>index; i--)
-				(*this)[i] = (*this)[i-1];
+				(*this)[i] = std::move((*this)[i-1]);
 		(*this)[index] = item;
 	}
 
@@ -138,7 +133,7 @@ public:
 			T *new_data = (T*)malloc((size_t)new_allocated * (size_t)element_size);
 			for (int i = 0; i < num; i++) {
 				new(&new_data[i]) T;
-				new_data[i] = ((T*)data)[i];
+				new_data[i] = std::move(((T*)data)[i]);
 				((T*)data)[i].~T();
 			}
 			if (allocated > 0)
@@ -171,9 +166,9 @@ public:
 			return;
 		if (i1 == i2)
 			return;
-		T t = (*this)[i1];
-		(*this)[i1] = (*this)[i2];
-		(*this)[i2] = t;
+		T t = std::move((*this)[i1]);
+		(*this)[i1] = std::move((*this)[i2]);
+		(*this)[i2] = std::move(t);
 	}
 
 	void move(int source, int target) {
@@ -208,7 +203,10 @@ public:
 		s.data = ((T*)this->data) + start;
 		return s;
 	}
-	Array<T> _cdecl sub_ref(int start, int end = MAGIC_END_INDEX) const {
+	const Array<T> _cdecl sub_ref(int start, int end = MAGIC_END_INDEX) const {
+		return sub_ref_as<Array<T>>(start, end);
+	}
+	Array<T> _cdecl sub_ref_nc(int start, int end = MAGIC_END_INDEX) {
 		return sub_ref_as<Array<T>>(start, end);
 	}
 
@@ -256,14 +254,6 @@ public:
 	}
 	const T &_cdecl back() const {
 		return ((T*)data)[num - 1];
-	}
-
-	Array<T> filter(std::function<bool(const T&)> f) const {
-		Array<T> r;
-		for (T &e: *this)
-			if (f(e))
-				r.add(e);
-		return r;
 	}
 
 	// reference arrays

@@ -1,6 +1,7 @@
 #include "Label.h"
 #include "../Painter.h"
 #include "../Theme.h"
+#include "../draw/font.h"
 
 namespace hui {
 
@@ -22,10 +23,9 @@ void Label::set_string(const string &s) {
 
 void Label::get_content_min_size(int &w, int &h) {
 	if (text_w < 0) {
-		auto p = new Painter(window);
-		text_w = p->get_str_width(title);
-		text_h = int(p->font_size * 1.4f);
-		delete p;
+		auto dim = font_get_text_dimensions(Theme::_default.font_name, Theme::_default.font_size, title);
+		text_w = int(dim.bounding_width);
+		text_h = int(dim.bounding_height);
 	}
 	w = text_w + Theme::_default.label_margin * 2;
 	h = text_h + Theme::_default.label_margin * 2;
@@ -33,8 +33,8 @@ void Label::get_content_min_size(int &w, int &h) {
 
 void Label::_draw(Painter *p) {
 	p->set_color(Theme::_default.text_label);
-	float w = p->get_str_width(title);
-	p->draw_str({_area.mx() - w/2, _area.my() - p->font_size/2}, title);
+	auto dim = font_get_text_dimensions(Theme::_default.font_name, Theme::_default.font_size, title);
+	p->draw_str({_area.center().x - dim.bounding_width/2, _area.center().y - dim.bounding_height/2}, title);
 }
 
 }

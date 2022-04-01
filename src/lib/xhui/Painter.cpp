@@ -6,8 +6,8 @@
 #include "../image/image.h"
 
 namespace nix {
-	matrix create_pixel_projection_matrix();
-	extern matrix projection_matrix,view_matrix,model_matrix;
+	mat4 create_pixel_projection_matrix();
+	extern mat4 projection_matrix,view_matrix,model_matrix;
 }
 
 
@@ -28,7 +28,7 @@ void init_nix() {
 	tex_white = new nix::Texture();
 	Image im;
 	im.create(8, 8, White);
-	tex_white->override(im);
+	tex_white->write(im);
 	vb_rect = new nix::VertexBuffer("3f,3f,2f");
 	vb_rect->create_quad(rect::ID, rect::ID);
 
@@ -129,7 +129,7 @@ Painter::Painter(Window *w) {
 
 
 	nix::start_frame_glfw(window->window);
-	nix::set_projection_matrix(nix::create_pixel_projection_matrix() * matrix::scale(ui_scale, ui_scale, 1));
+	nix::set_projection_matrix(nix::create_pixel_projection_matrix() * mat4::translation({0,0,0.5f}) * mat4::scale(ui_scale, ui_scale, 1));
 	//nix::clear(color(1, 0.15f, 0.15f, 0.3f));
 	nix::set_cull(nix::CullMode::NONE);
 	nix::set_z(false, false);
@@ -159,10 +159,10 @@ void Painter::set_color(const color &c) {
 void Painter::draw_str(const vec2 &p, const string &str) {
 	Image im;
 	font_render_text(font_name, font_size * ui_scale, str, Align::LEFT, im);
-	tex_text->override(im);
+	tex_text->write(im);
 	float w = im.width / ui_scale;
 	float h = im.height / ui_scale;
-	nix::set_model_matrix(matrix::translation(vector(offset_x + p.x, offset_y + p.y, 0)) * matrix::scale(w, h, 1));
+	nix::set_model_matrix(mat4::translation(vec3(offset_x + p.x, offset_y + p.y, 0)) * mat4::scale(w, h, 1));
 
 	nix::set_shader(shader);
 	nix::set_alpha_sd(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA);
@@ -177,7 +177,7 @@ float Painter::get_str_width(const string &str) {
 }
 
 void Painter::draw_rect(const rect &r) {
-	nix::set_model_matrix(matrix::translation(vector(offset_x + r.x1, offset_y + r.y1, 0)) * matrix::scale(r.width(), r.height(), 1));
+	nix::set_model_matrix(mat4::translation(vec3(offset_x + r.x1, offset_y + r.y1, 0)) * mat4::scale(r.width(), r.height(), 1));
 	nix::set_shader(shader);
 	//nix::SetAlpha(ALPHA_SOURCE_ALPHA, ALPHA_SOURCE_INV_ALPHA);
 	shader->set_color("_color_", _color);

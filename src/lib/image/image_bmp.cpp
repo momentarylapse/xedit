@@ -1,7 +1,7 @@
 #include "image.h"
 #include <stdio.h>
-#include "../file/file.h"
-//#include "../hui/hui.h"
+#include "../os/file.h"
+#include "../os/msg.h"
 
 /*static const char *sys_str_f(const string &s)
 {
@@ -95,7 +95,7 @@ void image_load_bmp(const Path &filename, Image &image)
 	unsigned char Header[56];
 	unsigned char *pal = nullptr, temp_buffer[8];
 	FILE* f = fopen(filename.str().c_str(), "rb");
-	int r = fread(&Header, 56, 1, f);
+	static_cast<void>(fread(&Header, 56, 1, f));
 
 	image.width = get_int_from_buffer(Header, 18, 4);
 	image.height = get_int_from_buffer(Header, 22, 4);
@@ -123,7 +123,7 @@ void image_load_bmp(const Path &filename, Image &image)
 		//msg_write(clr_used);
 		pal= new unsigned char[4*clr_used];
 		fseek(f,-2,SEEK_CUR);
-		r=fread(pal,4,clr_used,f);
+		static_cast<void>(fread(pal,4,clr_used,f));
 	}
 
 	fseek(f, offset, SEEK_SET);
@@ -132,14 +132,14 @@ void image_load_bmp(const Path &filename, Image &image)
 	if (reversed){
 		//msg_write("Reversed!");
 		for (int n=0;n<image.height;n++){
-			r=fread(data + (bytes_per_row_o * n), sizeof(unsigned char), bytes_per_row_o, f);
-			r=fread(temp_buffer, 1, bytes_per_row-bytes_per_row_o, f);
+			static_cast<void>(fread(data + (bytes_per_row_o * n), sizeof(unsigned char), bytes_per_row_o, f));
+			static_cast<void>(fread(temp_buffer, 1, bytes_per_row-bytes_per_row_o, f));
 		}
 	}else{
 		//msg_write("nicht Reversed!");
 		for (int n=image.height-1;n>=0;n--){
-			r=fread(data + (bytes_per_row_o * n), sizeof(unsigned char), bytes_per_row_o, f);
-			r=fread(temp_buffer, 1, bytes_per_row-bytes_per_row_o, f);
+			static_cast<void>(fread(data + (bytes_per_row_o * n), sizeof(unsigned char), bytes_per_row_o, f));
+			static_cast<void>(fread(temp_buffer, 1, bytes_per_row-bytes_per_row_o, f));
 		}
 	}
 
@@ -160,7 +160,7 @@ void image_load_bmp(const Path &filename, Image &image)
 
 void image_save_bmp(const Path &filename, const Image &image) {
 	try {
-		File *f = FileCreate(filename);
+		auto f = os::fs::open(filename, "wb");
 		image.set_mode(Image::Mode::RGBA);
 
 		int row_size = 4 * (int)((image.width * 3 + 3) / 4);
@@ -179,7 +179,7 @@ void image_save_bmp(const Path &filename, const Image &image) {
 		*(short*)(&Header[28]) = 24; // bits
 		*(int*)(&Header[30]) = 0; // compression
 		*(int*)(&Header[34]) = data_size;
-		f->write_buffer(Header, 56);
+		f->write(Header, 56);
 		unsigned char *row = new unsigned char[row_size + 16];
 		for (int y=image.height-1;y>=0;y--) {
 			unsigned int *d = ((unsigned int*)image.data.data) + (y * image.width);
@@ -190,11 +190,11 @@ void image_save_bmp(const Path &filename, const Image &image) {
 				*(p ++) = (*d);
 				d ++;
 			}
-			f->write_buffer(row, row_size);
+			f->write(row, row_size);
 		}
 		delete[](row);
 
-		FileClose(f);
+		delete f;
 	} catch(...) {
 	}
 }

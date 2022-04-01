@@ -7,10 +7,11 @@
 
 #include "interpolation.h"
 #include "complex.h"
-#include "vector.h"
+#include "vec3.h"
 #include "vec2.h"
 #include "quaternion.h"
-#include "../file/msg.h"
+#include "../os/msg.h"
+#include "../base/iter.h"
 
 
 
@@ -226,7 +227,7 @@ template<class T>
 T _inter_angular_lerp_(const typename Interpolator<T>::Part &p, float t) { return _inter_zero_<T>(); }
 
 template<>
-inline vector _inter_angular_lerp_(const Interpolator<vector>::Part &p, float t) {
+inline vec3 _inter_angular_lerp_(const Interpolator<vec3>::Part &p, float t) {
 	auto q0 = quaternion::rotation_v(p.pos0);
 	auto q1 = quaternion::rotation_v(p.pos1);
 	auto q = quaternion::interpolate(q0, q1, t);
@@ -238,7 +239,7 @@ template<class T>
 int Interpolator<T>::canonize(float &t)
 {
 	t = clamp(t, 0.0f, t_sum * 0.99999f);
-	foreachi(Part &p, part, i)
+	for (auto&& [i,p]: enumerate(part))
 		if ((t >= p.t0) && (t <= p.t0 + p.dt)){
 			t = (t - p.t0) / p.dt;
 			return i;
@@ -291,7 +292,7 @@ inline void Interpolator<float>::print()
 }
 
 template<>
-inline void Interpolator<vector>::print(){}
+inline void Interpolator<vec3>::print(){}
 
 template<class T>
 Array<T> Interpolator<T>::getList(Array<float> &t)
@@ -299,13 +300,13 @@ Array<T> Interpolator<T>::getList(Array<float> &t)
 	//print();
 	Array<T> r;
 	r.resize(t.num);
-	foreachi( float tt, t, i)
+	for (auto&& [i,tt]: enumerate(t))
 		r[i] = get(tt);
 	return r;
 }
 
 template class Interpolator<float>;
-template class Interpolator<vector>;
+template class Interpolator<vec3>;
 template class Interpolator<vec2>;
 template class Interpolator<complex>;
 //template class Interpolator<quaternion>;

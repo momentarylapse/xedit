@@ -1,6 +1,7 @@
 #include "Theme.h"
-#include "Config.h"
-#include "../file/msg.h"
+#include "../os/config.h"
+#include "../os/path.h"
+#include "../os/msg.h"
 
 namespace hui {
 

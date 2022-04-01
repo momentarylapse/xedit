@@ -28,8 +28,9 @@ void font_set_font(const string &font_name, float font_size) {
 	FT_Set_Char_Size(face, 0, int(font_size*64.0f), dpi, dpi);
 }
 
-float font_get_text_width(const string &font_name, float font_size, const string &text) {
+TextDimensions font_get_text_dimensions(const string &font_name, float font_size, const string &text) {
 	auto utf32 = text.utf8_to_utf32();
+	TextDimensions dim;
 
 	font_set_font(font_name, font_size);
 
@@ -40,11 +41,13 @@ float font_get_text_width(const string &font_name, float font_size, const string
 
 	int wmax = 0;
 	int x = 0;
+	int n = 1;
 
 	for (int u: utf32) {
 		if (u == '\n') {
 			wmax = max(wmax, x);
 			x = 0;
+			n ++;
 			continue;
 		}
 		int error = FT_Load_Glyph(face, u, FT_LOAD_DEFAULT); //load_flags);
@@ -53,7 +56,17 @@ float font_get_text_width(const string &font_name, float font_size, const string
 		//wmax = max(wmax, x + face->glyph->width);
 		x += face->glyph->advance.x >> 6;
 	}
-	return max(x, wmax) + font_size*0.1f;
+	dim.bounding_width = max(x, wmax) + font_size*0.1f;
+	dim.line_dy = font_size * 1.35f;
+	dim.bounding_top_to_line = font_size;
+	dim.bounding_height = dim.line_dy * n;
+	return dim;
+}
+
+
+float font_get_text_width(const string &font_name, float font_size, const string &text) {
+	auto dim = font_get_text_dimensions(font_name, font_size, text);
+	return dim.bounding_width;
 }
 
 void font_render_text(const string &font_name, float font_size, const string &text, Align align, Image &im) {
@@ -66,22 +79,21 @@ void font_render_text(const string &font_name, float font_size, const string &te
 	//errpr = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT); //load_flags);
 	//error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL); //render_mode);
 
-	int h_per_line = font_size * 1.4f;
-	int w = font_get_text_width(font_name, font_size, text);
+	auto dim = font_get_text_dimensions(font_name, font_size, text);
 
 	int nn = 1;
 	for (int u: utf32)
 		if (u == '\n')
 			nn ++;
 
-	im.create(w, h_per_line * nn, color(0,0,0,0));
+	im.create(dim.bounding_width, dim.bounding_height, color(0,0,0,0));
 
-	int x=0, y = font_size;// * 1.35f;
+	int x=0, y = dim.bounding_top_to_line;
 
 	for (int u: utf32) {
 		if (u == '\n') {
 			x = 0;
-			y += h_per_line;
+			y += dim.line_dy;
 			continue;
 		}
 		int error = FT_Load_Char(face, u, FT_LOAD_RENDER);

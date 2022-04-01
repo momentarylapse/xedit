@@ -1,5 +1,5 @@
-font.name = CAC Champagne
-font.size = 34.0
+font.name = "CAC Champagne"
+font.size = 16.0
 spacing = 6
 
 [window]
@@ -7,13 +7,13 @@ spacing = 6
 
 
 [colors]
-	background = #202040
-	background-hover = #303050
-	background-active = #505080
-	text = #f0f0f0
-	text-label = #d0d0d0
+	background = "#202040"
+	background-hover = "#303050"
+	background-active = "#505080"
+	text = "#f0f0f0"
+	text-label = "#d0d0d0"
 
 
 [label]
-	margin = 0
+	margin = 5
 
