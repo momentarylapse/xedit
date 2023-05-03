@@ -17,7 +17,9 @@ public:
 	color background, background_button;
 	color background_header, background_header_button;
 	color background_hover, background_active;
-	color text, text_label;
+	color background_low, background_low_hover, background_low_selected;
+	color text, text_label, text_disabled;
+	color border;
 
 	static void load_default();
 	static Theme _default;

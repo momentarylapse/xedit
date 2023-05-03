@@ -32,9 +32,10 @@ void Button::on_mouse_leave() {
 
 void Button::get_content_min_size(int &w, int &h) {
 	if (text_w < 0) {
-		auto dim = font_get_text_dimensions(Theme::_default.font_name, Theme::_default.font_size, title);
+		font::set_font(Theme::_default.font_name, Theme::_default.font_size);
+		auto dim = font::get_text_dimensions(title);
 		text_w = int(dim.bounding_width);
-		text_h = int(dim.bounding_height);
+		text_h = int(dim.inner_height());
 	}
 	w = text_w + Theme::_default.button_margin * 2;
 	h = text_h + Theme::_default.button_margin * 2;
@@ -48,17 +49,16 @@ void Button::_draw(Painter *p) {
 		bg = Theme::_default.background_active;
 	}
 	p->set_color(bg);
+	p->set_roundness(Theme::_default.button_radius);
 	p->draw_rect(_area);
+	p->set_roundness(0);
+
+	auto dim = font::get_text_dimensions(title);
+
+	//p->set_color(Red);
+	//p->draw_rect({_area.center().x - dim.bounding_width/2, _area.center().x + dim.bounding_width/2 , _area.center().y - dim.bounding_height/2, _area.center().y + dim.bounding_height/2});
 	p->set_color(Theme::_default.text);
-
-	auto dim = font_get_text_dimensions(Theme::_default.font_name, Theme::_default.font_size, title);
-
-	//if (state == State::PRESSED)
-	//	p->draw_str(_area.mx() - w/2 + 1, _area.my() - p->font_size * 0.8f + 1, title);
-	//else
-		p->draw_str({_area.center().x - dim.bounding_width/2, _area.center().y - dim.bounding_height/2}, title);
-	//p->set_color(color(1, 0.8f, 0.2f, 0.2f));
-	//p->draw_rect(rect(200,250, 200,300));
+	p->draw_str({_area.center().x - dim.bounding_width/2, _area.center().y - dim.inner_height()/2}, title);
 }
 
 }

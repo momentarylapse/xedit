@@ -23,9 +23,10 @@ void Label::set_string(const string &s) {
 
 void Label::get_content_min_size(int &w, int &h) {
 	if (text_w < 0) {
-		auto dim = font_get_text_dimensions(Theme::_default.font_name, Theme::_default.font_size, title);
+		font::set_font(Theme::_default.font_name, Theme::_default.font_size);
+		auto dim = font::get_text_dimensions(title);
 		text_w = int(dim.bounding_width);
-		text_h = int(dim.bounding_height);
+		text_h = int(dim.inner_height());
 	}
 	w = text_w + Theme::_default.label_margin * 2;
 	h = text_h + Theme::_default.label_margin * 2;
@@ -33,8 +34,8 @@ void Label::get_content_min_size(int &w, int &h) {
 
 void Label::_draw(Painter *p) {
 	p->set_color(Theme::_default.text_label);
-	auto dim = font_get_text_dimensions(Theme::_default.font_name, Theme::_default.font_size, title);
-	p->draw_str({_area.center().x - dim.bounding_width/2, _area.center().y - dim.bounding_height/2}, title);
+	auto dim = font::get_text_dimensions(title);
+	p->draw_str({_area.center().x - dim.bounding_width/2, _area.center().y - dim.inner_height()/2}, title);
 }
 
 }

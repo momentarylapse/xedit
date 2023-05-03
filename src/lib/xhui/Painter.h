@@ -20,12 +20,13 @@ class Painter : public ::Painter {
 	void _cdecl set_font(const string &font, float size, bool bold, bool italic) override;
 	void _cdecl set_font_size(float size) override;
 	void _cdecl set_antialiasing(bool enabled) override {};
-	void _cdecl set_line_width(float w) override {};
+	void _cdecl set_line_width(float w) override;
 	void _cdecl set_line_dash(const Array<float> &dash, float offset) override {};
+	void _cdecl set_roundness(float radius) override;
 	void _cdecl set_fill(bool fill) override { this->fill = fill; };
 	void _cdecl set_clip(const rect &r) override;
 	void _cdecl draw_point(const vec2 &p) override {};
-	void _cdecl draw_line(const vec2 &a, const vec2 &b) override {};
+	void _cdecl draw_line(const vec2 &a, const vec2 &b) override;
 	void _cdecl draw_lines(const Array<vec2> &p) override {};
 	void _cdecl draw_polygon(const Array<vec2> &p) override {};
 	void _cdecl draw_rect(const rect &r) override;
@@ -45,10 +46,11 @@ class Painter : public ::Painter {
 	//rect _clip;
 	//Array<float> dash;
 	//float dash_offset;
-	//float line_width;
+	float line_width = 1;
 	//bool anti_aliasing;
 	float offset_x, offset_y;
-	bool fill;
+	float corner_radius = 0;
+	bool fill = true;
 
 	Window *window;
 };

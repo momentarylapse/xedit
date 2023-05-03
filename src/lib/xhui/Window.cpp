@@ -16,6 +16,11 @@ Window::Window(const string &title, int w, int h) {
 
 	if (false)
 		glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+	/*glfwSetWindowAttrib(window, GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+	if (glfwGetWindowAttrib(window, GLFW_TRANSPARENT_FRAMEBUFFER))
+		msg_write("TRANSPARENT");
+	else
+		msg_write("NOT TRANSPARENT");*/
 
 	glfwSetWindowUserPointer(window, this);
 

@@ -1,17 +1,26 @@
 #include "font.h"
 #include "../../image/image.h"
+#include "../../math/rect.h"
+#include "../../math/vec2.h"
+#include "../../os/msg.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-namespace hui {
+namespace font {
 
 static FT_Library ft2;
-static FT_Face face;
 static int dpi = 96;
+static FT_Face face;
+static float current_font_size = 0;
+static string current_font_name;
+
+struct Face {
+	FT_Face face;
+};
 
 
-void font_init() {
+void init() {
 	auto error = FT_Init_FreeType(&ft2);
 	if (error) {
 		throw Exception("can not initialize freetype2 library");
@@ -24,15 +33,22 @@ void font_init() {
 	}
 }
 
-void font_set_font(const string &font_name, float font_size) {
+void set_font(const string &font_name, float font_size) {
+	if (font_size == current_font_size)
+		return;
+	// size: points<<6
 	FT_Set_Char_Size(face, 0, int(font_size*64.0f), dpi, dpi);
+	current_font_size = font_size;
 }
 
-TextDimensions font_get_text_dimensions(const string &font_name, float font_size, const string &text) {
+float units_to_pixel(float units) {
+	// 72 pt/inch
+	return units / (float)face->units_per_EM * current_font_size * dpi / 72.0f;
+}
+
+TextDimensions get_text_dimensions(const string &text) {
 	auto utf32 = text.utf8_to_utf32();
 	TextDimensions dim;
-
-	font_set_font(font_name, font_size);
 
 	//auto glyph_index = FT_Get_Char_Index(face, 'A');
 	//msg_write(glyph_index);
@@ -41,50 +57,68 @@ TextDimensions font_get_text_dimensions(const string &font_name, float font_size
 
 	int wmax = 0;
 	int x = 0;
-	int n = 1;
+	dim.num_lines = 1;
+
+	//msg_write(face->height);
+	//msg_write(face->units_per_EM);
 
 	for (int u: utf32) {
 		if (u == '\n') {
 			wmax = max(wmax, x);
 			x = 0;
-			n ++;
+			dim.num_lines ++;
 			continue;
 		}
-		int error = FT_Load_Glyph(face, u, FT_LOAD_DEFAULT); //load_flags);
-		if (error)
+		int error = FT_Load_Char(face, u, FT_LOAD_DEFAULT);
+		if (error) {
+			msg_write("E");
 			continue;
+		}
 		//wmax = max(wmax, x + face->glyph->width);
 		x += face->glyph->advance.x >> 6;
 	}
-	dim.bounding_width = max(x, wmax) + font_size*0.1f;
-	dim.line_dy = font_size * 1.35f;
-	dim.bounding_top_to_line = font_size;
-	dim.bounding_height = dim.line_dy * n;
+	dim.dx = max(x, wmax);
+	dim.bounding_width = max(x, wmax);// + current_font_size*0.1f;
+	dim.line_dy = current_font_size - units_to_pixel((float)face->descender);
+	dim.bounding_top_to_line = current_font_size;
+	dim.bounding_height = dim.line_dy * dim.num_lines;
+	//msg_write(f2s(units_to_pixel((float)face->descender), 3));
 	return dim;
 }
 
+float TextDimensions::inner_height() const {
+	return bounding_height - line_dy + bounding_top_to_line;
+}
 
-float font_get_text_width(const string &font_name, float font_size, const string &text) {
-	auto dim = font_get_text_dimensions(font_name, font_size, text);
+rect TextDimensions::bounding_box(const vec2& p0) const {
+	return rect(p0.x, p0.x + bounding_width, p0.y, p0.y + bounding_height);
+}
+rect TextDimensions::inner_box(const vec2& p0) const {
+	return rect(p0.x, p0.x + bounding_width, p0.y, p0.y + inner_height());
+}
+
+
+float get_text_width(const string &text) {
+	auto dim = get_text_dimensions(text);
 	return dim.bounding_width;
 }
 
-void font_render_text(const string &font_name, float font_size, const string &text, Align align, Image &im) {
+void render_text(const string &text, hui::Align align, Image &im) {
 	auto utf32 = text.utf8_to_utf32();
-
-	font_set_font(font_name, font_size);
 
 	//auto glyph_index = FT_Get_Char_Index(face, 'A');
 	//msg_write(glyph_index);
 	//errpr = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT); //load_flags);
 	//error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL); //render_mode);
 
-	auto dim = font_get_text_dimensions(font_name, font_size, text);
+	auto dim = get_text_dimensions(text);
 
-	int nn = 1;
+	//font_set_font(font_name, font_size);
+
+	/*int nn = 1;
 	for (int u: utf32)
 		if (u == '\n')
-			nn ++;
+			nn ++;*/
 
 	im.create(dim.bounding_width, dim.bounding_height, color(0,0,0,0));
 
@@ -97,8 +131,10 @@ void font_render_text(const string &font_name, float font_size, const string &te
 			continue;
 		}
 		int error = FT_Load_Char(face, u, FT_LOAD_RENDER);
-		if (error)
+		if (error) {
+			msg_write("E");
 			continue;
+		}
 
 		for (int i=0; i<face->glyph->bitmap.width; i++)
 			for (int j=0; j<face->glyph->bitmap.rows; j++) {

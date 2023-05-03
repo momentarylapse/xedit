@@ -14,9 +14,11 @@ void init() {
 	//msg_init();
 	glfwInit();
 
+	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+
 	Theme::load_default();
 
-	font_init();
+	font::init();
 }
 
 void run() {

@@ -9,12 +9,21 @@ spacing = 6
 [colors]
 	background = "#242424"
 	background-button = "#393939"
+	background-button-hover = "#404040"
+	background-button-primary = "#3584e4"
 	background-header = "#303030"
 	background-header-button = "#444444"
+	background-low = "#1e1e1e"
+	background-low-hover = "#272727"
+	background-low-selected = "#23374f"
+
 	background-hover = "#404040"
 	background-active = "#4d4d4d"
 	text = "#fefefe"
+	text-disabled = "#929292"
 	text-label = "#fefefe"
+
+	border = "#454545"
 
 
 [label]
@@ -22,4 +31,4 @@ spacing = 6
 
 [button]
 	margin = 10
-	radius = 4
+	radius = 5
