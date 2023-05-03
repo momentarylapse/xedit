@@ -30,14 +30,25 @@ void Button::on_mouse_leave() {
 	request_redraw();
 }
 
-void Button::_draw(Painter *p) {
-	if (state == State::HOVER) {
-		p->set_color(Theme::_default.background_hover);
-		p->draw_rect(_area);
-	} else if (state == State::PRESSED) {
-		p->set_color(Theme::_default.background_active);
-		p->draw_rect(_area);
+void Button::get_content_min_size(int &w, int &h) {
+	if (text_w < 0) {
+		auto dim = font_get_text_dimensions(Theme::_default.font_name, Theme::_default.font_size, title);
+		text_w = int(dim.bounding_width);
+		text_h = int(dim.bounding_height);
 	}
+	w = text_w + Theme::_default.button_margin * 2;
+	h = text_h + Theme::_default.button_margin * 2;
+}
+
+void Button::_draw(Painter *p) {
+	color bg = Theme::_default.background_button;
+	if (state == State::HOVER) {
+		bg = Theme::_default.background_hover;
+	} else if (state == State::PRESSED) {
+		bg = Theme::_default.background_active;
+	}
+	p->set_color(bg);
+	p->draw_rect(_area);
 	p->set_color(Theme::_default.text);
 
 	auto dim = font_get_text_dimensions(Theme::_default.font_name, Theme::_default.font_size, title);

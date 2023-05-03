@@ -11,8 +11,12 @@ public:
 
 	float spacing, window_margin;
 	float label_margin;
+	float button_margin;
+	float button_radius;
 
-	color background, background_hover, background_active;
+	color background, background_button;
+	color background_header, background_header_button;
+	color background_hover, background_active;
 	color text, text_label;
 
 	static void load_default();
