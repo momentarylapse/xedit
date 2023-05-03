@@ -217,7 +217,7 @@ void Painter::draw_str(const vec2 &p, const string &str) {
 	nix::set_model_matrix(mat4::translation(vec3(offset_x + p.x, offset_y + p.y, 0)) * mat4::scale(w, h, 1));
 
 	nix::set_shader(shader);
-	nix::set_alpha_sd(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA);
+	nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ZERO, nix::Alpha::ONE);
 	shader->set_color("_color_", _color);
 	nix::set_texture(tex_text);
 	nix::draw_triangles(vb_rect);
@@ -253,7 +253,7 @@ void Painter::draw_rect(const rect &r) {
 		}
 		nix::set_shader(s);
 		if (_color.a < 1 or corner_radius > 0)
-			nix::set_alpha(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA);
+			nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ZERO, nix::Alpha::ONE);
 		s->set_color("_color_", _color);
 		nix::set_texture(tex_white);
 		nix::draw_triangles(vb_rect);
@@ -284,7 +284,7 @@ void Painter::draw_line(const vec2 &a, const vec2 &b) {
 			* mat4::scale((b - a).length(), line_width, 1));
 	nix::set_shader(shader);
 	if (_color.a < 1)
-		nix::set_alpha(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA);
+		nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ZERO, nix::Alpha::ONE);
 	shader->set_color("_color_", _color);
 	nix::set_texture(tex_white);
 	nix::draw_triangles(vb_rect);
