@@ -1,6 +1,7 @@
 #include "lib/xhui/xhui.h"
 #include "lib/xhui/Controls/Button.h"
 #include "lib/xhui/Controls/Label.h"
+#include "lib/xhui/Controls/Edit.h"
 #include "lib/xhui/Controls/Grid.h"
 #include "lib/xhui/Controls/DrawingArea.h"
 #include "lib/os/msg.h"
@@ -15,9 +16,11 @@ int main() {
 	auto w = new hui::Window("test", 800, 600);
 	auto g = new hui::Grid(w, "grid");
 	auto ll = new hui::Label(w, "label", "test");
+	auto ed = new hui::Edit(w, "edit", "bla");
 	g->add(ll, 0, 0);
 	g->add(new hui::Button(w, "button1", "a small test g"), 1, 0);
 	g->add(new hui::Button(w, "button2", "more test"), 1, 1);
+	g->add(ed, 2, 0);
 	g->add(new hui::Button(w, "button3", "x"), 2, 1);
 	g->add(new hui::DrawingArea(w, "area"), 2, 2);
 	w->add(g);
@@ -47,7 +50,9 @@ int main() {
 		p->draw_str(p0, text);
 
 		//p->draw_str({50, 200}, "Test g\nbla gg");
-
+	});
+	w->event("edit", [ed] {
+		msg_write("edit: " + ed->text);
 	});
 
 	hui::run();

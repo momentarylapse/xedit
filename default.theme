@@ -1,6 +1,7 @@
 font.name = "CAC Champagne"
-font.size = 16.0
+font.size = 13.0
 spacing = 6
+focus-frame-width = 2.0
 
 [window]
 	margin = 10

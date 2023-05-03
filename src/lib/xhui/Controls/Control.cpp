@@ -43,4 +43,8 @@ void Control::negotiate_area(const rect &available) {
 	_area = available;
 }
 
+bool Control::has_focus() const {
+	return window->focus_control == this;
+}
+
 }

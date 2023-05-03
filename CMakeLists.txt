@@ -53,6 +53,7 @@ set(SOURCE
 	src/lib/xhui/Controls/Button.cpp
 	src/lib/xhui/Controls/Control.cpp
 	src/lib/xhui/Controls/DrawingArea.cpp
+	src/lib/xhui/Controls/Edit.cpp
 	src/lib/xhui/Controls/Grid.cpp
 	src/lib/xhui/Controls/Label.cpp
 	src/lib/xhui/draw/font.cpp

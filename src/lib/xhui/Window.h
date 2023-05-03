@@ -80,10 +80,10 @@ private:
 
 	Control *get_hover_control(const vec2 &p);
 
-	Control *control;
+	Control *control = nullptr;
 	Array<Control*> controls;
-	Control *hover_control;
-	Control *focus_control;
+	Control *hover_control = nullptr;
+	Control *focus_control = nullptr;
 	float padding;
 
 	class EventHandler {

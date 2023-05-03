@@ -14,7 +14,10 @@ public:
 	float button_margin;
 	float button_radius;
 
+	float focus_frame_width;
+
 	color background, background_button;
+	color background_button_primary;
 	color background_header, background_header_button;
 	color background_hover, background_active;
 	color background_low, background_low_hover, background_low_selected;

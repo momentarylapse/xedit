@@ -206,6 +206,8 @@ void Painter::set_color(const color &c) {
 }
 
 void Painter::draw_str(const vec2 &p, const string &str) {
+	if (str.num == 0)
+		return;
 	Image im;
 	font::render_text(str, Align::LEFT, im);
 	tex_text->write(im);
@@ -234,6 +236,12 @@ void Painter::set_roundness(float radius) {
 	corner_radius = radius;
 }
 
+void Painter::draw_arc(const vec2& p, float r, float w0, float w1) {
+	//float w = (w0 + w1) / 2;
+	draw_line({p.x + r * cos(w0), p.y - r * sin(w0)}, {p.x + r * cos(w1), p.y - r * sin(w1)});
+	//draw_line({p.x + r * cos(w), p.y - r * sin(w)}, {p.x + r * cos(w1), p.y - r * sin(w1)});
+}
+
 void Painter::draw_rect(const rect &r) {
 	if (fill) {
 		nix::set_model_matrix(mat4::translation(vec3(offset_x + r.x1, offset_y + r.y1, 0)) * mat4::scale(r.width(), r.height(), 1));
@@ -251,10 +259,21 @@ void Painter::draw_rect(const rect &r) {
 		nix::draw_triangles(vb_rect);
 		nix::disable_alpha();
 	} else {
-		draw_line({r.x1, r.y1}, {r.x2, r.y1});
-		draw_line({r.x1, r.y2}, {r.x2, r.y2});
-		draw_line({r.x1, r.y1}, {r.x1, r.y2});
-		draw_line({r.x2, r.y1}, {r.x2, r.y2});
+		if (corner_radius > 0) {
+			draw_line({r.x1 + corner_radius, r.y1}, {r.x2 - corner_radius, r.y1});
+			draw_line({r.x1 + corner_radius, r.y2}, {r.x2 - corner_radius, r.y2});
+			draw_line({r.x1, r.y1 + corner_radius}, {r.x1, r.y2 - corner_radius});
+			draw_line({r.x2, r.y1 + corner_radius}, {r.x2, r.y2 - corner_radius});
+			draw_arc({r.x1 + corner_radius, r.y1 + corner_radius}, corner_radius, pi/2, pi);
+			draw_arc({r.x2 - corner_radius, r.y1 + corner_radius}, corner_radius, 0, pi/2);
+			draw_arc({r.x1 + corner_radius, r.y2 - corner_radius}, corner_radius, -pi/2, -pi);
+			draw_arc({r.x2 - corner_radius, r.y2 - corner_radius}, corner_radius, 0, -pi/2);
+		} else {
+			draw_line({r.x1, r.y1}, {r.x2, r.y1});
+			draw_line({r.x1, r.y2}, {r.x2, r.y2});
+			draw_line({r.x1, r.y1}, {r.x1, r.y2});
+			draw_line({r.x2, r.y1}, {r.x2, r.y2});
+		}
 	}
 }
 

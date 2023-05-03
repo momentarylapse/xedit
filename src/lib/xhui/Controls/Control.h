@@ -31,6 +31,7 @@ public:
 	virtual void _draw(Painter *p) {}
 
 	void request_redraw();
+	bool has_focus() const;
 
 	rect _area;
 	string id;

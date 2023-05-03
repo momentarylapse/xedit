@@ -24,11 +24,7 @@ Window::Window(const string &title, int w, int h) {
 
 	glfwSetWindowUserPointer(window, this);
 
-	control = nullptr;
 	padding = Theme::_default.window_margin;
-
-	hover_control = nullptr;
-	focus_control = nullptr;
 
 	glfwSetKeyCallback(window, _key_callback);
 	glfwSetCursorPosCallback(window, _cursor_position_callback);
@@ -196,8 +192,13 @@ void Window::redraw(const string &id) {
 }
 
 void Window::_on_left_button_down() {
-	if (hover_control)
+	if (hover_control) {
+		if (hover_control->can_grab_focus) {
+			focus_control = hover_control;
+			redraw("");
+		}
 		hover_control->on_left_button_down();
+	}
 	on_left_button_down();
 }
 void Window::_on_left_button_up() {
@@ -242,9 +243,13 @@ void Window::_on_mouse_wheel(const vec2 &d) {
 	on_mouse_wheel(d);
 }
 void Window::_on_key_down(int k) {
+	if (focus_control)
+		focus_control->on_key_down(k);
 	on_key_down(k);
 }
 void Window::_on_key_up(int k) {
+	if (focus_control)
+		focus_control->on_key_up(k);
 	on_key_up(k);
 }
 
