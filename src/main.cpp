@@ -34,7 +34,9 @@ int main() {
 	});
 	w->event_xp("area", "hui:draw", [] (Painter *p) {
 		p->set_color(hui::Theme::_default.background_low);
+		p->set_roundness(8);
 		p->draw_rect(p->area());
+		p->set_roundness(0);
 		float font_size = 50;
 		p->set_font_size(font_size);
 		vec2 p0 = {20, 20};
@@ -50,6 +52,9 @@ int main() {
 		p->draw_str(p0, text);
 
 		//p->draw_str({50, 200}, "Test g\nbla gg");
+
+		p->set_roundness(20);
+		p->draw_rect({50, 300, 200, 350});
 	});
 	w->event("edit", [ed] {
 		msg_write("edit: " + ed->text);

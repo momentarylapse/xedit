@@ -137,15 +137,17 @@ layout(location = 1) in vec2 in_uv;
 layout(location = 2) in vec4 in_pos;
 uniform sampler2D tex0;
 uniform vec4 _color_;
-uniform vec2 radius;
+uniform vec2 size;
+uniform float radius;
 out vec4 out_color;
 
 void main() {
 	out_color = texture(tex0, in_uv);
 	out_color *= _color_;
-	vec2 pp = (abs(in_uv - 0.5) - (0.5-radius)) / radius;
-	pp = clamp(pp, 0, 1);
-	out_color.a *= step(length(pp), 0.999);//clamp(1-length(pp), 0, 1);
+	vec2 pp = (abs(in_uv - 0.5) * size - (0.5*size-radius));
+	pp = clamp(pp, 0, radius);
+	out_color.a *= 1 - clamp((length(pp) - radius), 0, 1);
+	//out_color = vec4(length(pp)/radius, 0, 1, 1);
 }
 </FragmentShader>
 )foodelim");
@@ -248,8 +250,9 @@ void Painter::draw_rect(const rect &r) {
 		auto s = shader;
 		if (corner_radius > 0) {
 			s = shader_round;
-			vec2 rr = {corner_radius / r.width(), corner_radius / r.height()};
-			s->set_floats("radius", &rr.x, 2);
+			vec2 size = {r.width(), r.height()};
+			s->set_floats("size", &size.x, 2);
+			s->set_float("radius", corner_radius);
 		}
 		nix::set_shader(s);
 		if (_color.a < 1 or corner_radius > 0)
