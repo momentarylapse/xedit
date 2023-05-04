@@ -35,7 +35,7 @@ public:
 	virtual void on_middle_button_up(const vec2&) {}
 	virtual void on_right_button_down(const vec2&) {}
 	virtual void on_right_button_up(const vec2&) {}
-	virtual void on_mouse_move(const vec2 &m) {}
+	virtual void on_mouse_move(const vec2 &m, const vec2& d) {}
 	virtual void on_mouse_enter(const vec2& m) {}
 	virtual void on_mouse_leave(const vec2& m) {}
 	virtual void on_mouse_wheel(const vec2 &d) {}
@@ -53,6 +53,9 @@ public:
 
 	string get_title() const { return title; }
 	void set_title(const string& t);
+
+	void get_position(int &x, int &y);
+	void set_position(int x, int y);
 
 private:
 	GLFWwindow *window;
@@ -78,7 +81,7 @@ private:
 	void _on_middle_button_up(const vec2& m);
 	void _on_right_button_down(const vec2& m);
 	void _on_right_button_up(const vec2& m);
-	void _on_mouse_move(const vec2 &m);
+	void _on_mouse_move(const vec2 &m, const vec2& d);
 	void _on_mouse_enter(const vec2& m);
 	void _on_mouse_leave(const vec2& m);
 	void _on_mouse_wheel(const vec2 &d);

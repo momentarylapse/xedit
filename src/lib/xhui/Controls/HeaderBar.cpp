@@ -17,9 +17,10 @@ void HeaderBar::get_content_min_size(int &w, int &h) {
 }
 
 void HeaderBar::on_left_button_down(const vec2& m) {
-	msg_write("click header");
+	//msg_write("click header");
 	dragging = true;
 	drag_m0 = m;
+	window->get_position(window_pos_x0, window_pos_y0);
 	request_redraw();
 }
 void HeaderBar::on_left_button_up(const vec2& m) {
@@ -28,10 +29,11 @@ void HeaderBar::on_left_button_up(const vec2& m) {
 
 	//window->handle_event(id, "hui:click");
 }
-void HeaderBar::on_mouse_move(const vec2& m) {
+void HeaderBar::on_mouse_move(const vec2& m, const vec2& d) {
 	if (dragging) {
-		msg_write("MOVE " + str(m));
-		request_redraw();
+		// FIXME...
+		//msg_write(str(m - drag_m0));
+		window->set_position(window_pos_x0 + m.x - drag_m0.x, window_pos_y0 + m.y - drag_m0.y);
 	}
 }
 

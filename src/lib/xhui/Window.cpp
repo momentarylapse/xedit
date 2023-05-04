@@ -151,7 +151,7 @@ void Window::_cursor_position_callback(GLFWwindow *window, double xpos, double y
 	auto w = (Window*)glfwGetWindowUserPointer(window);
 	w->state.m.x = xpos/ui_scale;
 	w->state.m.y = ypos/ui_scale;
-	w->_on_mouse_move(w->state.m);
+	w->_on_mouse_move(w->state.m, {0,0});
 }
 
 void Window::_cursor_enter_callback(GLFWwindow *window, int enter) {
@@ -199,6 +199,14 @@ void Window::redraw(const string &id) {
 	_refresh_requested = true;
 }
 
+void Window::get_position(int &x, int &y) {
+	glfwGetWindowPos(window, &x, &y);
+}
+
+void Window::set_position(int x, int y) {
+	glfwSetWindowPos(window, x, y);
+}
+
 // TODO: widget offset?
 void Window::_on_left_button_down(const vec2& m) {
 	state.lbut = true;
@@ -229,7 +237,7 @@ void Window::_on_right_button_down(const vec2& m) {
 void Window::_on_right_button_up(const vec2& m) {
 	on_right_button_up(m);
 }
-void Window::_on_mouse_move(const vec2 &m) {
+void Window::_on_mouse_move(const vec2 &m, const vec2& d) {
 	auto hover = get_hover_control(m);
 	if (hover != hover_control and !state.lbut) {
 		if (hover_control)
@@ -239,8 +247,8 @@ void Window::_on_mouse_move(const vec2 &m) {
 			hover_control->on_mouse_enter(m);
 	}
 	if (hover_control)
-		hover_control->on_mouse_move(m);
-	on_mouse_move(m);
+		hover_control->on_mouse_move(m, d);
+	on_mouse_move(m, d);
 }
 void Window::_on_mouse_enter(const vec2& m) {
 	on_mouse_enter(m);
