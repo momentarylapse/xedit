@@ -5,6 +5,9 @@ focus-frame-width = 2.0
 
 [window]
 	margin = 10
+	radius = 10
+	shadow-radius = 12
+	shadow-color = "#00000066"
 [headerbar]
 	height = 50
 

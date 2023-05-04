@@ -2,6 +2,7 @@
 
 #include "../../base/base.h"
 #include "../../math/rect.h"
+#include "../../math/vec2.h"
 
 namespace hui {
 
@@ -15,16 +16,16 @@ public:
 
 	virtual void set_string(const string &s) {};
 
-	virtual void on_left_button_down() {}
-	virtual void on_left_button_up() {}
-	virtual void on_middle_button_down() {}
-	virtual void on_middle_button_up() {}
-	virtual void on_right_button_down() {}
-	virtual void on_right_button_up() {}
-	virtual void on_mouse_move(float mx, float my) {}
-	virtual void on_mouse_enter() {}
-	virtual void on_mouse_leave() {}
-	virtual void on_mouse_wheel(float dx, float dy) {}
+	virtual void on_left_button_down(const vec2& m) {}
+	virtual void on_left_button_up(const vec2& m) {}
+	virtual void on_middle_button_down(const vec2& m) {}
+	virtual void on_middle_button_up(const vec2& m) {}
+	virtual void on_right_button_down(const vec2& m) {}
+	virtual void on_right_button_up(const vec2& m) {}
+	virtual void on_mouse_move(const vec2& m) {}
+	virtual void on_mouse_enter(const vec2& m) {}
+	virtual void on_mouse_leave(const vec2& m) {}
+	virtual void on_mouse_wheel(const vec2& d) {}
 	virtual void on_key_down(int key) {}
 	virtual void on_key_up(int key) {}
 

@@ -3,6 +3,7 @@
 #include "Painter.h"
 #include "Theme.h"
 #include "Controls/Control.h"
+#include "Controls/HeaderBar.h"
 #include "../os/msg.h"
 
 
@@ -26,6 +27,7 @@ Window::Window(const string &_title, int w, int h, Flags _flags) {
 			msg_write("TRANSPARENT");
 		else
 			msg_write("NOT TRANSPARENT");
+		header_bar = new HeaderBar(this, ":headerbar:");
 	}
 
 	glfwSetWindowUserPointer(window, this);
@@ -155,9 +157,9 @@ void Window::_cursor_position_callback(GLFWwindow *window, double xpos, double y
 void Window::_cursor_enter_callback(GLFWwindow *window, int enter) {
 	auto w = (Window*)glfwGetWindowUserPointer(window);
 	if (enter == 1)
-		w->_on_mouse_enter();
+		w->_on_mouse_enter(w->state.m);
 	else
-		w->_on_mouse_leave();
+		w->_on_mouse_leave(w->state.m);
 }
 
 void Window::_mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
@@ -165,18 +167,18 @@ void Window::_mouse_button_callback(GLFWwindow *window, int button, int action, 
 	auto w = (Window*)glfwGetWindowUserPointer(window);
 	if (action == GLFW_PRESS) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT)
-			w->_on_left_button_down();
+			w->_on_left_button_down(w->state.m);
 		if (button == GLFW_MOUSE_BUTTON_MIDDLE)
-			w->_on_middle_button_down();
+			w->_on_middle_button_down(w->state.m);
 		if (button == GLFW_MOUSE_BUTTON_RIGHT)
-			w->_on_right_button_down();
+			w->_on_right_button_down(w->state.m);
 	} else if (action == GLFW_RELEASE) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT)
-			w->_on_left_button_up();
+			w->_on_left_button_up(w->state.m);
 		if (button == GLFW_MOUSE_BUTTON_MIDDLE)
-			w->_on_middle_button_up();
+			w->_on_middle_button_up(w->state.m);
 		if (button == GLFW_MOUSE_BUTTON_RIGHT)
-			w->_on_right_button_up();
+			w->_on_right_button_up(w->state.m);
 	}
 }
 
@@ -197,55 +199,62 @@ void Window::redraw(const string &id) {
 	_refresh_requested = true;
 }
 
-void Window::_on_left_button_down() {
+// TODO: widget offset?
+void Window::_on_left_button_down(const vec2& m) {
+	state.lbut = true;
 	if (hover_control) {
 		if (hover_control->can_grab_focus) {
 			focus_control = hover_control;
 			redraw("");
 		}
-		hover_control->on_left_button_down();
+		hover_control->on_left_button_down(m);
 	}
-	on_left_button_down();
+	on_left_button_down(m);
 }
-void Window::_on_left_button_up() {
+void Window::_on_left_button_up(const vec2& m) {
+	state.lbut = false;
 	if (hover_control)
-		hover_control->on_left_button_up();
-	on_left_button_up();
+		hover_control->on_left_button_up(m);
+	on_left_button_up(m);
 }
-void Window::_on_middle_button_down() {
-	on_middle_button_down();
+void Window::_on_middle_button_down(const vec2& m) {
+	on_middle_button_down(m);
 }
-void Window::_on_middle_button_up() {
-	on_middle_button_up();
+void Window::_on_middle_button_up(const vec2& m) {
+	on_middle_button_up(m);
 }
-void Window::_on_right_button_down() {
-	on_right_button_down();
+void Window::_on_right_button_down(const vec2& m) {
+	on_right_button_down(m);
 }
-void Window::_on_right_button_up() {
-	on_right_button_up();
+void Window::_on_right_button_up(const vec2& m) {
+	on_right_button_up(m);
 }
 void Window::_on_mouse_move(const vec2 &m) {
 	auto hover = get_hover_control(m);
-	if (hover != hover_control) {
+	if (hover != hover_control and !state.lbut) {
 		if (hover_control)
-			hover_control->on_mouse_leave();
+			hover_control->on_mouse_leave(m);
 		hover_control = hover;
 		if (hover_control)
-			hover_control->on_mouse_enter();
+			hover_control->on_mouse_enter(m);
 	}
+	if (hover_control)
+		hover_control->on_mouse_move(m);
 	on_mouse_move(m);
 }
-void Window::_on_mouse_enter() {
-	on_mouse_enter();
+void Window::_on_mouse_enter(const vec2& m) {
+	on_mouse_enter(m);
 }
-void Window::_on_mouse_leave() {
-	if (hover_control) {
-		hover_control->on_mouse_leave();
+void Window::_on_mouse_leave(const vec2& m) {
+	if (hover_control and !state.lbut) {
+		hover_control->on_mouse_leave(m);
 		hover_control = nullptr;
 	}
-	on_mouse_leave();
+	on_mouse_leave(m);
 }
 void Window::_on_mouse_wheel(const vec2 &d) {
+	if (hover_control)
+		hover_control->on_mouse_wheel(d);
 	on_mouse_wheel(d);
 }
 void Window::_on_key_down(int k) {
@@ -267,9 +276,10 @@ void Window::_on_draw() {
 
 	if (flags & Flags::OWN_DECORATION) {
 		p->clear(color(0,0,0,0));
-		float R = 10;
-		p->accumulate_alpha = true;
+		float R = Theme::_default.window_radius;
 
+		// shadow
+		p->accumulate_alpha = true;
 		float R_shadow = 12;
 		p->set_color({0.3f, 0,0,0});
 		p->softness = R_shadow;
@@ -281,27 +291,22 @@ void Window::_on_draw() {
 
 		rect header = rect(a.x1, a.x2, a.y1, a.y1 + Theme::_default.headerbar_height);
 
+		// window border
 		p->set_roundness(R+1);
 		p->set_color(Theme::_default.border);
 		p->draw_rect(smaller_rect(a, -1));
+
+		// main background
 		p->accumulate_alpha = false;
 		p->set_roundness(R);
 		p->set_color(Theme::_default.background);
 		p->draw_rect(a);
 
-		p->set_color(Theme::_default.background_header);
-		p->draw_rect(header);
-		p->set_roundness(0);
-		p->draw_rect({header.x1, header.x2, header.y2 - R, header.y2});
-		p->set_color({0.2, 0,0,0});
-		p->draw_line({header.x1, header.y2}, {header.x2, header.y2});
-
-		p->set_color(Theme::_default.text);
-		p->set_font_size(Theme::_default.font_size * 1.6f);
-		float ww = p->get_str_width(title);
-		p->draw_str(header.center() - vec2(ww/2, Theme::_default.font_size * 0.8f), title);
-		p->set_font_size(Theme::_default.font_size);
-
+		// header
+		if (header_bar) {
+			header_bar->_area = header;
+			header_bar->_draw(p);
+		}
 
 		a.y1 += Theme::_default.headerbar_height;
 	} else {
@@ -366,6 +371,11 @@ void Window::handle_event_p(const string &id, const string &msg, Painter *p) {
 		if (e.id == id and e.fp) {
 			e.fp(p);
 		}
+}
+
+void Window::set_title(const string& t) {
+	title = t;
+	redraw("");
 }
 
 Control *Window::get_hover_control(const vec2 &p) {

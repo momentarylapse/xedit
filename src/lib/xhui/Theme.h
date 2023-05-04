@@ -16,6 +16,7 @@ public:
 
 	float focus_frame_width;
 	float headerbar_height;
+	float window_radius;
 
 	color background, background_button;
 	color background_button_primary;

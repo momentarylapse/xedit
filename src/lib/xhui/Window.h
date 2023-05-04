@@ -9,6 +9,7 @@ class Painter;
 namespace hui {
 
 class Control;
+class HeaderBar;
 class Painter;
 
 typedef std::function<void()> Callback;
@@ -28,15 +29,15 @@ public:
 	Window(const string &title, int width, int height, Flags flags);
 	~Window() override;
 
-	virtual void on_left_button_down() {}
-	virtual void on_left_button_up() {}
-	virtual void on_middle_button_down() {}
-	virtual void on_middle_button_up() {}
-	virtual void on_right_button_down() {}
-	virtual void on_right_button_up() {}
+	virtual void on_left_button_down(const vec2&) {}
+	virtual void on_left_button_up(const vec2&) {}
+	virtual void on_middle_button_down(const vec2&) {}
+	virtual void on_middle_button_up(const vec2&) {}
+	virtual void on_right_button_down(const vec2&) {}
+	virtual void on_right_button_up(const vec2&) {}
 	virtual void on_mouse_move(const vec2 &m) {}
-	virtual void on_mouse_enter() {}
-	virtual void on_mouse_leave() {}
+	virtual void on_mouse_enter(const vec2& m) {}
+	virtual void on_mouse_leave(const vec2& m) {}
 	virtual void on_mouse_wheel(const vec2 &d) {}
 	virtual void on_key_down(int key) {}
 	virtual void on_key_up(int key) {}
@@ -49,6 +50,9 @@ public:
 	void event(const string &id, Callback f);
 	void event_x(const string &id, const string &msg, Callback f);
 	void event_xp(const string &id, const string &msg, CallbackP f);
+
+	string get_title() const { return title; }
+	void set_title(const string& t);
 
 private:
 	GLFWwindow *window;
@@ -68,15 +72,15 @@ private:
 	static void _refresh_callback(GLFWwindow *window);
 
 
-	void _on_left_button_down();
-	void _on_left_button_up();
-	void _on_middle_button_down();
-	void _on_middle_button_up();
-	void _on_right_button_down();
-	void _on_right_button_up();
+	void _on_left_button_down(const vec2& m);
+	void _on_left_button_up(const vec2& m);
+	void _on_middle_button_down(const vec2& m);
+	void _on_middle_button_up(const vec2& m);
+	void _on_right_button_down(const vec2& m);
+	void _on_right_button_up(const vec2& m);
 	void _on_mouse_move(const vec2 &m);
-	void _on_mouse_enter();
-	void _on_mouse_leave();
+	void _on_mouse_enter(const vec2& m);
+	void _on_mouse_leave(const vec2& m);
 	void _on_mouse_wheel(const vec2 &d);
 	void _on_key_down(int key);
 	void _on_key_up(int key);
@@ -93,6 +97,8 @@ private:
 	float padding;
 	Flags flags;
 	string title;
+
+	HeaderBar *header_bar = nullptr;
 
 	class EventHandler {
 		public:

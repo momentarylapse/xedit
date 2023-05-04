@@ -11,21 +11,21 @@ Button::Button(Window *w, const string &_id, const string &t) : Label(w, _id, t)
 	expand_y = false;
 }
 
-void Button::on_left_button_down() {
+void Button::on_left_button_down(const vec2&) {
 	state = State::PRESSED;
 	request_redraw();
 }
-void Button::on_left_button_up() {
+void Button::on_left_button_up(const vec2&) {
 	state = State::HOVER;
 	request_redraw();
 
 	window->handle_event(id, "hui:click");
 }
-void Button::on_mouse_enter() {
+void Button::on_mouse_enter(const vec2&) {
 	state = State::HOVER;
 	request_redraw();
 }
-void Button::on_mouse_leave() {
+void Button::on_mouse_leave(const vec2&) {
 	state = State::DEFAULT;
 	request_redraw();
 }

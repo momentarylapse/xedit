@@ -1,0 +1,59 @@
+#include "HeaderBar.h"
+#include "../Painter.h"
+#include "../Theme.h"
+#include "../draw/font.h"
+#include "../../os/msg.h"
+
+namespace hui {
+
+HeaderBar::HeaderBar(Window *w, const string &_id) : Control(w, _id) {
+	expand_x = true;
+	expand_y = false;
+}
+
+void HeaderBar::get_content_min_size(int &w, int &h) {
+	w = 0;
+	h = Theme::_default.headerbar_height;
+}
+
+void HeaderBar::on_left_button_down(const vec2& m) {
+	msg_write("click header");
+	dragging = true;
+	drag_m0 = m;
+	request_redraw();
+}
+void HeaderBar::on_left_button_up(const vec2& m) {
+	request_redraw();
+	dragging = false;
+
+	//window->handle_event(id, "hui:click");
+}
+void HeaderBar::on_mouse_move(const vec2& m) {
+	if (dragging) {
+		msg_write("MOVE " + str(m));
+		request_redraw();
+	}
+}
+
+void HeaderBar::_draw(Painter *p) {
+	float R = Theme::_default.window_radius;
+
+	// round bg
+	p->set_roundness(R);
+	p->set_color(Theme::_default.background_header);
+	p->draw_rect(_area);
+
+	// flat lower bg
+	p->set_roundness(0);
+	p->draw_rect({_area.x1, _area.x2, _area.y2 - R, _area.y2});
+	p->set_color({0.2, 0,0,0});
+	p->draw_line({_area.x1, _area.y2}, {_area.x2, _area.y2});
+
+	p->set_color(Theme::_default.text);
+	p->set_font_size(Theme::_default.font_size * 1.6f);
+	float ww = p->get_str_width(window->get_title());
+	p->draw_str(_area.center() - vec2(ww/2, Theme::_default.font_size * 0.8f), window->get_title());
+	p->set_font_size(Theme::_default.font_size);
+}
+
+}
