@@ -8,19 +8,25 @@
 
 namespace hui {
 
+rect smaller_rect(const rect& r, float d);
+
 Array<Window*> _windows_;
 
+Window::Window(const string &title, int w, int h) : Window(title, w, h, Flags::NONE) {}
 
-Window::Window(const string &title, int w, int h) {
+Window::Window(const string &_title, int w, int h, Flags _flags) {
+	title = _title;
+	flags = _flags;
 	window = glfwCreateWindow(w * ui_scale, h * ui_scale, title.c_str(), nullptr, nullptr);
 
-	if (false)
+	if (flags & Flags::OWN_DECORATION) {
 		glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
-	/*glfwSetWindowAttrib(window, GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-	if (glfwGetWindowAttrib(window, GLFW_TRANSPARENT_FRAMEBUFFER))
-		msg_write("TRANSPARENT");
-	else
-		msg_write("NOT TRANSPARENT");*/
+		glfwSetWindowAttrib(window, GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+		if (glfwGetWindowAttrib(window, GLFW_TRANSPARENT_FRAMEBUFFER))
+			msg_write("TRANSPARENT");
+		else
+			msg_write("NOT TRANSPARENT");
+	}
 
 	glfwSetWindowUserPointer(window, this);
 
@@ -259,7 +265,48 @@ void Window::_on_draw() {
 	auto p = new Painter(this);
 	auto a = p->area();
 
-	p->clear(Theme::_default.background);
+	if (flags & Flags::OWN_DECORATION) {
+		p->clear(color(0,0,0,0));
+		float R = 10;
+		p->accumulate_alpha = true;
+
+		float R_shadow = 12;
+		p->set_color({0.3f, 0,0,0});
+		p->softness = R_shadow;
+		p->set_roundness(R + R_shadow);
+		p->draw_rect(a);
+		p->softness = 0;
+
+		a = smaller_rect(a, R_shadow);
+
+		rect header = rect(a.x1, a.x2, a.y1, a.y1 + Theme::_default.headerbar_height);
+
+		p->set_roundness(R+1);
+		p->set_color(Theme::_default.border);
+		p->draw_rect(smaller_rect(a, -1));
+		p->accumulate_alpha = false;
+		p->set_roundness(R);
+		p->set_color(Theme::_default.background);
+		p->draw_rect(a);
+
+		p->set_color(Theme::_default.background_header);
+		p->draw_rect(header);
+		p->set_roundness(0);
+		p->draw_rect({header.x1, header.x2, header.y2 - R, header.y2});
+		p->set_color({0.2, 0,0,0});
+		p->draw_line({header.x1, header.y2}, {header.x2, header.y2});
+
+		p->set_color(Theme::_default.text);
+		p->set_font_size(Theme::_default.font_size * 1.6f);
+		float ww = p->get_str_width(title);
+		p->draw_str(header.center() - vec2(ww/2, Theme::_default.font_size * 0.8f), title);
+		p->set_font_size(Theme::_default.font_size);
+
+
+		a.y1 += Theme::_default.headerbar_height;
+	} else {
+		p->clear(Theme::_default.background);
+	}
 
 	if (control) {
 		control->negotiate_area(rect(a.x1 + padding, a.x2 - padding, a.y1 + padding, a.y2 - padding));
@@ -328,5 +375,7 @@ Control *Window::get_hover_control(const vec2 &p) {
 	return nullptr;
 }
 
+WindowX::WindowX(const string &title, int w, int h) : Window(title, w, h, Flags::OWN_DECORATION) {
+}
 
 }

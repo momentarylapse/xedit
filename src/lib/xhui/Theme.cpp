@@ -16,6 +16,7 @@ void Theme::load_default() {
 	_default.spacing = c.get_float("spacing", 8);
 	_default.focus_frame_width = c.get_float("focus-frame-width", 1);
 	_default.window_margin = c.get_float("window.margin", 8);
+	_default.headerbar_height = c.get_float("headerbar.height", 40);
 	_default.label_margin = c.get_float("label.margin", 8);
 	_default.button_margin = c.get_float("button.margin", 8);
 	_default.button_radius = c.get_float("button.radius", 8);

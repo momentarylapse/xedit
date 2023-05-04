@@ -13,7 +13,7 @@ int main() {
 
 	hui::init();
 
-	auto w = new hui::Window("test", 800, 600);
+	auto w = new hui::WindowX("test", 800, 600);
 	auto g = new hui::Grid(w, "grid");
 	auto ll = new hui::Label(w, "label", "test");
 	auto ed = new hui::Edit(w, "edit", "bla");
@@ -54,7 +54,10 @@ int main() {
 		//p->draw_str({50, 200}, "Test g\nbla gg");
 
 		p->set_roundness(20);
-		p->draw_rect({50, 300, 200, 350});
+		p->draw_rect({50, 300, 150, 250});
+		((hui::Painter*)p)->softness = 10;
+		p->draw_rect({50, 300, 300, 400});
+		((hui::Painter*)p)->softness = 0;
 	});
 	w->event("edit", [ed] {
 		msg_write("edit: " + ed->text);

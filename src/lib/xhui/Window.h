@@ -14,12 +14,18 @@ class Painter;
 typedef std::function<void()> Callback;
 typedef std::function<void(::Painter*)> CallbackP;
 
+enum Flags {
+	NONE = 0,
+	OWN_DECORATION = 64
+};
+
 class Window : public VirtualBase {
 	friend class Painter;
 	friend class Control;
 public:
 
 	Window(const string &title, int width, int height);
+	Window(const string &title, int width, int height, Flags flags);
 	~Window() override;
 
 	virtual void on_left_button_down() {}
@@ -85,6 +91,8 @@ private:
 	Control *hover_control = nullptr;
 	Control *focus_control = nullptr;
 	float padding;
+	Flags flags;
+	string title;
 
 	class EventHandler {
 		public:
@@ -98,6 +106,11 @@ private:
 public:
 	void handle_event(const string &id, const string &msg);
 	void handle_event_p(const string &id, const string &msg, Painter *p);
+};
+
+class WindowX : public Window {
+public:
+	WindowX(const string &title, int width, int height);
 };
 
 }

@@ -15,6 +15,7 @@ public:
 	float button_radius;
 
 	float focus_frame_width;
+	float headerbar_height;
 
 	color background, background_button;
 	color background_button_primary;

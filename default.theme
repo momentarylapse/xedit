@@ -5,6 +5,8 @@ focus-frame-width = 2.0
 
 [window]
 	margin = 10
+[headerbar]
+	height = 50
 
 
 [colors]

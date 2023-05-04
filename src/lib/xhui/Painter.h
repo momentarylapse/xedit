@@ -52,7 +52,10 @@ class Painter : public ::Painter {
 	//bool anti_aliasing;
 	float offset_x, offset_y;
 	float corner_radius = 0;
+	float softness = 0;
 	bool fill = true;
+
+	bool accumulate_alpha = false;
 
 	Window *window;
 };

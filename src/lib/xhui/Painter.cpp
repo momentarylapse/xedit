@@ -138,15 +138,22 @@ layout(location = 2) in vec4 in_pos;
 uniform sampler2D tex0;
 uniform vec4 _color_;
 uniform vec2 size;
-uniform float radius;
+uniform float radius = 0;
+uniform float softness = 0;
 out vec4 out_color;
 
 void main() {
 	out_color = texture(tex0, in_uv);
 	out_color *= _color_;
-	vec2 pp = (abs(in_uv - 0.5) * size - (0.5*size-radius));
-	pp = clamp(pp, 0, radius);
-	out_color.a *= 1 - clamp((length(pp) - radius), 0, 1);
+	if (softness >= 0.5) {
+		vec2 pp = (abs(in_uv - 0.5) * size - (0.5*size-softness-radius));
+		pp = clamp(pp, 0, 1000); 
+		out_color.a *= 1 - clamp((length(pp) - radius) / softness, 0, 1);
+	} else {
+		vec2 pp = (abs(in_uv - 0.5) * size - (0.5*size-radius));
+		pp = clamp(pp, 0, 1000);
+		out_color.a *= 1 - clamp((length(pp) - radius), 0, 1);
+	}
 	//out_color = vec4(length(pp)/radius, 0, 1, 1);
 }
 </FragmentShader>
@@ -253,10 +260,15 @@ void Painter::draw_rect(const rect &r) {
 			vec2 size = {r.width(), r.height()};
 			s->set_floats("size", &size.x, 2);
 			s->set_float("radius", corner_radius);
+			s->set_float("softness", softness);
 		}
 		nix::set_shader(s);
-		if (_color.a < 1 or corner_radius > 0)
-			nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ZERO, nix::Alpha::ONE);
+		if (_color.a < 1 or corner_radius > 0) {
+			if (accumulate_alpha)
+				nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ONE, nix::Alpha::ONE);
+			else
+				nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ZERO, nix::Alpha::ONE);
+		}
 		s->set_color("_color_", _color);
 		nix::set_texture(tex_white);
 		nix::draw_triangles(vb_rect);
