@@ -59,10 +59,6 @@ void Edit::on_key_down(int key) {
 	request_redraw();
 }
 
-rect smaller_rect(const rect& r, float d) {
-	return rect(r.x1 + d, r.x2 - d, r.y1 + d, r.y2 - d);
-}
-
 void Edit::_draw(Painter *p) {
 	// background
 	color bg = Theme::_default.background_button;
@@ -86,7 +82,7 @@ void Edit::_draw(Painter *p) {
 	// text
 	p->set_color(Theme::_default.text_label);
 	auto dim = font::get_text_dimensions(text);
-	float dx = 10;
+	float dx = Theme::_default.edit_margin_x;
 	float y0 = _area.center().y - dim.inner_height()/2;
 	p->draw_str({_area.x1 + dx, y0}, text);
 

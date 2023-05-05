@@ -9,6 +9,8 @@ namespace hui {
 class Painter;
 class Window;
 
+rect smaller_rect(const rect& r, float d);
+
 class Control : public VirtualBase {
 	friend class Window;
 public:

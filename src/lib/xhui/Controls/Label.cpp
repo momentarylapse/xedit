@@ -28,8 +28,8 @@ void Label::get_content_min_size(int &w, int &h) {
 		text_w = int(dim.bounding_width);
 		text_h = int(dim.inner_height());
 	}
-	w = text_w + Theme::_default.label_margin * 2;
-	h = text_h + Theme::_default.label_margin * 2;
+	w = text_w + Theme::_default.label_margin_x * 2;
+	h = text_h + Theme::_default.label_margin_y * 2;
 }
 
 void Label::_draw(Painter *p) {

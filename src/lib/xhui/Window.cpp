@@ -9,8 +9,6 @@
 
 namespace hui {
 
-rect smaller_rect(const rect& r, float d);
-
 Array<Window*> _windows_;
 
 Window::Window(const string &title, int w, int h) : Window(title, w, h, Flags::NONE) {}
@@ -46,6 +44,10 @@ Window::Window(const string &_title, int w, int h, Flags _flags) {
 
 Window::~Window() {
 	glfwDestroyWindow(window);
+
+	for (int i=0; i<_windows_.num; i++)
+		if (_windows_[i] == this)
+			_windows_.erase(i);
 }
 
 void Window::add(Control *c) {
@@ -312,7 +314,7 @@ void Window::_on_draw() {
 
 		// header
 		if (header_bar) {
-			header_bar->_area = header;
+			header_bar->negotiate_area(header);
 			header_bar->_draw(p);
 		}
 
@@ -322,7 +324,7 @@ void Window::_on_draw() {
 	}
 
 	if (control) {
-		control->negotiate_area(rect(a.x1 + padding, a.x2 - padding, a.y1 + padding, a.y2 - padding));
+		control->negotiate_area(smaller_rect(a, padding));
 		control->_draw(p);
 	}
 
@@ -337,10 +339,9 @@ void Window::_poll_events() {
 		_on_draw();
 
 	if (glfwWindowShouldClose(window)) {
-		//glfwWin
-		//ddd
-		msg_write("fake...close...");
-		exit(0);
+//		msg_write("fake...close...");
+//		exit(0);
+		request_destroy();
 	}
 }
 
@@ -387,10 +388,14 @@ void Window::set_title(const string& t) {
 }
 
 Control *Window::get_hover_control(const vec2 &p) {
-	for (auto c: controls)
+	foreachb (auto c, controls)
 		if (c->_area.inside(p) and !c->ignore_hover)
 			return c;
 	return nullptr;
+}
+
+void Window::request_destroy() {
+	_destroy_requested = true;
 }
 
 WindowX::WindowX(const string &title, int w, int h) : Window(title, w, h, Flags::OWN_DECORATION) {

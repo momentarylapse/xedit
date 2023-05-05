@@ -57,6 +57,8 @@ public:
 	void get_position(int &x, int &y);
 	void set_position(int x, int y);
 
+	void request_destroy();
+
 private:
 	GLFWwindow *window;
 
@@ -115,6 +117,8 @@ private:
 public:
 	void handle_event(const string &id, const string &msg);
 	void handle_event_p(const string &id, const string &msg, Painter *p);
+
+	bool _destroy_requested = false;
 };
 
 class WindowX : public Window {

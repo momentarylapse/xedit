@@ -65,9 +65,6 @@ int main() {
 
 	hui::run();
 
-	delete w;
-
-
 	return 0;
 }
 

@@ -27,6 +27,13 @@ void run() {
 
 		for (auto w: _windows_)
 			w->_poll_events();
+
+		for (int i=_windows_.num-1; i>=0; i--)
+			if (_windows_[i]->_destroy_requested) {
+				delete _windows_[i];
+				if (_windows_.num == 0)
+					return;
+			}
 		usleep(8000);
 	};
 }

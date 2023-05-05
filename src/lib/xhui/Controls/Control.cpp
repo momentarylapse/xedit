@@ -4,6 +4,11 @@
 
 namespace hui {
 
+
+rect smaller_rect(const rect& r, float d) {
+	return rect(r.x1 + d, r.x2 - d, r.y1 + d, r.y2 - d);
+}
+
 Control::Control(Window *w, const string &_id) {
 	window = w;
 	id = _id;

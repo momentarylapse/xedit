@@ -1,4 +1,6 @@
 #include "HeaderBar.h"
+#include "Grid.h"
+#include "Button.h"
 #include "../Painter.h"
 #include "../Theme.h"
 #include "../draw/font.h"
@@ -9,6 +11,16 @@ namespace hui {
 HeaderBar::HeaderBar(Window *w, const string &_id) : Control(w, _id) {
 	expand_x = true;
 	expand_y = false;
+
+	grid_left = new Grid(w, ":header-grid-left:");
+	grid_right = new Grid(w, ":header-grid-right:");
+	button_close = new Button(w, ":header-button-close:", "Close");
+	button_close->expand_x = false;
+	button_close->expand_y = true;
+	button_close->primary = true;
+	grid_right->add(button_close, 0, 0);
+
+	window->event(":header-button-close:", [this] { window->request_destroy(); });
 }
 
 void HeaderBar::get_content_min_size(int &w, int &h) {
@@ -37,6 +49,14 @@ void HeaderBar::on_mouse_move(const vec2& m, const vec2& d) {
 	}
 }
 
+void HeaderBar::negotiate_area(const rect &available) {
+	_area = available;
+	int w, h;
+	grid_right->get_content_min_size(w, h);
+	float R = Theme::_default.spacing;
+	grid_right->negotiate_area(rect(available.x2 - w - R, available.x2 - R, available.y1 + R, available.y2 - R));
+}
+
 void HeaderBar::_draw(Painter *p) {
 	float R = Theme::_default.window_radius;
 
@@ -56,6 +76,8 @@ void HeaderBar::_draw(Painter *p) {
 	float ww = p->get_str_width(window->get_title());
 	p->draw_str(_area.center() - vec2(ww/2, Theme::_default.font_size * 0.8f), window->get_title());
 	p->set_font_size(Theme::_default.font_size);
+
+	grid_right->_draw(p);
 }
 
 }

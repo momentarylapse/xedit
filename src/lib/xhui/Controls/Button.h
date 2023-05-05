@@ -16,6 +16,8 @@ public:
 	void on_left_button_up(const vec2& m) override;
 
 	void _draw(Painter *p) override;
+
+	bool primary = false;
 };
 
 }

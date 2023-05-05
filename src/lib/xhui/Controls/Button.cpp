@@ -37,16 +37,26 @@ void Button::get_content_min_size(int &w, int &h) {
 		text_w = int(dim.bounding_width);
 		text_h = int(dim.inner_height());
 	}
-	w = text_w + Theme::_default.button_margin * 2;
-	h = text_h + Theme::_default.button_margin * 2;
+	w = text_w + Theme::_default.button_margin_x * 2;
+	h = text_h + Theme::_default.button_margin_y * 2;
 }
 
 void Button::_draw(Painter *p) {
 	color bg = Theme::_default.background_button;
-	if (state == State::HOVER) {
-		bg = Theme::_default.background_hover;
-	} else if (state == State::PRESSED) {
-		bg = Theme::_default.background_active;
+	if (primary) {
+		if (state == State::HOVER) {
+			bg = Theme::_default.background_button_primary_hover;
+		} else if (state == State::PRESSED) {
+			bg = Theme::_default.background_button_primary_active;
+		} else {
+			bg = Theme::_default.background_button_primary;
+		}
+	} else {
+		if (state == State::HOVER) {
+			bg = Theme::_default.background_hover;
+		} else if (state == State::PRESSED) {
+			bg = Theme::_default.background_active;
+		}
 	}
 	p->set_color(bg);
 	p->set_roundness(Theme::_default.button_radius);
