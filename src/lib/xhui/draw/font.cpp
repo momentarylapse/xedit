@@ -3,6 +3,8 @@
 #include "../../math/rect.h"
 #include "../../math/vec2.h"
 #include "../../os/msg.h"
+#include "../../os/path.h"
+#include "../../os/filesystem.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -25,12 +27,20 @@ void init() {
 	if (error) {
 		throw Exception("can not initialize freetype2 library");
 	}
-	error = FT_New_Face(ft2, "/usr/share/fonts/noto/NotoSans-Regular.ttf", 0, &face);
-	if (error == FT_Err_Unknown_File_Format) {
-		throw Exception("font unsupported");
-	} else if (error) {
-		throw Exception("font can not be loaded");
-	}
+	auto try_load_font = [] (const Path& filename) {
+		if (!os::fs::exists(filename))
+			return false;
+		int error = FT_New_Face(ft2, filename.c_str(), 0, &face);
+		if (error == FT_Err_Unknown_File_Format) {
+			throw Exception("font unsupported: " + str(filename));
+		} else if (error) {
+			throw Exception("font can not be loaded: " + str(filename));
+		}
+		return true;
+	};
+	if (!try_load_font("/usr/share/fonts/noto/NotoSans-Regular.ttf"))
+		if (!try_load_font("/usr/share/fonts/open-sans/OpenSans-Regular.ttf"))
+			throw Exception("no font found");
 }
 
 void set_font(const string &font_name, float font_size) {

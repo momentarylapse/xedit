@@ -11,7 +11,12 @@
 
 int main() {
 
-	hui::init();
+	try {
+		hui::init();
+	} catch (Exception &e) {
+		msg_error(e.message());
+		return 1;
+	}
 
 	auto w = new hui::WindowX("test", 800, 600);
 	auto g = new hui::Grid(w, "grid");
