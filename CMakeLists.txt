@@ -67,40 +67,30 @@ set(SOURCE
 
 add_executable(xhui ${SOURCE})
 
-find_package(PkgConfig REQUIRED)
-
 
 # lib: zlib mandatory
-pkg_check_modules(ZLIB REQUIRED zlib)
-include_directories(${ZLIB_INCLUDE_DIRS})
-link_directories(${ZLIB_LIBRARY_DIRS})
-list(APPEND DEPS ${ZLIB_LIBRARIES})
-add_definitions(${ZLIB_CFLAGS_OTHER})
+find_package(ZLIB REQUIRED)
+list(APPEND DEPS ZLIB::ZLIB)
 add_compile_definitions(HAS_LIB_ZLIB=1)
 
+
 # lib: gl mandatory
-pkg_check_modules(GL REQUIRED gl)
-include_directories(${GL_INCLUDE_DIRS})
-link_directories(${GL_LIBRARY_DIRS})
-list(APPEND DEPS ${GL_LIBRARIES})
-add_definitions(${GL_CFLAGS_OTHER})
+find_package(OpenGL REQUIRED)
+list(APPEND DEPS OpenGL::OpenGL)
 add_compile_definitions(HAS_LIB_GL=1)
 
+
 # lib: glfw mandatory
-pkg_check_modules(GLFW REQUIRED glfw3)
-include_directories(${GLFW_INCLUDE_DIRS})
-link_directories(${GLFW_LIBRARY_DIRS})
-list(APPEND DEPS ${GLFW_LIBRARIES})
-add_definitions(${GLFW_CFLAGS_OTHER})
+find_package(glfw3 REQUIRED)
+list(APPEND DEPS glfw)
 add_compile_definitions(HAS_LIB_GLFW=1)
 
+
 # lib: freetype2 mandatory
-pkg_check_modules(FREETYPE2 REQUIRED freetype2)
-include_directories(${FREETYPE2_INCLUDE_DIRS})
-link_directories(${FREETYPE2_LIBRARY_DIRS})
-list(APPEND DEPS ${FREETYPE2_LIBRARIES})
-add_definitions(${FREETYPE2_CFLAGS_OTHER})
+find_package(Freetype REQUIRED)
+list(APPEND DEPS Freetype::Freetype)
 add_compile_definitions(HAS_LIB_FREETYPE2=1)
+
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -109,3 +99,4 @@ target_link_libraries(xhui PRIVATE Threads::Threads ${DEPS})
 add_compile_definitions(INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
 install(TARGETS xhui DESTINATION bin)
+
