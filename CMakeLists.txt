@@ -63,6 +63,8 @@ set(SOURCE
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp
 	src/main.cpp
+		src/lib/xhui/Controls/CheckBox.cpp
+		src/lib/xhui/Controls/CheckBox.h
 )
 
 add_executable(xhui ${SOURCE})

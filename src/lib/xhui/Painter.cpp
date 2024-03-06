@@ -306,6 +306,10 @@ void Painter::draw_line(const vec2 &a, const vec2 &b) {
 	nix::disable_alpha();
 }
 
+void Painter::draw_lines(const Array<vec2> &p) {
+	for (int i=0; i<p.num-1; i++)
+		draw_line(p[i], p[i+1]);
+}
 
 
 void Painter::set_transform(float rot[], const vec2 &offset) {

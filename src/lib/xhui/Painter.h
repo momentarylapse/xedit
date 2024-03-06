@@ -27,7 +27,7 @@ class Painter : public ::Painter {
 	void set_clip(const rect &r) override;
 	void draw_point(const vec2 &p) override {};
 	void draw_line(const vec2 &a, const vec2 &b) override;
-	void draw_lines(const Array<vec2> &p) override {};
+	void draw_lines(const Array<vec2> &p) override;
 	void draw_polygon(const Array<vec2> &p) override {};
 	void draw_rect(const rect &r) override;
 	void draw_circle(const vec2 &p, float radius) override {};

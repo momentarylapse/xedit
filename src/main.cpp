@@ -1,5 +1,6 @@
 #include "lib/xhui/xhui.h"
 #include "lib/xhui/Controls/Button.h"
+#include "lib/xhui/Controls/CheckBox.h"
 #include "lib/xhui/Controls/Label.h"
 #include "lib/xhui/Controls/Edit.h"
 #include "lib/xhui/Controls/Grid.h"
@@ -18,8 +19,9 @@ int main() {
 		return 1;
 	}
 
-	auto w = new hui::WindowX("test", 800, 600);
+	auto w = new hui::Window("test", 800, 600);
 	auto g = new hui::Grid(w, "grid");
+	auto g2 = new hui::Grid(w, "grid2");
 	auto ll = new hui::Label(w, "label", "test");
 	auto ed = new hui::Edit(w, "edit", "bla");
 	g->add(ll, 0, 0);
@@ -28,6 +30,8 @@ int main() {
 	g->add(ed, 2, 0);
 	g->add(new hui::Button(w, "button3", "x"), 2, 1);
 	g->add(new hui::DrawingArea(w, "area"), 2, 2);
+	g->add(g2, 1, 2);
+	g2->add(new hui::CheckBox(w, "a", "bb"), 0, 0);
 	w->add(g);
 
 	w->event("button1", [] {

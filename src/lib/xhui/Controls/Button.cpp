@@ -63,6 +63,7 @@ void Button::_draw(Painter *p) {
 	p->draw_rect(_area);
 	p->set_roundness(0);
 
+	font::set_font(Theme::_default.font_name, Theme::_default.font_size);
 	auto dim = font::get_text_dimensions(title);
 
 	//p->set_color(Red);
