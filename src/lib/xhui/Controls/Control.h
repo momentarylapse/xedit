@@ -14,9 +14,18 @@ rect smaller_rect(const rect& r, float d);
 class Control : public VirtualBase {
 	friend class Window;
 public:
-	Control(Window *win, const string &id);
+	Control(Window* win, const string& id);
 
-	virtual void set_string(const string &s) {};
+	virtual void set_string(const string& s) {}
+	virtual void add_string(const string& s) { set_string(s); }
+	virtual void set_cell(int row, int col, const string& s) {}
+	virtual void reset() {}
+	virtual void set_int(int i) { set_string(str(i)); }
+	virtual string get_string() { return ""; }
+	virtual string get_cell(int row, int col) { return ""; }
+	virtual int get_int() { return get_string()._int(); }
+	virtual Array<int> get_selection() { return {}; }
+	virtual void set_option(const string& key, const string& value) {}
 
 	virtual void on_left_button_down(const vec2& m) {}
 	virtual void on_left_button_up(const vec2& m) {}
