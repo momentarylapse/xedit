@@ -22,9 +22,10 @@ nix::Shader *shader_round = nullptr;
 nix::Texture *tex_xxx = nullptr;
 
 bool _nix_inited = false;
+owned<nix::Context> _nix_context;
 
 void init_nix() {
-	nix::init();
+	_nix_context = nix::init();
 	tex_text = new nix::Texture();
 	tex_white = new nix::Texture();
 	Image im;
@@ -57,8 +58,7 @@ void init_nix() {
 	</VertexShader>
 #endif
 
-
-	shader  = nix::Shader::create(
+	shader = _nix_context->create_shader(
 			R"foodelim(
 <Layout>
 	version = 330 core
@@ -103,7 +103,7 @@ void main() {
 	shader->filename = "-my-shader-";
 
 
-	shader_round  = nix::Shader::create(
+	shader_round  = _nix_context->create_shader(
 			R"foodelim(
 <Layout>
 	version = 330 core
@@ -184,7 +184,7 @@ Painter::Painter(Window *w) {
 
 
 
-	nix::start_frame_glfw(window->window);
+	nix::start_frame_glfw(_nix_context.get(), window->window);
 	nix::set_projection_matrix(nix::create_pixel_projection_matrix() * mat4::translation({0,0,0.5f}) * mat4::scale(ui_scale, ui_scale, 1));
 	//nix::clear(color(1, 0.15f, 0.15f, 0.3f));
 	nix::set_cull(nix::CullMode::NONE);
@@ -192,7 +192,7 @@ Painter::Painter(Window *w) {
 }
 
 void Painter::end() {
-	nix::end_frame_glfw(window->window);
+	nix::end_frame_glfw();
 }
 
 void Painter::clear(const color &c) {
@@ -228,7 +228,7 @@ void Painter::draw_str(const vec2 &p, const string &str) {
 	nix::set_shader(shader);
 	nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ZERO, nix::Alpha::ONE);
 	shader->set_color("_color_", _color);
-	nix::set_texture(tex_text);
+	nix::bind_texture(0, tex_text);
 	nix::draw_triangles(vb_rect);
 	nix::disable_alpha();
 }
@@ -270,7 +270,7 @@ void Painter::draw_rect(const rect &r) {
 				nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ZERO, nix::Alpha::ONE);
 		}
 		s->set_color("_color_", _color);
-		nix::set_texture(tex_white);
+		nix::bind_texture(0, tex_white);
 		nix::draw_triangles(vb_rect);
 		nix::disable_alpha();
 	} else {
@@ -301,7 +301,7 @@ void Painter::draw_line(const vec2 &a, const vec2 &b) {
 	if (_color.a < 1)
 		nix::set_alpha_split(nix::Alpha::SOURCE_ALPHA, nix::Alpha::SOURCE_INV_ALPHA, nix::Alpha::ZERO, nix::Alpha::ONE);
 	shader->set_color("_color_", _color);
-	nix::set_texture(tex_white);
+	nix::bind_texture(0, tex_white);
 	nix::draw_triangles(vb_rect);
 	nix::disable_alpha();
 }

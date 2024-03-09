@@ -85,9 +85,13 @@ enum class Alpha {
 
 enum class CullMode {
 	NONE,
-	CCW,
+	BACK,
+	FRONT
+};
+
+enum class Orientation {
 	CW,
-	DEFAULT = CCW
+	CCW
 };
 
 enum class StencilOp {
@@ -115,9 +119,6 @@ enum class FogMode {
 //extern int device_width, device_height;						// render target size (window, won't change)
 extern int target_width, target_height;						// current render target size (window/texture)
 
-class VertexBuffer;
-extern VertexBuffer *vb_temp; // vertex buffer for 1-frame geometries
-extern VertexBuffer *vb_temp_i;
 };
 
 #endif

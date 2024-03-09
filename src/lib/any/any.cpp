@@ -310,10 +310,10 @@ string Any::repr() const {
 		return s + "]";
 	} else if (is_map()) {
 		string s = "{";
-		for (AnyMap::Entry &p: as_map()) {
+		for (auto&& [k,v]: as_map()) {
 			if (s.num > 1)
 				s += ", ";
-			s += minimal_key_repr(p.key) + ": " + p.value.repr();
+			s += minimal_key_repr(k) + ": " + v.repr();
 		}
 		return s + "}";
 	} else if (is_empty()) {
@@ -531,6 +531,28 @@ void Any::operator += (const Any &a) {
 		throw Exception(format("%s += %s not allowed", type_name(type), type_name(a.type)));
 }
 
+bool Any::operator == (const Any& a) const {
+	if (type != a.type)
+		return false;
+	if (is_int())
+		return as_int() == a.as_int();
+	if (is_float())
+		return as_float() == a.as_float();
+	if (is_bool())
+		return as_bool() == a.as_bool();
+	if (is_string())
+		return as_string() == a.as_string();
+	if (is_array())
+		return as_array() == a.as_array();
+	if (is_map())
+		return false;//as_map() == a.as_map();
+	return false;
+}
+
+bool Any::operator != (const Any& a) const {
+	return !(*this == a);
+}
+
 void Any::add(const Any &a) {
 	if (parent) {
 		parent->add(a);
@@ -708,4 +730,8 @@ void Any::map_drop(const string &key) {
 	if (!is_map())
 		throw Exception("not a map: " + type_name(type));
 	as_map().drop(key);
+}
+
+template<> string repr(const Any& a) {
+	return a.repr();
 }

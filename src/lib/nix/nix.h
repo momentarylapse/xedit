@@ -33,24 +33,64 @@ namespace nix {
 extern string version;
 
 enum class CullMode;
+enum class Orientation;
 enum class AlphaMode;
 enum class Alpha;
 enum class StencilOp;
 
-//--------------------------------------------------------------------//
-//                     all about graphics                             //
-//--------------------------------------------------------------------//
-void avi_close(int texture);
 
-void _cdecl init();
-void kill();
+struct ShaderModule;
+
+class Context {
+public:
+	~Context();
+	Array<string> extensions;
+	string version;
+	string gl_version;
+	string gl_renderer;
+	string glsl_version;
+
+	string vertex_module_default;
+	Array<ShaderModule> shader_modules;
+
+	int verbosity = 1;
+	int current_program = 0;
+
+	string shader_error;
+
+	shared<Texture> tex_white = nullptr;
+	FrameBuffer *default_framebuffer = nullptr;
+	shared<Shader> default_2d;
+	shared<Shader> default_3d;
+	shared<Shader> default_load;
+	Shader *_current_ = nullptr;
+	VertexBuffer *vb_temp = nullptr;
+	VertexBuffer *vb_temp_i = nullptr;
+
+
+	xfer<Shader> load_shader(const Path &filename);
+	xfer<Shader> create_shader(const string &source);
+
+	int available_mem() const;
+	int total_mem() const;
+
+	static Context *CURRENT;
+};
+
+xfer<Context> init(const Array<string>& = {});
+void kill(Context *ctx);
 void flush();
+
+void create_query_pool(int size);
+void query_timestamp(int index);
+Array<int64> get_timestamps(int first, int count);
 
 enum class FogMode;
 
 // engine properties
 void _cdecl set_wire(bool enabled);
 void _cdecl set_cull(CullMode mode);
+void _cdecl set_front(Orientation front);
 void _cdecl set_z(bool write, bool test);
 void _cdecl _set_alpha(AlphaMode mode);
 void _cdecl set_alpha(Alpha src, Alpha dst);

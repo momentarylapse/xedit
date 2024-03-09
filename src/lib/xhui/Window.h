@@ -3,6 +3,7 @@
 #include "../base/base.h"
 #include "../math/vec2.h"
 #include <GLFW/glfw3.h>
+#include <functional>
 
 class Painter;
 
