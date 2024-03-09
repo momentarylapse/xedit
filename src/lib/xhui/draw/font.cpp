@@ -38,9 +38,11 @@ void init() {
 		}
 		return true;
 	};
+	msg_write(os::fs::current_directory().str());
 	if (!try_load_font("/usr/share/fonts/noto/NotoSans-Regular.ttf"))
 		if (!try_load_font("/usr/share/fonts/open-sans/OpenSans-Regular.ttf"))
-			throw Exception("no font found");
+			if (!try_load_font("static/OpenSans-Regular.ttf"))
+				throw Exception("no font found");
 }
 
 void set_font(const string &font_name, float font_size) {

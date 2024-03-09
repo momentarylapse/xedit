@@ -51,56 +51,66 @@ set(SOURCE
 	src/lib/os/terminal.cpp
 	src/lib/os/time.cpp
 	src/lib/xhui/Controls/Button.cpp
+	src/lib/xhui/Controls/CheckBox.cpp
 	src/lib/xhui/Controls/Control.cpp
 	src/lib/xhui/Controls/DrawingArea.cpp
 	src/lib/xhui/Controls/Edit.cpp
 	src/lib/xhui/Controls/Grid.cpp
 	src/lib/xhui/Controls/HeaderBar.cpp
 	src/lib/xhui/Controls/Label.cpp
+	src/lib/xhui/Controls/ListView.cpp
 	src/lib/xhui/draw/font.cpp
 	src/lib/xhui/Painter.cpp
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp
 	src/main.cpp
-		src/lib/xhui/Controls/CheckBox.cpp
-		src/lib/xhui/Controls/CheckBox.h
-		src/lib/xhui/Controls/ListView.cpp
-		src/lib/xhui/Controls/ListView.h
 )
 
 add_executable(xhui ${SOURCE})
 
+find_package(PkgConfig REQUIRED)
+
 
 # lib: zlib mandatory
-find_package(ZLIB REQUIRED)
-list(APPEND DEPS ZLIB::ZLIB)
-add_compile_definitions(HAS_LIB_ZLIB=1)
-
+pkg_check_modules(ZLIB REQUIRED zlib)
+target_include_directories(xhui PUBLIC ${ZLIB_INCLUDE_DIRS})
+target_link_directories(xhui PUBLIC ${ZLIB_LIBRARY_DIRS})
+list(APPEND DEPS ${ZLIB_LIBRARIES})
+target_compile_options(xhui PUBLIC ${ZLIB_CFLAGS_OTHER})
+target_compile_definitions(xhui PUBLIC HAS_LIB_ZLIB=1)
 
 # lib: gl mandatory
-find_package(OpenGL REQUIRED)
-list(APPEND DEPS OpenGL::OpenGL)
-add_compile_definitions(HAS_LIB_GL=1)
-
+pkg_check_modules(GL REQUIRED gl)
+target_include_directories(xhui PUBLIC ${GL_INCLUDE_DIRS})
+target_link_directories(xhui PUBLIC ${GL_LIBRARY_DIRS})
+list(APPEND DEPS ${GL_LIBRARIES})
+target_compile_options(xhui PUBLIC ${GL_CFLAGS_OTHER})
+target_compile_definitions(xhui PUBLIC HAS_LIB_GL=1)
 
 # lib: glfw mandatory
-find_package(glfw3 REQUIRED)
-list(APPEND DEPS glfw)
-add_compile_definitions(HAS_LIB_GLFW=1)
-
+pkg_check_modules(GLFW REQUIRED glfw3)
+target_include_directories(xhui PUBLIC ${GLFW_INCLUDE_DIRS})
+target_link_directories(xhui PUBLIC ${GLFW_LIBRARY_DIRS})
+list(APPEND DEPS ${GLFW_LIBRARIES})
+target_compile_options(xhui PUBLIC ${GLFW_CFLAGS_OTHER})
+target_compile_definitions(xhui PUBLIC HAS_LIB_GLFW=1)
 
 # lib: freetype2 mandatory
-find_package(Freetype REQUIRED)
-list(APPEND DEPS Freetype::Freetype)
-add_compile_definitions(HAS_LIB_FREETYPE2=1)
-
+pkg_check_modules(FREETYPE2 REQUIRED freetype2)
+target_include_directories(xhui PUBLIC ${FREETYPE2_INCLUDE_DIRS})
+target_link_directories(xhui PUBLIC ${FREETYPE2_LIBRARY_DIRS})
+list(APPEND DEPS ${FREETYPE2_LIBRARIES})
+target_compile_options(xhui PUBLIC ${FREETYPE2_CFLAGS_OTHER})
+target_compile_definitions(xhui PUBLIC HAS_LIB_FREETYPE2=1)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-target_link_libraries(xhui PRIVATE Threads::Threads ${DEPS})
+list(APPEND DEPS Threads::Threads)
 
-add_compile_definitions(INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(xhui PRIVATE ${DEPS})
+
+target_compile_definitions(xhui PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
 install(TARGETS xhui DESTINATION bin)
-
+install(FILES "static/OpenSans-Regular.ttf" DESTINATION share/xhui)

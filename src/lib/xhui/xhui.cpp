@@ -2,7 +2,7 @@
 #include "Window.h"
 #include "Theme.h"
 #include "draw/font.h"
-#include <unistd.h>
+#include "../os/time.h"
 
 namespace hui {
 
@@ -34,7 +34,8 @@ void run() {
 				if (_windows_.num == 0)
 					return;
 			}
-		usleep(8000);
+		//usleep(8000);
+		os::sleep(0.008f);
 	};
 }
 

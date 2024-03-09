@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "freetype",
+    "glfw3",
+    "opengl",
+    "zlib"
+  ]
+}
