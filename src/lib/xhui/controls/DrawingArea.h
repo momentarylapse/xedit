@@ -8,7 +8,7 @@ namespace hui {
 
 class DrawingArea : public Control {
 public:
-	DrawingArea(Window *win, const string &id);
+	DrawingArea(const string &id);
 
 	void _draw(Painter *p) override;
 };

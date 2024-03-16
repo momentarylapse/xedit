@@ -61,6 +61,7 @@ set(SOURCE
 	src/lib/xhui/controls/ListView.cpp
 	src/lib/xhui/draw/font.cpp
 	src/lib/xhui/Painter.cpp
+	src/lib/xhui/Panel.cpp
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp

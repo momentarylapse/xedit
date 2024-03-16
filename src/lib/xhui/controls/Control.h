@@ -8,13 +8,15 @@ namespace hui {
 
 class Painter;
 class Window;
+class Panel;
 
 rect smaller_rect(const rect& r, float d);
 
 class Control : public VirtualBase {
 	friend class Window;
+	friend class Panel;
 public:
-	Control(Window* win, const string& id);
+	Control(const string& id);
 
 	virtual void set_string(const string& s) {}
 	virtual void add_string(const string& s) { set_string(s); }
@@ -47,7 +49,7 @@ public:
 
 	rect _area;
 	string id;
-	Window *window;
+	Panel *owner = nullptr;
 
 	int min_width_user, min_height_user;
 	bool expand_x, expand_y;

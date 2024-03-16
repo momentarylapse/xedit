@@ -6,7 +6,7 @@ namespace hui {
 
 	class ListView : public Control {
 	public:
-		ListView(Window *win, const string &id, const string &title);
+		ListView(const string &id, const string &title);
 
 		void add_string(const string& s) override;
 		void set_cell(int row, int col, const string& s) override;

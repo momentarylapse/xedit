@@ -8,7 +8,7 @@ namespace hui {
 
 class Label : public Control {
 public:
-	Label(Window *win, const string &id, const string &title);
+	Label(const string &id, const string &title);
 
 	void set_string(const string &s) override;
 

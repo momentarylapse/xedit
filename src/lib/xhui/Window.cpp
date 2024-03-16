@@ -13,9 +13,10 @@ Array<Window*> _windows_;
 
 Window::Window(const string &title, int w, int h) : Window(title, w, h, Flags::NONE) {}
 
-Window::Window(const string &_title, int w, int h, Flags _flags) {
+Window::Window(const string &_title, int w, int h, Flags _flags) : Panel(":window:") {
 	title = _title;
 	flags = _flags;
+	Panel::window = this;
 	window = glfwCreateWindow(w * ui_scale, h * ui_scale, title.c_str(), nullptr, nullptr);
 
 	if (flags & Flags::OWN_DECORATION) {
@@ -48,10 +49,6 @@ Window::~Window() {
 	for (int i=0; i<_windows_.num; i++)
 		if (_windows_[i] == this)
 			_windows_.erase(i);
-}
-
-void Window::add(Control *c) {
-	control = c;
 }
 
 
@@ -323,9 +320,9 @@ void Window::_on_draw() {
 		p->clear(Theme::_default.background);
 	}
 
-	if (control) {
-		control->negotiate_area(smaller_rect(a, padding));
-		control->_draw(p);
+	if (top_control) {
+		top_control->negotiate_area(smaller_rect(a, padding));
+		top_control->_draw(p);
 	}
 
 	p->end();
@@ -343,43 +340,6 @@ void Window::_poll_events() {
 //		exit(0);
 		request_destroy();
 	}
-}
-
-void Window::event(const string &id, Callback f) {
-	EventHandler e;
-	e.id = id;
-	e.f = f;
-	event_handlers.add(e);
-}
-
-void Window::event_x(const string &id, const string &msg, Callback f) {
-	EventHandler e;
-	e.id = id;
-	e.msg = msg;
-	e.f = f;
-	event_handlers.add(e);
-}
-
-void Window::event_xp(const string &id, const string &msg, CallbackP f) {
-	EventHandler e;
-	e.id = id;
-	e.msg = msg;
-	e.fp = f;
-	event_handlers.add(e);
-}
-
-void Window::handle_event(const string &id, const string &msg) {
-	for (auto &e: event_handlers)
-		if (e.id == id and e.f) {
-			e.f();
-		}
-}
-
-void Window::handle_event_p(const string &id, const string &msg, Painter *p) {
-	for (auto &e: event_handlers)
-		if (e.id == id and e.fp) {
-			e.fp(p);
-		}
 }
 
 void Window::set_title(const string& t) {

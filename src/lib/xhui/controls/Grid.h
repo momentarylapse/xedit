@@ -7,7 +7,7 @@ namespace hui {
 
 class Grid : public Control {
 public:
-	Grid(Window *win, const string &id);
+	Grid(const string &id);
 
 	void _draw(Painter *p) override;
 

@@ -8,19 +8,20 @@
 
 namespace hui {
 
-HeaderBar::HeaderBar(Window *w, const string &_id) : Control(w, _id) {
+HeaderBar::HeaderBar(Window *w, const string &_id) : Control(_id) {
 	expand_x = true;
 	expand_y = false;
+	owner = w;
 
-	grid_left = new Grid(w, ":header-grid-left:");
-	grid_right = new Grid(w, ":header-grid-right:");
-	button_close = new Button(w, ":header-button-close:", "Close");
+	grid_left = new Grid(":header-grid-left:");
+	grid_right = new Grid(":header-grid-right:");
+	button_close = new Button(":header-button-close:", "Close");
 	button_close->expand_x = false;
 	button_close->expand_y = true;
 	button_close->primary = true;
 	grid_right->add(button_close, 0, 0);
 
-	window->event(":header-button-close:", [this] { window->request_destroy(); });
+	owner->event(":header-button-close:", [this] { owner->window->request_destroy(); });
 }
 
 void HeaderBar::get_content_min_size(int &w, int &h) {
@@ -32,7 +33,7 @@ void HeaderBar::on_left_button_down(const vec2& m) {
 	//msg_write("click header");
 	dragging = true;
 	drag_m0 = m;
-	window->get_position(window_pos_x0, window_pos_y0);
+	owner->window->get_position(window_pos_x0, window_pos_y0);
 	request_redraw();
 }
 void HeaderBar::on_left_button_up(const vec2& m) {
@@ -45,7 +46,7 @@ void HeaderBar::on_mouse_move(const vec2& m, const vec2& d) {
 	if (dragging) {
 		// FIXME...
 		//msg_write(str(m - drag_m0));
-		window->set_position(window_pos_x0 + m.x - drag_m0.x, window_pos_y0 + m.y - drag_m0.y);
+		owner->window->set_position(window_pos_x0 + m.x - drag_m0.x, window_pos_y0 + m.y - drag_m0.y);
 	}
 }
 
@@ -73,8 +74,8 @@ void HeaderBar::_draw(Painter *p) {
 
 	p->set_color(Theme::_default.text);
 	p->set_font_size(Theme::_default.font_size * 1.6f);
-	float ww = p->get_str_width(window->get_title());
-	p->draw_str(_area.center() - vec2(ww/2, Theme::_default.font_size * 0.8f), window->get_title());
+	float ww = p->get_str_width(owner->window->get_title());
+	p->draw_str(_area.center() - vec2(ww/2, Theme::_default.font_size * 0.8f), owner->window->get_title());
 	p->set_font_size(Theme::_default.font_size);
 
 	grid_right->_draw(p);

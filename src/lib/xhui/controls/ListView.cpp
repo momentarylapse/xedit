@@ -5,7 +5,7 @@
 
 namespace hui {
 
-	ListView::ListView(Window *w, const string &_id, const string &t) : Control(w, _id) {
+	ListView::ListView(const string &_id, const string &t) : Control(_id) {
 		can_grab_focus = true;
 		expand_x = true;
 		expand_y = true;
@@ -20,7 +20,8 @@ namespace hui {
 	void ListView::on_left_button_up(const vec2&) {
 		request_redraw();
 
-		window->handle_event(id, "hui:click");
+		if (owner)
+			owner->handle_event(id, "hui:click");
 	}
 	void ListView::on_mouse_enter(const vec2&) {
 		//state = State::HOVER;

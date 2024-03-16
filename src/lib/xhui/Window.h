@@ -4,8 +4,7 @@
 #include "../math/vec2.h"
 #include <GLFW/glfw3.h>
 #include <functional>
-
-class Painter;
+#include "Panel.h"
 
 namespace hui {
 
@@ -13,15 +12,12 @@ class Control;
 class HeaderBar;
 class Painter;
 
-typedef std::function<void()> Callback;
-typedef std::function<void(::Painter*)> CallbackP;
-
 enum Flags {
 	NONE = 0,
 	OWN_DECORATION = 64
 };
 
-class Window : public VirtualBase {
+class Window : public Panel {
 	friend class Painter;
 	friend class Control;
 public:
@@ -30,27 +26,9 @@ public:
 	Window(const string &title, int width, int height, Flags flags);
 	~Window() override;
 
-	virtual void on_left_button_down(const vec2&) {}
-	virtual void on_left_button_up(const vec2&) {}
-	virtual void on_middle_button_down(const vec2&) {}
-	virtual void on_middle_button_up(const vec2&) {}
-	virtual void on_right_button_down(const vec2&) {}
-	virtual void on_right_button_up(const vec2&) {}
-	virtual void on_mouse_move(const vec2 &m, const vec2& d) {}
-	virtual void on_mouse_enter(const vec2& m) {}
-	virtual void on_mouse_leave(const vec2& m) {}
-	virtual void on_mouse_wheel(const vec2 &d) {}
-	virtual void on_key_down(int key) {}
-	virtual void on_key_up(int key) {}
-
 	void _poll_events();
 
 	void redraw(const string &id);
-
-	void add(Control *c);
-	void event(const string &id, Callback f);
-	void event_x(const string &id, const string &msg, Callback f);
-	void event_xp(const string &id, const string &msg, CallbackP f);
 
 	string get_title() const { return title; }
 	void set_title(const string& t);
@@ -96,8 +74,6 @@ private:
 
 	Control *get_hover_control(const vec2 &p);
 
-	Control *control = nullptr;
-	Array<Control*> controls;
 	Control *hover_control = nullptr;
 	Control *focus_control = nullptr;
 	float padding;
@@ -106,18 +82,7 @@ private:
 
 	HeaderBar *header_bar = nullptr;
 
-	class EventHandler {
-		public:
-		EventHandler() {};
-		string id, msg;
-		Callback f;
-		CallbackP fp;
-	};
-	Array<EventHandler> event_handlers;
-
 public:
-	void handle_event(const string &id, const string &msg);
-	void handle_event_p(const string &id, const string &msg, Painter *p);
 
 	bool _destroy_requested = false;
 };

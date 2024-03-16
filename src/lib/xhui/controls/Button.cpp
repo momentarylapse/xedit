@@ -5,7 +5,7 @@
 
 namespace hui {
 
-Button::Button(Window *w, const string &_id, const string &t) : Label(w, _id, t) {
+Button::Button(const string &_id, const string &t) : Label(_id, t) {
 	can_grab_focus = true;
 	expand_x = true;
 	expand_y = false;
@@ -19,7 +19,8 @@ void Button::on_left_button_up(const vec2&) {
 	state = State::HOVER;
 	request_redraw();
 
-	window->handle_event(id, "hui:click");
+	if (owner)
+		owner->handle_event(id, "hui:click");
 }
 void Button::on_mouse_enter(const vec2&) {
 	state = State::HOVER;

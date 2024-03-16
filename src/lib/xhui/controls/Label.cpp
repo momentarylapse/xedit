@@ -5,7 +5,7 @@
 
 namespace hui {
 
-Label::Label(Window *w, const string &_id, const string &t) : Control(w, _id) {
+Label::Label(const string &_id, const string &t) : Control(_id) {
 	text_w = text_h = 0;
 	state = State::DEFAULT;
 

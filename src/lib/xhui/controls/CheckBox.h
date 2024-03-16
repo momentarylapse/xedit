@@ -6,7 +6,7 @@ namespace hui {
 
 	class CheckBox : public Label {
 	public:
-		CheckBox(Window *win, const string &id, const string &title);
+		CheckBox(const string &id, const string &title);
 
 		void get_content_min_size(int &w, int &h) override;
 

@@ -9,18 +9,18 @@ rect smaller_rect(const rect& r, float d) {
 	return rect(r.x1 + d, r.x2 - d, r.y1 + d, r.y2 - d);
 }
 
-Control::Control(Window *w, const string &_id) {
-	window = w;
+Control::Control(const string &_id) {
 	id = _id;
 	min_width_user = -1;
 	min_height_user = -1;
 	expand_x = true;
 	expand_y = true;
-	w->controls.add(this);
 }
 
 void Control::request_redraw() {
-	window->redraw(id);
+	if (owner)
+		if (owner->window)
+			owner->window->redraw(id);
 }
 
 void Control::get_content_min_size(int &w, int &h) {
@@ -49,7 +49,9 @@ void Control::negotiate_area(const rect &available) {
 }
 
 bool Control::has_focus() const {
-	return window->focus_control == this;
+	if (owner && owner->window)
+		return owner->window->focus_control == this;
+	return false;
 }
 
 }

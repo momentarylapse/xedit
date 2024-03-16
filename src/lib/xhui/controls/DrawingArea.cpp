@@ -4,7 +4,7 @@
 
 namespace hui {
 
-DrawingArea::DrawingArea(Window *w, const string &_id) : Control(w, _id) {
+DrawingArea::DrawingArea(const string &_id) : Control(_id) {
 	expand_x = true;
 	expand_y = true;
 }
@@ -17,7 +17,8 @@ void DrawingArea::_draw(Painter *p) {
 	p->height = _area.height();
 	//p->set_clip(_area);
 	p->set_transform({}, vec2(_area.x1, _area.y1));
-	window->handle_event_p(id, "hui:draw", p);
+	if (owner)
+		owner->handle_event_p(id, "hui:draw", p);
 	p->set_transform({}, vec2(0, 0));
 	p->width = w;
 	p->height = h;

@@ -21,21 +21,21 @@ int main() {
 	}
 
 	auto w = new hui::Window("test", 1024, 768);
-	auto g = new hui::Grid(w, "grid");
-	auto g2 = new hui::Grid(w, "grid2");
-	auto ll = new hui::Label(w, "label", "test");
-	auto ed = new hui::Edit(w, "edit", "bla");
-	auto list = new hui::ListView(w, "list", "a\\b\\c");
-	g->add(ll, 0, 0);
-	g->add(new hui::Button(w, "button1", "a small test g"), 1, 0);
-	g->add(new hui::Button(w, "button2", "more test"), 1, 1);
-	g->add(ed, 2, 0);
-	g->add(new hui::Button(w, "button3", "x"), 2, 1);
-	g->add(new hui::DrawingArea(w, "area"), 2, 2);
-	g->add(g2, 1, 2);
-	g2->add(new hui::CheckBox(w, "checkbox", "bb"), 0, 0);
-	g2->add(list, 0, 1);
+	auto g = new hui::Grid("grid");
+	auto g2 = new hui::Grid("grid2");
+	auto ll = new hui::Label("label", "test");
+	auto ed = new hui::Edit("edit", "bla");
+	auto list = new hui::ListView("list", "a\\b\\c");
 	w->add(g);
+	g->add(ll, 0, 0);
+	g->add(new hui::Button("button1", "a small test g"), 1, 0);
+	g->add(new hui::Button("button2", "more test"), 1, 1);
+	g->add(ed, 2, 0);
+	g->add(new hui::Button("button3", "x"), 2, 1);
+	g->add(new hui::DrawingArea("area"), 2, 2);
+	g->add(g2, 1, 2);
+	g2->add(new hui::CheckBox("checkbox", "bb"), 0, 0);
+	g2->add(list, 0, 1);
 
 	list->add_string("1\\2\\3");
 	list->add_string("hallo\\test\\3");

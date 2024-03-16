@@ -20,7 +20,7 @@ float sum(const Array<float> &a) {
 	return r;
 }
 
-Grid::Grid(Window *w, const string &_id) : Control(w, _id) {
+Grid::Grid(const string &_id) : Control(_id) {
 	ignore_hover = true;
 	spacing = Theme::_default.spacing;
 
@@ -29,9 +29,16 @@ Grid::Grid(Window *w, const string &_id) : Control(w, _id) {
 }
 
 void Grid::add(Control *c, int x, int y) {
+	if (!owner) {
+		throw Exception("adding to Grid without owner");
+		return;
+	}
 	children.add({c, x, y});
 	nx = max(nx, x+1);
 	ny = max(ny, y+1);
+
+	c->owner = owner;
+	owner->controls.add(c);
 }
 
 void Grid::_draw(Painter *p) {

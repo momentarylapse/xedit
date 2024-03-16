@@ -5,7 +5,7 @@
 
 namespace hui {
 
-	CheckBox::CheckBox(Window *w, const string &_id, const string &t) : Label(w, _id, t) {
+	CheckBox::CheckBox(const string &_id, const string &t) : Label(_id, t) {
 		can_grab_focus = true;
 		expand_x = true;
 		expand_y = false;
@@ -20,7 +20,8 @@ namespace hui {
 		checked = !checked;
 		request_redraw();
 
-		window->handle_event(id, "hui:click");
+		if (owner)
+			owner->handle_event(id, "hui:click");
 	}
 	void CheckBox::on_mouse_enter(const vec2&) {
 		state = State::HOVER;
