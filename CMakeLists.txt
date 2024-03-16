@@ -59,6 +59,7 @@ set(SOURCE
 	src/lib/xhui/controls/HeaderBar.cpp
 	src/lib/xhui/controls/Label.cpp
 	src/lib/xhui/controls/ListView.cpp
+	src/lib/xhui/controls/MultilineEdit.cpp
 	src/lib/xhui/draw/font.cpp
 	src/lib/xhui/Painter.cpp
 	src/lib/xhui/Panel.cpp

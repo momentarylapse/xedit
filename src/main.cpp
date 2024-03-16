@@ -6,6 +6,7 @@
 #include "lib/xhui/controls/Edit.h"
 #include "lib/xhui/controls/Grid.h"
 #include "lib/xhui/controls/DrawingArea.h"
+#include "lib/xhui/controls/MultilineEdit.h"
 #include "lib/os/msg.h"
 
 #include "lib/xhui/Theme.h"
@@ -36,6 +37,7 @@ int main() {
 	g->add(g2, 1, 2);
 	g2->add(new hui::CheckBox("checkbox", "bb"), 0, 0);
 	g2->add(list, 0, 1);
+	g2->add(new hui::MultilineEdit("multilineedit", "just a small\ntest"), 0, 2);
 
 	list->add_string("1\\2\\3");
 	list->add_string("hallo\\test\\3");
