@@ -2,8 +2,8 @@
 #include "xhui.h"
 #include "Painter.h"
 #include "Theme.h"
-#include "Controls/Control.h"
-#include "Controls/HeaderBar.h"
+#include "controls/Control.h"
+#include "controls/HeaderBar.h"
 #include "../os/msg.h"
 
 

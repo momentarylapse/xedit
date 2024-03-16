@@ -50,15 +50,15 @@ set(SOURCE
 	src/lib/os/stream.cpp
 	src/lib/os/terminal.cpp
 	src/lib/os/time.cpp
-	src/lib/xhui/Controls/Button.cpp
-	src/lib/xhui/Controls/CheckBox.cpp
-	src/lib/xhui/Controls/Control.cpp
-	src/lib/xhui/Controls/DrawingArea.cpp
-	src/lib/xhui/Controls/Edit.cpp
-	src/lib/xhui/Controls/Grid.cpp
-	src/lib/xhui/Controls/HeaderBar.cpp
-	src/lib/xhui/Controls/Label.cpp
-	src/lib/xhui/Controls/ListView.cpp
+	src/lib/xhui/controls/Button.cpp
+	src/lib/xhui/controls/CheckBox.cpp
+	src/lib/xhui/controls/Control.cpp
+	src/lib/xhui/controls/DrawingArea.cpp
+	src/lib/xhui/controls/Edit.cpp
+	src/lib/xhui/controls/Grid.cpp
+	src/lib/xhui/controls/HeaderBar.cpp
+	src/lib/xhui/controls/Label.cpp
+	src/lib/xhui/controls/ListView.cpp
 	src/lib/xhui/draw/font.cpp
 	src/lib/xhui/Painter.cpp
 	src/lib/xhui/Theme.cpp
