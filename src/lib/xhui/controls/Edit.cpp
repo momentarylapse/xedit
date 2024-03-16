@@ -13,7 +13,7 @@ Edit::Edit(const string &_id, const string &t) : Control(_id) {
 	expand_x = true;
 	expand_y = false;
 
-	set_string(t);
+	Edit::set_string(t);
 }
 
 void Edit::Cache::rebuild(const string& text) {

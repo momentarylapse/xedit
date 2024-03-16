@@ -12,7 +12,7 @@ Label::Label(const string &_id, const string &t) : Control(_id) {
 	expand_x = false;
 	expand_y = false;
 
-	set_string(t);
+	Label::set_string(t);
 }
 
 void Label::set_string(const string &s) {
