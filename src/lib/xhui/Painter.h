@@ -9,7 +9,7 @@ namespace hui {
 class Window;
 
 class Painter : public ::Painter {
-	public:
+public:
 
 	explicit Painter(Window *w);
 	//virtual ~Painter();

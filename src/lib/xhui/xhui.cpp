@@ -14,7 +14,14 @@ void init() {
 	//msg_init();
 	glfwInit();
 
+#if HAS_LIB_GL
 	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+#endif
+#if HAS_LIB_VULKAN
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+#endif
+
+	//glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
 	Theme::load_default();
 
