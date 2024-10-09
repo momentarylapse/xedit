@@ -29,7 +29,7 @@ Texture* tex_black = nullptr;
 	Array<CommandBuffer*> command_buffers;
 
 	SwapChain *swap_chain;
-	RenderPass* default_render_pass;
+	RenderPass* render_pass;
 	DepthBuffer* depth_buffer;
 	Array<FrameBuffer*> frame_buffers;
 	int image_index;
@@ -47,8 +47,8 @@ void _create_swap_chain_and_stuff(GLFWwindow* window) {
 		command_buffers.add(device->command_pool->create_command_buffer());
 
 	depth_buffer = swap_chain->create_depth_buffer();
-	default_render_pass = swap_chain->create_render_pass(depth_buffer);
-	frame_buffers = swap_chain->create_frame_buffers(default_render_pass, depth_buffer);
+	render_pass = swap_chain->create_render_pass(depth_buffer);
+	frame_buffers = swap_chain->create_frame_buffers(render_pass, depth_buffer);
 }
 
 void api_init(GLFWwindow* window) {
@@ -87,6 +87,8 @@ void rebuild_default_stuff(GLFWwindow* window) {
 	_create_swap_chain_and_stuff(window);
 }
 
+CommandBuffer* cb;
+
 
 Painter::Painter(Window *w) {
 	window = w;
@@ -105,9 +107,22 @@ Painter::Painter(Window *w) {
 	auto f = wait_for_frame_fences[image_index];
 	f->wait();
 	f->reset();
+	
+	cb = command_buffers[image_index];
+	auto fb = frame_buffers[image_index];
+	
+	
+	cb->begin();
+
+	cb->set_viewport({0, (float)swap_chain->width, 0, (float)swap_chain->height});
+	cb->begin_render_pass(render_pass, fb);
 }
 
 void Painter::end() {
+
+	cb->end_render_pass();
+	cb->end();
+
 
 	auto f = wait_for_frame_fences[image_index];
 	device->present_queue.submit(command_buffers[image_index], {image_available_semaphore}, {render_finished_semaphore}, f);
