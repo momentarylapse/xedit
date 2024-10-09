@@ -1,6 +1,7 @@
 #if HAS_LIB_VULKAN
 
 #include "Painter.h"
+#include "ContextVulkan.h"
 #include "Theme.h"
 #include "draw/font.h"
 
@@ -16,148 +17,6 @@ using namespace vulkan;
 namespace hui {
 
 
-Instance *instance = nullptr;
-DescriptorPool *pool = nullptr;
-Device *device = nullptr;
-Texture* tex_white = nullptr;
-Texture* tex_black = nullptr;
-Shader* shader;
-GraphicsPipeline* pipeline;
-VertexBuffer* vb;
-
-vulkan::DescriptorSet* dset;
-
-
-	Fence* in_flight_fence;
-	Array<Fence*> wait_for_frame_fences;
-	Semaphore *image_available_semaphore, *render_finished_semaphore;
-
-	Array<CommandBuffer*> command_buffers;
-
-	SwapChain *swap_chain;
-	RenderPass* render_pass;
-	DepthBuffer* depth_buffer;
-	Array<FrameBuffer*> frame_buffers;
-	int image_index;
-	bool framebuffer_resized;
-	
-	
-	
-void _create_swap_chain_and_stuff(GLFWwindow* window) {
-	swap_chain = new vulkan::SwapChain(window, device);
-	auto swap_images = swap_chain->create_textures();
-	for (auto t: swap_images)
-		wait_for_frame_fences.add(new vulkan::Fence(device));
-
-	for (auto t: swap_images)
-		command_buffers.add(device->command_pool->create_command_buffer());
-
-	depth_buffer = swap_chain->create_depth_buffer();
-	render_pass = swap_chain->create_render_pass(depth_buffer);
-	frame_buffers = swap_chain->create_frame_buffers(render_pass, depth_buffer);
-}
-
-void api_init(GLFWwindow* window) {
-	instance = vulkan::init({"glfw", "validation", "api=1.2", "verbosity=2"});
-	device = Device::create_simple(instance, window, {"graphics", "present", "swapchain", "anisotropy", "validation"});
-	msg_write("device found");
-
-	//device->create_query_pool(MAX_TIMESTAMP_QUERIES);
-	pool = new DescriptorPool("buffer:4096,sampler:4096", 65536);
-
-
-	image_available_semaphore = new vulkan::Semaphore(device);
-	render_finished_semaphore = new vulkan::Semaphore(device);
-
-
-	framebuffer_resized = false;
-
-	_create_swap_chain_and_stuff(window);
-
-	tex_white = new Texture();
-	tex_black = new Texture();
-	tex_white->write(Image(16, 16, White));
-	tex_black->write(Image(16, 16, Black));
-
-	vb = new VertexBuffer("3f,3f,2f");
-	vb->create_quad(rect::ID, rect::ID);
-
-	//return new Context;
-	
-	try {
-		shader = Shader::create(
-			R"foodelim(
-<Layout>
-	version = 430
-	bindings = [[sampler]]
-	pushsize = 80
-</Layout>
-<VertexShader>
-
-//#extension GL_ARB_separate_shader_objects : enable
-
-layout(push_constant, std140) uniform Parameters {
-	mat4 matrix;
-	vec4 color;
-} params;
-
-layout(location = 0) in vec3 in_position;
-layout(location = 1) in vec3 in_normal;
-layout(location = 2) in vec2 in_uv;
-
-layout(location = 0) out vec4 out_pos; // camera space
-layout(location = 1) out vec2 out_uv;
-
-void main() {
-	gl_Position = params.matrix * vec4(in_position, 1);
-	out_pos = gl_Position;
-	out_uv = in_uv;
-}
-</VertexShader>
-<FragmentShader>
-
-layout(push_constant, std140) uniform Parameters {
-	mat4 matrix;
-	vec4 color;
-} params;
-
-layout(location = 0) in vec4 in_pos;
-layout(location = 1) in vec2 in_uv;
-layout(location = 0) out vec4 out_color;
-
-layout(binding = 0) uniform sampler2D tex0;
-
-void main() {
-	//out_color = texture(tex0, in_uv);
-	//out_color *= params.color;
-	out_color = vec4(1);
-}
-</FragmentShader>
-)foodelim");
-		dset = pool->create_set(shader);
-		pipeline = new GraphicsPipeline(shader, render_pass, 0, "triangles", vb);
-		pipeline->set_z(false, false);
-		pipeline->set_culling(CullMode::NONE);
-		pipeline->rebuild();
-	} catch (Exception& e) {
-		msg_error(e.message());
-		throw;
-	}
-
-
-	dset->set_texture(0, tex_white);
-	dset->update();
-}
-
-
-void rebuild_default_stuff(GLFWwindow* window) {
-	msg_write("recreate swap chain");
-
-	device->wait_idle();
-
-	//_delete_swap_chain_and_stuff();
-	_create_swap_chain_and_stuff(window);
-}
 
 CommandBuffer* cb;
 
@@ -168,47 +27,24 @@ struct Parameters {
 
 Painter::Painter(Window *w) {
 	window = w;
-	glfwMakeContextCurrent(w->window);
-	if (!instance)
-		api_init(w->window);
-		
-		
-	// start frame
-	
-	if (!swap_chain->acquire_image(&image_index, image_available_semaphore)) {
-		rebuild_default_stuff(w->window);
-		return;
-	}
+	context = window->context;
 
-	auto f = wait_for_frame_fences[image_index];
+	auto f = context->wait_for_frame_fences[context->image_index];
 	f->wait();
 	f->reset();
 	
-	cb = command_buffers[image_index];
-	auto fb = frame_buffers[image_index];
+	cb = context->command_buffers[context->image_index];
+	auto fb = context->frame_buffers[context->image_index];
 	
 	
 	cb->begin();
-	cb->set_bind_point(PipelineBindPoint::GRAPHICS);
 
-	const rect area = {0, (float)swap_chain->width, 0, (float)swap_chain->height};
-	cb->set_viewport(area);
-	cb->begin_render_pass(render_pass, fb);
-	cb->clear({Red}, 1);
+	width = context->swap_chain->width;
+	height = context->swap_chain->height;
 
-
-	//-------------------- test
-
-	Parameters params;
-	params.matrix = mat4::scale(0.5f, 0.5f, 1);
-	params.col = White;
-
-	cb->bind_pipeline(pipeline);
-
-	cb->push_constant(0, sizeof(params), &params);
-
-	cb->bind_descriptor_set(0, dset);
-	cb->draw(vb);
+	cb->set_viewport(::Painter::area());
+	cb->begin_render_pass(context->render_pass, fb);
+	cb->clear({Black}, 1);
 }
 
 void Painter::end() {
@@ -217,15 +53,16 @@ void Painter::end() {
 	cb->end();
 
 
-	auto f = wait_for_frame_fences[image_index];
-	device->present_queue.submit(cb, {image_available_semaphore}, {render_finished_semaphore}, f);
+	auto f = context->wait_for_frame_fences[context->image_index];
+	context->device->present_queue.submit(cb, {context->image_available_semaphore}, {context->render_finished_semaphore}, f);
 
-	swap_chain->present(image_index, {render_finished_semaphore});
+	context->swap_chain->present(context->image_index, {context->render_finished_semaphore});
 
-	device->wait_idle();
+	context->device->wait_idle();
 }
 
 void Painter::clear(const color &c) {
+	cb->clear({c}, 1);
 }
 
 void Painter::set_font(const string &font, float size, bool bold, bool italic) {
@@ -267,6 +104,14 @@ void Painter::draw_arc(const vec2& p, float r, float w0, float w1) {
 }
 
 void Painter::draw_rect(const rect &r) {
+	Parameters params;
+	params.matrix = mat4::translation({r.x1 / (float)width * 2 - 1, r.y1 / (float)height * 2 - 1, 0}) *  mat4::scale(r.width() / (float)width * 2, r.height() / (float)height * 2, 1);
+	params.col = _color;
+
+	cb->bind_pipeline(context->pipeline);
+	cb->push_constant(0, sizeof(params), &params);
+	cb->bind_descriptor_set(0, context->dset);
+	cb->draw(context->vb);
 }
 
 void Painter::draw_line(const vec2 &a, const vec2 &b) {

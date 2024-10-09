@@ -7,6 +7,9 @@
 namespace hui {
 
 class Window;
+#if HAS_LIB_VULKAN
+class ContextVulkan;
+#endif
 
 class Painter : public ::Painter {
 public:
@@ -43,14 +46,14 @@ public:
 
 	rect clip() const override { return rect::ID; };
 
-	color _color;
+	color _color = White;;
 	string font_name;
 	//rect _clip;
 	//Array<float> dash;
 	//float dash_offset;
 	float line_width = 1;
 	//bool anti_aliasing;
-	float offset_x, offset_y;
+	float offset_x = 0, offset_y = 0;
 	float corner_radius = 0;
 	float softness = 0;
 	bool fill = true;
@@ -58,6 +61,10 @@ public:
 	bool accumulate_alpha = false;
 
 	Window *window;
+
+#if HAS_LIB_VULKAN
+	ContextVulkan* context = nullptr;;
+#endif
 };
 
 }

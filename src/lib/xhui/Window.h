@@ -11,6 +11,9 @@ namespace hui {
 class Control;
 class HeaderBar;
 class Painter;
+#if HAS_LIB_VULKAN
+class ContextVulkan;
+#endif
 
 enum Flags {
 	NONE = 0,
@@ -20,6 +23,7 @@ enum Flags {
 class Window : public Panel {
 	friend class Painter;
 	friend class Control;
+	friend class ContextVulkan;
 public:
 
 	Window(const string &title, int width, int height);
@@ -54,6 +58,7 @@ private:
 	static void _mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 	static void _scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 	static void _refresh_callback(GLFWwindow *window);
+	static void _resize_callback(GLFWwindow* window, int width, int height);
 
 
 	void _on_left_button_down(const vec2& m);
@@ -81,6 +86,10 @@ private:
 	string title;
 
 	HeaderBar *header_bar = nullptr;
+
+#if HAS_LIB_VULKAN
+	ContextVulkan* context = nullptr;
+#endif
 
 public:
 

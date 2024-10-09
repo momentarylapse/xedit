@@ -183,6 +183,7 @@ add_executable(xhui
 	src/lib/xhui/controls/ListView.cpp
 	src/lib/xhui/controls/MultilineEdit.cpp
 	src/lib/xhui/draw/font.cpp
+	src/lib/xhui/ContextVulkan.cpp
 	src/lib/xhui/PainterGL.cpp
 	src/lib/xhui/PainterVulkan.cpp
 	src/lib/xhui/Panel.cpp

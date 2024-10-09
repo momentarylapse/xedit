@@ -1,6 +1,7 @@
 #include "Window.h"
 #include "xhui.h"
 #include "Painter.h"
+#include "ContextVulkan.h"
 #include "Theme.h"
 #include "controls/Control.h"
 #include "controls/HeaderBar.h"
@@ -39,6 +40,7 @@ Window::Window(const string &_title, int w, int h, Flags _flags) : Panel(":windo
 	glfwSetMouseButtonCallback(window, _mouse_button_callback);
 	glfwSetScrollCallback(window, _scroll_callback);
 	glfwSetWindowRefreshCallback(window, _refresh_callback);
+	glfwSetWindowSizeCallback(window, _resize_callback);
 
 	_windows_.add(this);
 }
@@ -194,6 +196,15 @@ void Window::_refresh_callback(GLFWwindow *window) {
 	w->_refresh_requested = true;
 }
 
+void Window::_resize_callback(GLFWwindow* window, int width, int height) {
+	auto w = (Window*)glfwGetWindowUserPointer(window);
+/*#if HAS_LIB_VULKAN
+	if (w->context)
+		w->context->resize(width, height);
+#endif*/
+	w->_refresh_requested = true;
+}
+
 void Window::redraw(const string &id) {
 	_refresh_requested = true;
 }
@@ -278,6 +289,10 @@ void Window::_on_key_up(int k) {
 
 void Window::_on_draw() {
 
+#if HAS_LIB_VULKAN
+	if (!context)
+		context = new ContextVulkan(this);
+#endif
 	auto p = new Painter(this);
 	auto a = p->area();
 
@@ -320,10 +335,14 @@ void Window::_on_draw() {
 		p->clear(Theme::_default.background);
 	}
 
-	if (top_control) {
+	/*if (top_control) {
 		top_control->negotiate_area(smaller_rect(a, padding));
 		top_control->_draw(p);
-	}
+	}*/
+	p->set_color(Theme::_default.text);
+	p->draw_rect({100, 200, 100, 200});
+	p->set_color(Theme::_default.text);
+	p->draw_rect({100, 200, 100, 200});
 
 	p->end();
 	_refresh_requested = false;
@@ -331,7 +350,6 @@ void Window::_on_draw() {
 }
 
 void Window::_poll_events() {
-
 	if (_refresh_requested)
 		_on_draw();
 
