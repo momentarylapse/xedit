@@ -20,6 +20,7 @@ DescriptorPool *pool = nullptr;
 Device *device = nullptr;
 Texture* tex_white = nullptr;
 Texture* tex_black = nullptr;
+Shader* shader;
 
 
 	Fence* in_flight_fence;
@@ -65,6 +66,62 @@ void api_init(GLFWwindow* window) {
 	tex_black->write(Image(16, 16, Black));
 
 	//return new Context;
+	
+	
+	try {
+		shader = Shader::create(
+			R"foodelim(
+<Layout>
+	version = 430
+	extensions = GL_EXT_buffer_reference2,GL_EXT_scalar_block_layout
+	bindings = [[image]]
+	pushsize = 96
+</Layout>
+<VertexShader>
+
+//#extension GL_ARB_separate_shader_objects : enable
+
+layout(push_constant, std140) uniform Parameters {
+	mat4 matrix;
+	vec4 color;
+} params;
+
+layout(location = 0) in vec3 in_position;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_uv;
+
+layout(location = 0) out vec4 out_pos; // camera space
+layout(location = 1) out vec2 out_uv;
+
+void main() {
+	gl_Position = params.matrix * vec4(in_position, 0);
+	out_uv = in_uv;
+}
+</VertexShader>
+<FragmentShader>
+#extension GL_ARB_separate_shader_objects : enable
+
+layout(push_constant, std140) uniform Parameters {
+	mat4 matrix;
+	vec4 color;
+} params;
+
+layout(location = 0) in vec4 in_pos;
+layout(location = 1) in vec2 in_uv;
+layout(location = 0) out vec4 out_color;
+
+layout(binding = 0) uniform sampler2D tex0;
+
+void main() {
+	out_color = texture(tex0, in_uv);
+	out_color *= params.color;
+}
+</FragmentShader>
+)foodelim");
+	} catch (Exception& e) {
+		msg_error(e.message());
+		throw;
+	}
 	
 	
 
