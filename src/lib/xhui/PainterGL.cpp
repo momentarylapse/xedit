@@ -1,3 +1,5 @@
+#if HAS_LIB_GL
+
 #include "Painter.h"
 #include "Theme.h"
 #include "draw/font.h"
@@ -322,3 +324,5 @@ void Painter::set_clip(const rect &r) {
 }
 
 }
+
+#endif

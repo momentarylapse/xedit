@@ -119,6 +119,23 @@ add_executable(xhui
 	src/lib/os/stream.cpp
 	src/lib/os/terminal.cpp
 	src/lib/os/time.cpp
+	src/lib/vulkan/AccelerationStructure.cpp
+	src/lib/vulkan/Buffer.cpp
+	src/lib/vulkan/CommandBuffer.cpp
+	src/lib/vulkan/DescriptorSet.cpp
+	src/lib/vulkan/Device.cpp
+	src/lib/vulkan/FrameBuffer.cpp
+	src/lib/vulkan/helper.cpp
+	src/lib/vulkan/Instance.cpp
+	src/lib/vulkan/Pipeline.cpp
+	src/lib/vulkan/Queue.cpp
+	src/lib/vulkan/RenderPass.cpp
+	src/lib/vulkan/Semaphore.cpp
+	src/lib/vulkan/Shader.cpp
+	src/lib/vulkan/SwapChain.cpp
+	src/lib/vulkan/Texture.cpp
+	src/lib/vulkan/VertexBuffer.cpp
+	src/lib/vulkan/vulkan.cpp
 	src/lib/xhui/controls/Button.cpp
 	src/lib/xhui/controls/CheckBox.cpp
 	src/lib/xhui/controls/Control.cpp
@@ -130,7 +147,8 @@ add_executable(xhui
 	src/lib/xhui/controls/ListView.cpp
 	src/lib/xhui/controls/MultilineEdit.cpp
 	src/lib/xhui/draw/font.cpp
-	src/lib/xhui/Painter.cpp
+	src/lib/xhui/PainterGL.cpp
+	src/lib/xhui/PainterVulkan.cpp
 	src/lib/xhui/Panel.cpp
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp

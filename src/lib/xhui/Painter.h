@@ -11,7 +11,7 @@ class Window;
 class Painter : public ::Painter {
 	public:
 
-	Painter(Window *w);
+	explicit Painter(Window *w);
 	//virtual ~Painter();
 
 
@@ -39,7 +39,7 @@ class Painter : public ::Painter {
 	void draw_arc(const vec2& p, float r, float w0, float w1);
 
 	void clear(const color &c);
-	void set_transform(float rot[], const vec2 &offset);
+	void set_transform(float rot[], const vec2 &offset) override;
 
 	rect clip() const override { return rect::ID; };
 
