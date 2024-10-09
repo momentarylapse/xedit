@@ -5,7 +5,76 @@ project(xhui)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
-set(SOURCE
+
+
+#=======================================================================================
+#    libraries
+#=======================================================================================
+
+find_package(PkgConfig REQUIRED)
+
+
+
+# lib: zlib (mandatory)
+find_package(ZLIB REQUIRED)
+list(APPEND DEPS ZLIB::ZLIB)
+list(APPEND COMPILE_DEFINITIONS HAS_LIB_ZLIB=1)
+
+
+# lib: gl or vulkan (mandatory)
+set(GL_OR_VULKAN "gl" CACHE STRING "Use gl or vulkan?")
+find_package(OpenGL)
+if(GL_FOUND)
+	list(APPEND GL_OR_VULKAN_FOUND "gl")
+endif()
+pkg_check_modules(VULKAN vulkan)
+if(VULKAN_FOUND)
+	list(APPEND GL_OR_VULKAN_FOUND "vulkan")
+endif()
+if(GL_OR_VULKAN_FOUND)
+	if(NOT ${GL_OR_VULKAN} IN_LIST GL_OR_VULKAN_FOUND)
+		list(GET GL_OR_VULKAN_FOUND 0 X)
+		set(GL_OR_VULKAN ${X} CACHE STRING "choose" FORCE)
+		message(WARNING "Choice for GL_OR_VULKAN invalid, using ${GL_OR_VULKAN} instead")
+	endif()
+else()
+	message(SEND_ERROR "Neither gl or vulkan found") #  or/nor..
+	set(GL_OR_VULKAN "")
+endif()
+if(GL_OR_VULKAN STREQUAL "gl")
+	list(APPEND DEPS OpenGL::OpenGL)
+	list(APPEND COMPILE_DEFINITIONS HAS_LIB_GL=1)
+endif()
+if(GL_OR_VULKAN STREQUAL "vulkan")
+	list(APPEND INCLUDE_DIRECTORIES ${VULKAN_INCLUDE_DIRS})
+	list(APPEND LINK_DIRECTORIES ${VULKAN_LIBRARY_DIRS})
+	list(APPEND DEPS ${VULKAN_LIBRARIES})
+	list(APPEND COMPILE_OPTIONS ${VULKAN_CFLAGS_OTHER})
+	list(APPEND COMPILE_DEFINITIONS HAS_LIB_VULKAN=1)
+endif()
+
+
+# lib: glfw (mandatory)
+find_package(glfw3 REQUIRED)
+list(APPEND DEPS glfw)
+list(APPEND COMPILE_DEFINITIONS HAS_LIB_GLFW=1)
+
+
+# lib: freetype2 (mandatory)
+find_package(Freetype REQUIRED)
+list(APPEND DEPS Freetype::Freetype)
+list(APPEND COMPILE_DEFINITIONS HAS_LIB_FREETYPE2=1)
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+list(APPEND DEPS Threads::Threads)
+
+
+#=======================================================================================
+#    target xhui
+#=======================================================================================
+
+add_executable(xhui
 	src/lib/any/any.cpp
 	src/lib/base/array.cpp
 	src/lib/base/pointer.cpp
@@ -66,53 +135,22 @@ set(SOURCE
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp
-	src/main.cpp
-)
+	src/main.cpp)
+target_include_directories(xhui PUBLIC ${INCLUDE_DIRECTORIES})
+target_link_directories(xhui PUBLIC ${LINK_DIRECTORIES})
+target_compile_options(xhui PUBLIC ${COMPILE_OPTIONS})
+target_compile_definitions(xhui PUBLIC ${COMPILE_DEFINITIONS} INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(xhui PUBLIC ${DEPS})
 
-add_executable(xhui ${SOURCE})
 
-find_package(PkgConfig REQUIRED)
+#=======================================================================================
+#    install
+#=======================================================================================
 
+set(RESOURCE_DESTINATION share/xhui)
 
-# lib: zlib mandatory
-pkg_check_modules(ZLIB REQUIRED zlib)
-target_include_directories(xhui PUBLIC ${ZLIB_INCLUDE_DIRS})
-target_link_directories(xhui PUBLIC ${ZLIB_LIBRARY_DIRS})
-list(APPEND DEPS ${ZLIB_LIBRARIES})
-target_compile_options(xhui PUBLIC ${ZLIB_CFLAGS_OTHER})
-target_compile_definitions(xhui PUBLIC HAS_LIB_ZLIB=1)
+# binaries
+install(TARGETS xhui DESTINATION bin)	
 
-# lib: gl mandatory
-pkg_check_modules(GL REQUIRED gl)
-target_include_directories(xhui PUBLIC ${GL_INCLUDE_DIRS})
-target_link_directories(xhui PUBLIC ${GL_LIBRARY_DIRS})
-list(APPEND DEPS ${GL_LIBRARIES})
-target_compile_options(xhui PUBLIC ${GL_CFLAGS_OTHER})
-target_compile_definitions(xhui PUBLIC HAS_LIB_GL=1)
-
-# lib: glfw mandatory
-pkg_check_modules(GLFW REQUIRED glfw3)
-target_include_directories(xhui PUBLIC ${GLFW_INCLUDE_DIRS})
-target_link_directories(xhui PUBLIC ${GLFW_LIBRARY_DIRS})
-list(APPEND DEPS ${GLFW_LIBRARIES})
-target_compile_options(xhui PUBLIC ${GLFW_CFLAGS_OTHER})
-target_compile_definitions(xhui PUBLIC HAS_LIB_GLFW=1)
-
-# lib: freetype2 mandatory
-pkg_check_modules(FREETYPE2 REQUIRED freetype2)
-target_include_directories(xhui PUBLIC ${FREETYPE2_INCLUDE_DIRS})
-target_link_directories(xhui PUBLIC ${FREETYPE2_LIBRARY_DIRS})
-list(APPEND DEPS ${FREETYPE2_LIBRARIES})
-target_compile_options(xhui PUBLIC ${FREETYPE2_CFLAGS_OTHER})
-target_compile_definitions(xhui PUBLIC HAS_LIB_FREETYPE2=1)
-
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-list(APPEND DEPS Threads::Threads)
-
-target_link_libraries(xhui PRIVATE ${DEPS})
-
-target_compile_definitions(xhui PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
-
-install(TARGETS xhui DESTINATION bin)
-install(FILES "static/OpenSans-Regular.ttf" DESTINATION share/xhui)
+# resources
+install(DIRECTORY "static" DESTINATION ${RESOURCE_DESTINATION})

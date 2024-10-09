@@ -3,6 +3,8 @@
     "freetype",
     "glfw3",
     "opengl",
+    "vulkan",
+    "vulkan-headers",
     "zlib"
   ]
 }
