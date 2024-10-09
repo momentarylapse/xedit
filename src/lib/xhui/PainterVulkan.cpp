@@ -6,6 +6,7 @@
 
 #include "../vulkan/vulkan.h"
 #include "../image/image.h"
+#include "../math/mat4.h"
 #include "../os/msg.h"
 
 
@@ -21,6 +22,10 @@ Device *device = nullptr;
 Texture* tex_white = nullptr;
 Texture* tex_black = nullptr;
 Shader* shader;
+GraphicsPipeline* pipeline;
+VertexBuffer* vb;
+
+vulkan::DescriptorSet* dset;
 
 
 	Fence* in_flight_fence;
@@ -60,22 +65,32 @@ void api_init(GLFWwindow* window) {
 	//device->create_query_pool(MAX_TIMESTAMP_QUERIES);
 	pool = new DescriptorPool("buffer:4096,sampler:4096", 65536);
 
+
+	image_available_semaphore = new vulkan::Semaphore(device);
+	render_finished_semaphore = new vulkan::Semaphore(device);
+
+
+	framebuffer_resized = false;
+
+	_create_swap_chain_and_stuff(window);
+
 	tex_white = new Texture();
 	tex_black = new Texture();
 	tex_white->write(Image(16, 16, White));
 	tex_black->write(Image(16, 16, Black));
 
+	vb = new VertexBuffer("3f,3f,2f");
+	vb->create_quad(rect::ID, rect::ID);
+
 	//return new Context;
-	
 	
 	try {
 		shader = Shader::create(
 			R"foodelim(
 <Layout>
 	version = 430
-	extensions = GL_EXT_buffer_reference2,GL_EXT_scalar_block_layout
-	bindings = [[image]]
-	pushsize = 96
+	bindings = [[sampler]]
+	pushsize = 80
 </Layout>
 <VertexShader>
 
@@ -94,12 +109,12 @@ layout(location = 0) out vec4 out_pos; // camera space
 layout(location = 1) out vec2 out_uv;
 
 void main() {
-	gl_Position = params.matrix * vec4(in_position, 0);
+	gl_Position = params.matrix * vec4(in_position, 1);
+	out_pos = gl_Position;
 	out_uv = in_uv;
 }
 </VertexShader>
 <FragmentShader>
-#extension GL_ARB_separate_shader_objects : enable
 
 layout(push_constant, std140) uniform Parameters {
 	mat4 matrix;
@@ -113,25 +128,25 @@ layout(location = 0) out vec4 out_color;
 layout(binding = 0) uniform sampler2D tex0;
 
 void main() {
-	out_color = texture(tex0, in_uv);
-	out_color *= params.color;
+	//out_color = texture(tex0, in_uv);
+	//out_color *= params.color;
+	out_color = vec4(1);
 }
 </FragmentShader>
 )foodelim");
+		dset = pool->create_set(shader);
+		pipeline = new GraphicsPipeline(shader, render_pass, 0, "triangles", vb);
+		pipeline->set_z(false, false);
+		pipeline->set_culling(CullMode::NONE);
+		pipeline->rebuild();
 	} catch (Exception& e) {
 		msg_error(e.message());
 		throw;
 	}
-	
-	
-
-	image_available_semaphore = new vulkan::Semaphore(device);
-	render_finished_semaphore = new vulkan::Semaphore(device);
 
 
-	framebuffer_resized = false;
-
-	_create_swap_chain_and_stuff(window);
+	dset->set_texture(0, tex_white);
+	dset->update();
 }
 
 
@@ -146,6 +161,10 @@ void rebuild_default_stuff(GLFWwindow* window) {
 
 CommandBuffer* cb;
 
+struct Parameters {
+	mat4 matrix;
+	color col;
+};
 
 Painter::Painter(Window *w) {
 	window = w;
@@ -170,9 +189,26 @@ Painter::Painter(Window *w) {
 	
 	
 	cb->begin();
+	cb->set_bind_point(PipelineBindPoint::GRAPHICS);
 
-	cb->set_viewport({0, (float)swap_chain->width, 0, (float)swap_chain->height});
+	const rect area = {0, (float)swap_chain->width, 0, (float)swap_chain->height};
+	cb->set_viewport(area);
 	cb->begin_render_pass(render_pass, fb);
+	cb->clear({Red}, 1);
+
+
+	//-------------------- test
+
+	Parameters params;
+	params.matrix = mat4::scale(0.5f, 0.5f, 1);
+	params.col = White;
+
+	cb->bind_pipeline(pipeline);
+
+	cb->push_constant(0, sizeof(params), &params);
+
+	cb->bind_descriptor_set(0, dset);
+	cb->draw(vb);
 }
 
 void Painter::end() {
@@ -182,7 +218,7 @@ void Painter::end() {
 
 
 	auto f = wait_for_frame_fences[image_index];
-	device->present_queue.submit(command_buffers[image_index], {image_available_semaphore}, {render_finished_semaphore}, f);
+	device->present_queue.submit(cb, {image_available_semaphore}, {render_finished_semaphore}, f);
 
 	swap_chain->present(image_index, {render_finished_semaphore});
 
