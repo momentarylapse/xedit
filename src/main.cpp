@@ -51,6 +51,7 @@ int main() {
 		ll->set_string("x");
 	});
 	w->event_xp("area", "hui:draw", [] (Painter *p) {
+		return;
 		p->set_color(hui::Theme::_default.background_low);
 		p->set_roundness(8);
 		p->draw_rect(p->area());

@@ -335,10 +335,10 @@ void Window::_on_draw() {
 		p->clear(Theme::_default.background);
 	}
 
-	/*if (top_control) {
+	if (top_control) {
 		top_control->negotiate_area(smaller_rect(a, padding));
 		top_control->_draw(p);
-	}*/
+	}
 	p->set_color(Theme::_default.text);
 	p->draw_rect({100, 200, 100, 200});
 	p->set_color(Theme::_default.text);

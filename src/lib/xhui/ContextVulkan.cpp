@@ -13,14 +13,18 @@ ContextVulkan::ContextVulkan(Window* w) {
 
 	glfwMakeContextCurrent(w->window);
 	api_init();
+}
 
-
-	// start frame
-
+bool ContextVulkan::start() {
 	if (!swap_chain->acquire_image(&image_index, image_available_semaphore)) {
 		rebuild_default_stuff();
-		return;
+		return false;
 	}
+
+	auto f = wait_for_frame_fences[image_index];
+	f->wait();
+	f->reset();
+	return true;
 }
 
 
@@ -109,9 +113,8 @@ layout(location = 0) out vec4 out_color;
 layout(binding = 0) uniform sampler2D tex0;
 
 void main() {
-	//out_color = texture(tex0, in_uv);
-	//out_color *= params.color;
-	out_color = vec4(1);
+	out_color = texture(tex0, in_uv);
+	out_color *= params.color;
 }
 </FragmentShader>
 )foodelim");

@@ -18,6 +18,9 @@ public:
 	void rebuild_default_stuff();
 	void resize(int w, int h);
 
+	bool start();
+	void end();
+
 	Window* window;
 	vulkan::Instance* instance = nullptr;
 	vulkan::DescriptorPool* pool = nullptr;

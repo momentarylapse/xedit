@@ -29,9 +29,7 @@ Painter::Painter(Window *w) {
 	window = w;
 	context = window->context;
 
-	auto f = context->wait_for_frame_fences[context->image_index];
-	f->wait();
-	f->reset();
+	context->start();
 	
 	cb = context->command_buffers[context->image_index];
 	auto fb = context->frame_buffers[context->image_index];
