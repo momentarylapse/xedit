@@ -29,6 +29,7 @@ public:
 	vulkan::Texture* tex_black = nullptr;
 	vulkan::Shader* shader;
 	vulkan::GraphicsPipeline* pipeline;
+	vulkan::GraphicsPipeline* pipeline_alpha;
 	vulkan::VertexBuffer* vb;
 
 	vulkan::DescriptorSet* dset;

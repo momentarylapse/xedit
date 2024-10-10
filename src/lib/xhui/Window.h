@@ -44,6 +44,7 @@ public:
 
 private:
 	GLFWwindow *window;
+	float ui_scale;
 
 	struct InputState {
 		vec2 m;;

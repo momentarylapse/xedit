@@ -20,6 +20,30 @@ namespace hui {
 
 CommandBuffer* cb;
 
+struct TextCache {
+	string text;
+	float size;
+	// font...
+	Texture* texture;
+	DescriptorSet* dset;
+};
+
+mat4 mat_pixel_to_rel;
+
+Array<TextCache> text_caches;
+int text_caches_used = 0;
+
+TextCache& get_text_cache(ContextVulkan* context) {
+	if (text_caches_used < text_caches.num)
+		return text_caches[text_caches_used ++];
+	TextCache tc;
+	tc.dset = context->pool->create_set(context->shader);
+	tc.texture = new Texture();
+	text_caches.add(tc);
+	text_caches_used ++;
+	return text_caches.back();
+}
+
 struct Parameters {
 	mat4 matrix;
 	color col;
@@ -30,6 +54,9 @@ Painter::Painter(Window *w) {
 	context = window->context;
 
 	context->start();
+
+	Painter::set_color(Theme::_default.text);
+	Painter::set_font(Theme::_default.font_name /*"CAC Champagne"*/, Theme::_default.font_size, false, false);
 	
 	cb = context->command_buffers[context->image_index];
 	auto fb = context->frame_buffers[context->image_index];
@@ -39,6 +66,7 @@ Painter::Painter(Window *w) {
 
 	width = context->swap_chain->width;
 	height = context->swap_chain->height;
+	mat_pixel_to_rel = mat4::translation({- 1,- 1, 0}) *  mat4::scale(2.0f / (float)width * window->ui_scale, 2.0f / (float)height * window->ui_scale, 1);;
 
 	cb->set_viewport(::Painter::area());
 	cb->begin_render_pass(context->render_pass, fb);
@@ -57,6 +85,8 @@ void Painter::end() {
 	context->swap_chain->present(context->image_index, {context->render_finished_semaphore});
 
 	context->device->wait_idle();
+
+	text_caches_used = 0;
 }
 
 void Painter::clear(const color &c) {
@@ -66,12 +96,12 @@ void Painter::clear(const color &c) {
 void Painter::set_font(const string &font, float size, bool bold, bool italic) {
 	font_name = font;
 	font_size = size;
-	font::set_font(font, size* ui_scale);
+	font::set_font(font, size * window->ui_scale);
 }
 
 void Painter::set_font_size(float size) {
 	font_size = size;
-	font::set_font(font_name, font_size* ui_scale);
+	font::set_font(font_name, font_size * window->ui_scale);
 }
 
 void Painter::set_color(const color &c) {
@@ -81,6 +111,24 @@ void Painter::set_color(const color &c) {
 void Painter::draw_str(const vec2 &p, const string &str) {
 	if (str.num == 0)
 		return;
+	Image im;
+	font::render_text(str, Align::LEFT, im);
+	auto& tc = get_text_cache(context);
+	tc.texture->write(im);
+	tc.texture->set_options("minfilter=nearest");
+	float w = im.width / window->ui_scale;
+	float h = im.height / window->ui_scale;
+	Parameters params;
+	params.matrix = mat_pixel_to_rel * mat4::translation(vec3(offset_x + p.x, offset_y + p.y, 0)) * mat4::scale(w, h, 1);
+	params.col = _color;
+
+	cb->bind_pipeline(context->pipeline_alpha);
+	cb->push_constant(0, sizeof(params), &params);
+
+	tc.dset->set_texture(0, tc.texture);
+	tc.dset->update();
+	cb->bind_descriptor_set(0, tc.dset);
+	cb->draw(context->vb);
 }
 
 float Painter::get_str_width(const string &str) {
@@ -103,7 +151,7 @@ void Painter::draw_arc(const vec2& p, float r, float w0, float w1) {
 
 void Painter::draw_rect(const rect &r) {
 	Parameters params;
-	params.matrix = mat4::translation({r.x1 / (float)width * 2 - 1, r.y1 / (float)height * 2 - 1, 0}) *  mat4::scale(r.width() / (float)width * 2, r.height() / (float)height * 2, 1);
+	params.matrix = mat_pixel_to_rel * mat4::translation({r.x1, r.y1, 0}) *  mat4::scale(r.width(), r.height(), 1);
 	params.col = _color;
 
 	cb->bind_pipeline(context->pipeline);

@@ -6,8 +6,6 @@
 
 namespace hui {
 
-float ui_scale = 1.0f;
-
 extern Array<Window*> _windows_;
 
 void init() {

@@ -18,6 +18,7 @@ Window::Window(const string &_title, int w, int h, Flags _flags) : Panel(":windo
 	title = _title;
 	flags = _flags;
 	Panel::window = this;
+	ui_scale = 1.0f;
 	window = glfwCreateWindow(w * ui_scale, h * ui_scale, title.c_str(), nullptr, nullptr);
 
 	if (flags & Flags::OWN_DECORATION) {
@@ -31,6 +32,8 @@ Window::Window(const string &_title, int w, int h, Flags _flags) : Panel(":windo
 	}
 
 	glfwSetWindowUserPointer(window, this);
+	float _ui_scale_y;
+	glfwGetWindowContentScale(window, &ui_scale, &_ui_scale_y);
 
 	padding = Theme::_default.window_margin;
 
@@ -150,8 +153,8 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 void Window::_cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 	//std::cout << "mouse " << xpos << " " << ypos << "\n";
 	auto w = (Window*)glfwGetWindowUserPointer(window);
-	w->state.m.x = xpos/ui_scale;
-	w->state.m.y = ypos/ui_scale;
+	w->state.m.x = (float)xpos / w->ui_scale;
+	w->state.m.y = (float)ypos / w->ui_scale;
 	w->_on_mouse_move(w->state.m, {0,0});
 }
 
@@ -335,14 +338,14 @@ void Window::_on_draw() {
 		p->clear(Theme::_default.background);
 	}
 
-	if (top_control) {
+	/*if (top_control) {
 		top_control->negotiate_area(smaller_rect(a, padding));
 		top_control->_draw(p);
-	}
+	}*/
 	p->set_color(Theme::_default.text);
 	p->draw_rect({100, 200, 100, 200});
 	p->set_color(Theme::_default.text);
-	p->draw_rect({100, 200, 100, 200});
+	p->draw_str({300, 300}, "Test");
 
 	p->end();
 	_refresh_requested = false;

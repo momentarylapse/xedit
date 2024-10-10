@@ -119,10 +119,17 @@ void main() {
 </FragmentShader>
 )foodelim");
 		dset = pool->create_set(shader);
+
 		pipeline = new vulkan::GraphicsPipeline(shader, render_pass, 0, "triangles", vb);
 		pipeline->set_z(false, false);
 		pipeline->set_culling(vulkan::CullMode::NONE);
 		pipeline->rebuild();
+
+		pipeline_alpha = new vulkan::GraphicsPipeline(shader, render_pass, 0, "triangles", vb);
+		pipeline_alpha->set_z(false, false);
+		pipeline_alpha->set_culling(vulkan::CullMode::NONE);
+		pipeline_alpha->set_blend(vulkan::Alpha::SOURCE_ALPHA, vulkan::Alpha::SOURCE_INV_ALPHA);
+		pipeline_alpha->rebuild();
 	} catch (Exception& e) {
 		msg_error(e.message());
 		throw;
