@@ -96,12 +96,12 @@ void Painter::clear(const color &c) {
 void Painter::set_font(const string &font, float size, bool bold, bool italic) {
 	font_name = font;
 	font_size = size;
-	font::set_font(font, size * window->ui_scale);
+	font::set_font(font, 80);//size * window->ui_scale);
 }
 
 void Painter::set_font_size(float size) {
 	font_size = size;
-	font::set_font(font_name, font_size * window->ui_scale);
+	font::set_font(font_name, 80);//font_size * window->ui_scale);
 }
 
 void Painter::set_color(const color &c) {
@@ -116,6 +116,7 @@ void Painter::draw_str(const vec2 &p, const string &str) {
 	auto& tc = get_text_cache(context);
 	tc.texture->write(im);
 	tc.texture->set_options("minfilter=nearest");
+	msg_write(format("%s   %d  %d   %.1f", str, im.width, im.height, font_size));
 	float w = im.width / window->ui_scale;
 	float h = im.height / window->ui_scale;
 	Parameters params;
@@ -149,7 +150,7 @@ void Painter::draw_arc(const vec2& p, float r, float w0, float w1) {
 	//draw_line({p.x + r * cos(w), p.y - r * sin(w)}, {p.x + r * cos(w1), p.y - r * sin(w1)});
 }
 
-void Painter::draw_rect(const rect &r) {
+void fill_rect(ContextVulkan* context, const rect& r, const color& _color) {
 	Parameters params;
 	params.matrix = mat_pixel_to_rel * mat4::translation({r.x1, r.y1, 0}) *  mat4::scale(r.width(), r.height(), 1);
 	params.col = _color;
@@ -160,7 +161,22 @@ void Painter::draw_rect(const rect &r) {
 	cb->draw(context->vb);
 }
 
+void Painter::draw_rect(const rect &r) {
+	if (fill) {
+		fill_rect(context, r, _color);
+	} else {
+		draw_line({r.x1, r.y1}, {r.x2, r.y1});
+		draw_line({r.x1, r.y2}, {r.x2, r.y2});
+		draw_line({r.x1, r.y1}, {r.x1, r.y2});
+		draw_line({r.x2, r.y1}, {r.x2, r.y2});
+	}
+}
+
 void Painter::draw_line(const vec2 &a, const vec2 &b) {
+	if (a.x == b.x)
+		fill_rect(context, rect(a.x, a.x + 1, a.y, b.y), _color);
+	else if (a.y == b.y)
+		fill_rect(context, rect(a.x, b.x, a.y, a.y+1), _color);
 }
 
 void Painter::draw_lines(const Array<vec2> &p) {
@@ -170,6 +186,7 @@ void Painter::draw_lines(const Array<vec2> &p) {
 
 
 void Painter::set_transform(float rot[], const vec2 &offset) {
+	return;
 	offset_x = offset.x;
 	offset_y = offset.y;
 }

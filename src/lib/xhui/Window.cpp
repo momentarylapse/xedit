@@ -151,10 +151,10 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 }
 
 void Window::_cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
-	//std::cout << "mouse " << xpos << " " << ypos << "\n";
+	//msg_write(format("mouse %f  %f", xpos, ypos));
 	auto w = (Window*)glfwGetWindowUserPointer(window);
-	w->state.m.x = (float)xpos / w->ui_scale;
-	w->state.m.y = (float)ypos / w->ui_scale;
+	w->state.m.x = (float)xpos; // / w->ui_scale;
+	w->state.m.y = (float)ypos; // / w->ui_scale;
 	w->_on_mouse_move(w->state.m, {0,0});
 }
 
@@ -338,14 +338,18 @@ void Window::_on_draw() {
 		p->clear(Theme::_default.background);
 	}
 
-	/*if (top_control) {
+#if 1
+	if (top_control) {
 		top_control->negotiate_area(smaller_rect(a, padding));
 		top_control->_draw(p);
-	}*/
+	}
+#else
 	p->set_color(Theme::_default.text);
 	p->draw_rect({100, 200, 100, 200});
 	p->set_color(Theme::_default.text);
 	p->draw_str({300, 300}, "Test");
+	p->draw_str({300, 500}, "Test 2");
+#endif
 
 	p->end();
 	_refresh_requested = false;
