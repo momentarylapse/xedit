@@ -9,6 +9,7 @@
 #define SRC_LIB_BASE_FUTURE_H_
 
 #include <functional>
+#include "base.h"
 #include "pointer.h"
 
 namespace base {
@@ -35,6 +36,14 @@ struct xparam<int> {
 template<>
 struct xparam<int64> {
 	using t = int64;
+};
+template<>
+struct xparam<int8> {
+	using t = int8;
+};
+template<>
+struct xparam<uint8> {
+	using t = uint8;
 };
 template<>
 struct xparam<float> {
@@ -71,9 +80,9 @@ struct xcallback<void> {
 };
 
 enum class PromiseState {
-	UNFINISHED,
-	SUCCEEDED,
-	FAILED
+	Unfinished,
+	Succeeded,
+	Failed
 };
 
 // internal/shared data structure
@@ -81,24 +90,24 @@ template<class T>
 struct _promise_core_ : public Sharable<base::Empty> {
 	typename xcallback<T>::t cb_success;
 	Callback cb_fail;
-	PromiseState state = PromiseState::UNFINISHED;
+	PromiseState state = PromiseState::Unfinished;
 	mutable T result;
 
-	_promise_core_() {};
+	_promise_core_() = default;
 
 	void success(typename xparam<T>::t t) {
-		state = PromiseState::SUCCEEDED;
+		state = PromiseState::Succeeded;
 		result = t;
 		if (cb_success)
 			cb_success(t);
 	}
 	void fail() {
-		state = PromiseState::FAILED;
+		state = PromiseState::Failed;
 		if (cb_fail)
 			cb_fail();
 	}
 	void reset() {
-		state = PromiseState::UNFINISHED;
+		state = PromiseState::Unfinished;
 		cb_success = nullptr;
 		cb_fail = nullptr;
 	}
@@ -137,15 +146,15 @@ struct future {
 
 	shared<typename P::CoreType> core;
 
-	future(shared<typename P::CoreType> c) : core(c) {
+	explicit future(shared<typename P::CoreType> c) : core(c) {
 	}
 	future(const future<T>& f) : core(f.core) {
 	}
 
 	future<T>& then(typename xcallback<T>::t cb) {
 		core->cb_success = cb;
-		if (core->state == PromiseState::SUCCEEDED) {
-			if constexpr (std::is_same<T, void>::value)
+		if (core->state == PromiseState::Succeeded) {
+			if constexpr (std::is_same_v<T, void>)
 				cb();
 			else
 				cb(core->result);
@@ -155,7 +164,7 @@ struct future {
 
 	future<T>& on_fail(Callback cb) {
 		core->cb_fail = cb;
-		if (core->state == PromiseState::FAILED)
+		if (core->state == PromiseState::Failed)
 			cb();
 		return *this;
 	}
@@ -166,20 +175,20 @@ template<>
 struct _promise_core_<void> : public Sharable<base::Empty> {
 	Callback cb_success;
 	Callback cb_fail;
-	PromiseState state = PromiseState::UNFINISHED;
+	PromiseState state = PromiseState::Unfinished;
 
 	void success() {
-		state = PromiseState::SUCCEEDED;
+		state = PromiseState::Succeeded;
 		if (cb_success)
 			cb_success();
 	}
 	void fail() {
-		state = PromiseState::FAILED;
+		state = PromiseState::Failed;
 		if (cb_fail)
 			cb_fail();
 	}
 	void reset() {
-		state = PromiseState::UNFINISHED;
+		state = PromiseState::Unfinished;
 		cb_success = nullptr;
 		cb_fail = nullptr;
 	}
@@ -210,7 +219,7 @@ struct promise<void> {
 };
 
 template<class T>
-inline future<T> success(typename xparam<T>::t t) {
+future<T> success(typename xparam<T>::t t) {
 	base::promise<T> promise;
 	promise(t);
 	return promise.get_future();
@@ -223,15 +232,15 @@ inline future<void> success() {
 }
 
 template<class T>
-inline future<T> failed() {
+future<T> failed() {
 	base::promise<T> promise;
 	promise.fail();
 	return promise.get_future();
 }
 
 template<class T>
-inline void await(const future<T>& f) {
-	while (f.core->state == PromiseState::UNFINISHED) {}
+void await(const future<T>& f) {
+	while (f.core->state == PromiseState::Unfinished) {}
 }
 
 }

@@ -44,6 +44,7 @@ VkPresentModeKHR choose_swap_present_mode(const Array<VkPresentModeKHR> availabl
 	return best_mode;
 }
 
+#ifdef HAS_LIB_GLFW
 VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window) {
 	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 		return capabilities.currentExtent;
@@ -64,6 +65,7 @@ VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFW
 		return actual_extent;
 	}
 }
+#endif
 
 
 Array<xfer<Texture>> SwapChain::create_textures() {
@@ -133,6 +135,7 @@ void SwapChain::create() {
 
 	VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swap_chain_support.formats);
 	VkPresentModeKHR present_mode = choose_swap_present_mode(swap_chain_support.present_modes);
+#ifdef HAS_LIB_GLFW
 	auto extent = choose_swap_extent(swap_chain_support.capabilities, window);
 	width = extent.width;
 	height = extent.height;
@@ -172,6 +175,7 @@ void SwapChain::create() {
 		throw Exception("failed to create swap chain!");
 
 	image_format = surface_format.format;
+#endif
 }
 
 // well, no memory :P
@@ -198,11 +202,13 @@ Array<VkImageView> SwapChain::create_image_views(Array<VkImage> &images) {
 
 
 
+#ifdef HAS_LIB_GLFW
 SwapChain::SwapChain(GLFWwindow* w, Device *d) {
 	window = w;
 	device = d;
 	create();
 }
+#endif
 
 SwapChain::~SwapChain() {
 	cleanup();

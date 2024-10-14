@@ -44,7 +44,8 @@ void ContextVulkan::_create_swap_chain_and_stuff() {
 
 void ContextVulkan::api_init() {
 	instance = vulkan::init({"glfw", "validation", "api=1.2", "verbosity=2"});
-	device = vulkan::Device::create_simple(instance, window->window, {"graphics", "present", "swapchain", "anisotropy", "validation"});
+	auto surface = instance->create_glfw_surface(window->window);
+	device = vulkan::Device::create_simple(instance, surface, {"graphics", "present", "swapchain", "anisotropy", "validation"});
 	msg_write("device found");
 
 	//device->create_query_pool(MAX_TIMESTAMP_QUERIES);

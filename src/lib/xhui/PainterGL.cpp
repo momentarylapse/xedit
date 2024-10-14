@@ -235,8 +235,8 @@ void Painter::draw_str(const vec2 &p, const string &str) {
 	nix::disable_alpha();
 }
 
-float Painter::get_str_width(const string &str) {
-	return font::get_text_width(str);
+vec2 Painter::get_str_size(const string &str) {
+	return {font::get_text_width(str), font_size};
 }
 
 void Painter::set_line_width(float width) {

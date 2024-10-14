@@ -16,8 +16,11 @@
 #include <vulkan/vulkan.h>
 #include "FrameBuffer.h"
 
+
+#ifdef HAS_LIB_GLFW
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#endif
 
 
 namespace vulkan {
@@ -45,9 +48,13 @@ public:
 	uint32_t image_count;
 	Array<VkImageView> _image_views;
 	Device *device;
+#ifdef HAS_LIB_GLFW
 	GLFWwindow* window;
+#endif
 
+#ifdef HAS_LIB_GLFW
 	SwapChain(GLFWwindow* window, Device *device);
+#endif
 	~SwapChain();
 
 	void cleanup();

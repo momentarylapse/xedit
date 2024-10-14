@@ -50,7 +50,7 @@ namespace vulkan {
 	};
 
 
-Array<const char*> get_required_instance_extensions(bool glfw, bool validation) {
+Array<const char*> get_required_instance_extensions(bool glfw, bool validation, bool headless) {
 	Array<const char*> extensions;
 
 	// default
@@ -59,6 +59,7 @@ Array<const char*> get_required_instance_extensions(bool glfw, bool validation) 
 	extensions.add("VK_KHR_portability_enumeration");
 #endif
 
+#ifdef HAS_LIB_GLFW
 	if (glfw) {
 		uint32_t glfw_extension_count = 0;
 		const char** glfw_extensions;
@@ -66,6 +67,10 @@ Array<const char*> get_required_instance_extensions(bool glfw, bool validation) 
 		for (uint32_t i=0; i<glfw_extension_count; i++)
 			extensions.add(glfw_extensions[i]);
 	}
+#endif
+
+	if (headless)
+		extensions.add("VK_EXT_headless_surface"); // VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME
 
 	if (validation)
 		extensions.add(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -156,7 +161,7 @@ xfer<Instance> Instance::create(const Array<string> &op) {
 	create_info.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 #endif
 
-	auto extensions = get_required_instance_extensions(sa_contains(op, "glfw"), instance->using_validation_layers);
+	auto extensions = get_required_instance_extensions(sa_contains(op, "glfw"), instance->using_validation_layers, sa_contains(op, "headless"));
 	create_info.enabledExtensionCount = static_cast<uint32_t>(extensions.num);
 	create_info.ppEnabledExtensionNames = &extensions[0];
 
@@ -188,13 +193,23 @@ xfer<Instance> Instance::create(const Array<string> &op) {
 	return instance;
 }
 
-VkSurfaceKHR Instance::create_surface(GLFWwindow* window) {
+#ifdef HAS_LIB_GLFW
+VkSurfaceKHR Instance::create_glfw_surface(GLFWwindow* window) {
 	VkSurfaceKHR surface;
 	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) 
 		throw Exception("failed to create window surface!");
 	return surface;
 }
+#endif
 
+VkSurfaceKHR Instance::create_headless_surface() {
+	VkHeadlessSurfaceCreateInfoEXT info{};
+	info.sType = VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EXT;
+	VkSurfaceKHR surface;
+	if (vkCreateHeadlessSurfaceEXT(instance, &info, nullptr, &surface) != VK_SUCCESS)
+		throw Exception("failed to create headless surface!");
+	return surface;
+}
 
 
 #define DECLARE_EXT(NAME) PFN_##NAME _##NAME = nullptr;
