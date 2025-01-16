@@ -69,14 +69,24 @@ Array<const char*> get_required_instance_extensions(bool glfw, bool validation, 
 	}
 #endif
 
-	if (headless)
+	if (headless) {
 		extensions.add("VK_EXT_headless_surface"); // VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME
+		extensions.add("VK_KHR_surface"); // VK_KHR_SURFACE_EXTENSION_NAME
+	}
 
 	if (validation)
 		extensions.add(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
 	return extensions;
 }
+
+	string result2str(VkResult r) {
+		if (r == VK_ERROR_SURFACE_LOST_KHR)
+			return "VK_ERROR_SURFACE_LOST_KHR";
+		if (r == VK_ERROR_NATIVE_WINDOW_IN_USE_KHR)
+			return "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR";
+		return "err=" + str((int)r);
+	}
 
 
 	VkDebugUtilsMessengerEXT debug_messenger;
@@ -91,9 +101,11 @@ Array<const char*> get_required_instance_extensions(bool glfw, bool validation, 
 		create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		create_info.pfnUserCallback = debug_callback;
 
-		if (create_debug_utils_messenger_ext(instance, &create_info, nullptr, &debug_messenger) != VK_SUCCESS)
-			throw Exception("failed to set up debug messenger!");
+		auto r = create_debug_utils_messenger_ext(instance, &create_info, nullptr, &debug_messenger);
+		if (r != VK_SUCCESS)
+			throw Exception("failed to set up debug messenger!  " + result2str(r));
 	}
+
 
 
 Instance::Instance() {
@@ -162,6 +174,10 @@ xfer<Instance> Instance::create(const Array<string> &op) {
 #endif
 
 	auto extensions = get_required_instance_extensions(sa_contains(op, "glfw"), instance->using_validation_layers, sa_contains(op, "headless"));
+	if (verbosity >= 3)
+		for (auto e: extensions)
+			msg_write("ENABLING EXTENSION: " + string(e));
+
 	create_info.enabledExtensionCount = static_cast<uint32_t>(extensions.num);
 	create_info.ppEnabledExtensionNames = &extensions[0];
 
@@ -176,7 +192,7 @@ xfer<Instance> Instance::create(const Array<string> &op) {
 
 	auto r = vkCreateInstance(&create_info, nullptr, &instance->instance);
 	if (r != VK_SUCCESS)
-		throw Exception("failed to create instance! " + i2s(r));
+		throw Exception("failed to create instance! " + result2str(r));
 
 
 	if (instance->using_validation_layers)
@@ -196,8 +212,9 @@ xfer<Instance> Instance::create(const Array<string> &op) {
 #ifdef HAS_LIB_GLFW
 VkSurfaceKHR Instance::create_glfw_surface(GLFWwindow* window) {
 	VkSurfaceKHR surface;
-	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) 
-		throw Exception("failed to create window surface!");
+	auto r = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+	if (r != VK_SUCCESS)
+		throw Exception("failed to create window surface!  " + result2str(r));
 	return surface;
 }
 #endif
@@ -206,8 +223,9 @@ VkSurfaceKHR Instance::create_headless_surface() {
 	VkHeadlessSurfaceCreateInfoEXT info{};
 	info.sType = VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EXT;
 	VkSurfaceKHR surface;
-	if (vkCreateHeadlessSurfaceEXT(instance, &info, nullptr, &surface) != VK_SUCCESS)
-		throw Exception("failed to create headless surface!");
+	auto r = vkCreateHeadlessSurfaceEXT(instance, &info, nullptr, &surface);
+	if (r != VK_SUCCESS)
+		throw Exception("failed to create headless surface!  " + result2str(r));
 	return surface;
 }
 

@@ -17,6 +17,7 @@
 
 namespace vulkan {
 
+	string result2str(VkResult r);
 
 
 
@@ -130,15 +131,15 @@ xfer<RenderPass> SwapChain::create_render_pass(DepthBuffer *depth_buffer, const 
 }
 
 
-void SwapChain::create() {
-	SwapChainSupportDetails swap_chain_support = query_swap_chain_support(device->physical_device, device->surface);
+void SwapChain::rebuild(int w, int h) {
+	width = w;
+	height = h;
 
-	VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swap_chain_support.formats);
-	VkPresentModeKHR present_mode = choose_swap_present_mode(swap_chain_support.present_modes);
-#ifdef HAS_LIB_GLFW
-	auto extent = choose_swap_extent(swap_chain_support.capabilities, window);
-	width = extent.width;
-	height = extent.height;
+	const SwapChainSupportDetails swap_chain_support = query_swap_chain_support(device->physical_device, device->surface);
+
+	const VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swap_chain_support.formats);
+	const VkPresentModeKHR present_mode = choose_swap_present_mode(swap_chain_support.present_modes);
+	const VkExtent2D extent = {(uint32_t)width, (uint32_t)height};
 
 	image_count = swap_chain_support.capabilities.minImageCount + 1;
 	if (swap_chain_support.capabilities.maxImageCount > 0 and image_count > swap_chain_support.capabilities.maxImageCount)
@@ -148,6 +149,7 @@ void SwapChain::create() {
 	info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	info.surface = device->surface;
 
+	info.oldSwapchain = swap_chain;
 	info.minImageCount = image_count;
 	info.imageFormat = surface_format.format;
 	info.imageColorSpace = surface_format.colorSpace;
@@ -171,18 +173,33 @@ void SwapChain::create() {
 	info.presentMode = present_mode;
 	info.clipped = VK_TRUE;
 
-	if (vkCreateSwapchainKHR(device->device, &info, nullptr, &swap_chain) != VK_SUCCESS)
-		throw Exception("failed to create swap chain!");
+	auto r = vkCreateSwapchainKHR(device->device, &info, nullptr, &swap_chain);
+	if (r != VK_SUCCESS)
+		throw Exception("failed to create swap chain!  " + result2str(r));
 
 	image_format = surface_format.format;
-#endif
 }
+
+
+xfer<SwapChain> SwapChain::create(Device *device, int width, int height) {
+	auto swap_chain = new SwapChain(device);
+	swap_chain->rebuild(width, height);
+	return swap_chain;
+}
+
+#ifdef HAS_LIB_GLFW
+xfer<SwapChain> SwapChain::create_for_glfw(Device *device, GLFWwindow* window) {
+	const SwapChainSupportDetails swap_chain_support = query_swap_chain_support(device->physical_device, device->surface);
+	auto extent = choose_swap_extent(swap_chain_support.capabilities, window);
+	return create(device, (int)extent.width, (int)extent.height);
+}
+#endif
 
 // well, no memory :P
 Array<VkImage> SwapChain::get_images() {
 	vkGetSwapchainImagesKHR(device->device, swap_chain, &image_count, nullptr);
 	Array<VkImage> images;
-	images.resize(image_count);
+	images.resize((int)image_count);
 	vkGetSwapchainImagesKHR(device->device, swap_chain, &image_count, &images[0]);
 	return images;
 }
@@ -201,20 +218,11 @@ Array<VkImageView> SwapChain::create_image_views(Array<VkImage> &images) {
 
 
 
-
-#ifdef HAS_LIB_GLFW
-SwapChain::SwapChain(GLFWwindow* w, Device *d) {
-	window = w;
+SwapChain::SwapChain(Device *d) {
 	device = d;
-	create();
 }
-#endif
 
 SwapChain::~SwapChain() {
-	cleanup();
-}
-
-void SwapChain::cleanup() {
 /*	for (auto frame_buffer: frame_buffers)
 		delete frame_buffer;
 	frame_buffers.clear();
@@ -231,12 +239,6 @@ void SwapChain::cleanup() {
 	vkDestroySwapchainKHR(device->device, swap_chain, nullptr);
 }
 
-void SwapChain::rebuild() {
-	cleanup();
-	create();
-}
-
-
 bool SwapChain::present(int image_index, const Array<Semaphore*> &wait_sem) {
 	auto wait_semaphores = extract_semaphores(wait_sem);
 
@@ -250,22 +252,20 @@ bool SwapChain::present(int image_index, const Array<Semaphore*> &wait_sem) {
 
 	VkResult result = vkQueuePresentKHR(device->present_queue.queue, &present_info);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR or result == VK_SUBOPTIMAL_KHR) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR or result == VK_SUBOPTIMAL_KHR)
 		return false;
-	} else if (result != VK_SUCCESS) {
-		throw Exception("failed to present swap chain image!");
-	}
+	if (result != VK_SUCCESS)
+		throw Exception("failed to present swap chain image!  " + result2str(result));
 	return true;
 }
 
 bool SwapChain::acquire_image(int *image_index, Semaphore *signal_sem) {
 	VkResult result = vkAcquireNextImageKHR(device->device, swap_chain, std::numeric_limits<uint64_t>::max(), signal_sem->semaphore, VK_NULL_HANDLE, (unsigned int*)image_index);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		return false;
-	} else if (result != VK_SUCCESS and result != VK_SUBOPTIMAL_KHR) {
-		throw Exception("failed to acquire swap chain image!");
-	}
+	if (result != VK_SUCCESS and result != VK_SUBOPTIMAL_KHR)
+		throw Exception("failed to acquire swap chain image!  " + result2str(result));
 	return true;
 }
 

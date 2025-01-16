@@ -23,6 +23,7 @@ Device *default_device;
 
 	bool check_device_extension_support(VkPhysicalDevice device, Requirements req);
 	Array<VkQueueFamilyProperties> get_queue_families(VkPhysicalDevice device);
+	string result2str(VkResult r);
 
 
 
@@ -37,6 +38,9 @@ Device *default_device;
 #ifdef OS_MAC
 		ext.add("VK_KHR_portability_subset");
 #endif
+		if (req & Requirements::MESH_SHADER)
+			ext.add("VK_NV_mesh_shader");
+			//ext.add("VK_EXT_mesh_shader"); // VK_EXT_MESH_SHADER_EXTENSION_NAME
 		return ext;
 	}
 
@@ -51,15 +55,19 @@ bool is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR surface, Requireme
 	if (!check_device_extension_support(device, req))
 		return false;
 
-	SwapChainSupportDetails swapChainSupport = query_swap_chain_support(device, surface);
-
-	if (req & Requirements::SWAP_CHAIN)
-		if (swapChainSupport.formats.num == 0)
+	if ((req & Requirements::SWAP_CHAIN) or (req & Requirements::PRESENT)) {
+		if (!surface)
 			return false;
+		SwapChainSupportDetails swapChainSupport = query_swap_chain_support(device, surface);
 
-	if (req & Requirements::PRESENT)
-		if (swapChainSupport.present_modes.num == 0)
-			return false;
+		if (req & Requirements::SWAP_CHAIN)
+			if (swapChainSupport.formats.num == 0)
+				return false;
+
+		if (req & Requirements::PRESENT)
+			if (swapChainSupport.present_modes.num == 0)
+				return false;
+	}
 
 	if (req & Requirements::ANISOTROPY) {
 		VkPhysicalDeviceFeatures supported_features;
@@ -229,8 +237,9 @@ void Device::create_logical_device(VkSurfaceKHR surface, Requirements req) {
 		create_info.enabledLayerCount = 0;
 	}*/
 
-	if (vkCreateDevice(physical_device, &create_info, nullptr, &device) != VK_SUCCESS)
-		throw Exception("failed to create logical device!");
+	auto r = vkCreateDevice(physical_device, &create_info, nullptr, &device);
+	if (r != VK_SUCCESS)
+		throw Exception("failed to create logical device!  " + result2str(r));
 
 	if (indices.graphics_family)
 		vkGetDeviceQueue(device, indices.graphics_family.value(), 0, &graphics_queue.queue);
@@ -267,11 +276,10 @@ VkFormat Device::find_supported_format(const Array<VkFormat> &candidates, VkImag
 		VkFormatProperties props;
 		vkGetPhysicalDeviceFormatProperties(physical_device, format, &props);
 
-		if (tiling == VK_IMAGE_TILING_LINEAR and (props.linearTilingFeatures & features) == features) {
+		if (tiling == VK_IMAGE_TILING_LINEAR and (props.linearTilingFeatures & features) == features)
 			return format;
-		} else if (tiling == VK_IMAGE_TILING_OPTIMAL and (props.optimalTilingFeatures & features) == features) {
+		if (tiling == VK_IMAGE_TILING_OPTIMAL and (props.optimalTilingFeatures & features) == features)
 			return format;
-		}
 	}
 
 	throw Exception("failed to find supported format!");
@@ -339,6 +347,8 @@ Requirements parse_requirements(const Array<string> &op) {
 			req = req | Requirements::ANISOTROPY;
 		else if (o == "rtx")
 			req = req | Requirements::RTX;
+		else if (o == "meshshader")
+			req = req | Requirements::MESH_SHADER;
 		else
 			throw Exception("unknown requirement: " + o);
 	}

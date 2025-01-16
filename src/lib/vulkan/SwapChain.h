@@ -48,17 +48,16 @@ public:
 	uint32_t image_count;
 	Array<VkImageView> _image_views;
 	Device *device;
-#ifdef HAS_LIB_GLFW
-	GLFWwindow* window;
-#endif
 
-#ifdef HAS_LIB_GLFW
-	SwapChain(GLFWwindow* window, Device *device);
-#endif
+	explicit SwapChain(Device *device);
 	~SwapChain();
 
-	void cleanup();
-	void create();
+	void rebuild(int w, int h);
+
+	static xfer<SwapChain> create(Device *device, int w, int h);
+#ifdef HAS_LIB_GLFW
+	static xfer<SwapChain> create_for_glfw(Device *device, GLFWwindow* window);
+#endif
 
 	Array<VkImage> get_images();
 	Array<VkImageView> create_image_views(Array<VkImage> &images);
@@ -67,8 +66,6 @@ public:
 	xfer<RenderPass> create_render_pass(DepthBuffer *depth_buffer, const Array<string> &options = {});
 	Array<xfer<Texture>> create_textures();
 	Array<xfer<FrameBuffer>> create_frame_buffers(RenderPass *rp, DepthBuffer *db);
-
-	void rebuild();
 
 	bool present(int image_index, const Array<Semaphore*> &wait_sem);
 	bool acquire_image(int *image_index, Semaphore *signal_sem);

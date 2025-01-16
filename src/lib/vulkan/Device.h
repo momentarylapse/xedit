@@ -9,11 +9,6 @@
 
 #if HAS_LIB_VULKAN
 
-#ifdef HAS_LIB_GLFW
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#endif
-
 #include "../base/base.h"
 #include "../base/pointer.h"
 #include "Queue.h"

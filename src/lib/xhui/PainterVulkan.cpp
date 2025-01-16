@@ -70,7 +70,7 @@ Painter::Painter(Window *w) {
 
 	cb->set_viewport(::Painter::area());
 	cb->begin_render_pass(context->render_pass, fb);
-	cb->clear({Black}, 1);
+	cb->clear(::Painter::area(), {Black}, 1);
 }
 
 void Painter::end() {
@@ -90,7 +90,7 @@ void Painter::end() {
 }
 
 void Painter::clear(const color &c) {
-	cb->clear({c}, 1);
+	cb->clear(::Painter::area(), {c}, 1);
 }
 
 void Painter::set_font(const string &font, float size, bool bold, bool italic) {

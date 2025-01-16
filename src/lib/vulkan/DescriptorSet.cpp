@@ -21,6 +21,8 @@
 
 namespace vulkan {
 
+string result2str(VkResult r);
+
 const string DESCRIPTOR_NAME_UNIFORM_BUFFER = "buffer";
 const string DESCRIPTOR_NAME_UNIFORM_BUFFER_DYNAMIC = "dbuffer";
 const string DESCRIPTOR_NAME_SAMPLER = "sampler";
@@ -44,6 +46,7 @@ VkDescriptorType descriptor_type(const string &s) {
 	return VK_DESCRIPTOR_TYPE_MAX_ENUM;
 }
 
+
 	DescriptorPool::DescriptorPool(const string &s, int max_sets) {
 		Array<VkDescriptorPoolSize> pool_sizes;
 		for (auto &xx: s.explode(",")) {
@@ -58,8 +61,9 @@ VkDescriptorType descriptor_type(const string &s) {
 		info.pPoolSizes = &pool_sizes[0];
 		info.maxSets = max_sets;
 
-		if (int r = vkCreateDescriptorPool(default_device->device, &info, nullptr, &pool) != VK_SUCCESS)
-			throw Exception("failed to create descriptor pool!  err=" + str(r));
+		auto r = vkCreateDescriptorPool(default_device->device, &info, nullptr, &pool);
+		if (r != VK_SUCCESS)
+			throw Exception("failed to create descriptor pool!  " + result2str(r));
 	}
 
 	DescriptorPool::~DescriptorPool() {
@@ -95,8 +99,9 @@ VkDescriptorType descriptor_type(const string &s) {
 		info.descriptorSetCount = 1;
 		info.pSetLayouts = &layout;
 
-		if (int r = vkAllocateDescriptorSets(default_device->device, &info, &descriptor_set) != VK_SUCCESS)
-			throw Exception("failed to allocate descriptor sets!  err=" + str(r));
+		auto r = vkAllocateDescriptorSets(default_device->device, &info, &descriptor_set);
+		if (r != VK_SUCCESS)
+			throw Exception("failed to allocate descriptor sets!  " + result2str(r));
 	}
 	DescriptorSet::~DescriptorSet() {
 		// no VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT...
@@ -128,7 +133,7 @@ VkDescriptorType descriptor_type(const string &s) {
 		i.info.sampler = VK_NULL_HANDLE; //t->sampler;
 	}
 
-	void DescriptorSet::set_buffer_with_offset(int binding, Buffer *u, int offset) {
+	void DescriptorSet::set_uniform_buffer_with_offset(int binding, Buffer *u, int offset) {
 		auto type = /*u->is_dynamic() ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC :*/ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		auto &i = get_for_binding(buffers, binding, type);
 		i.info.buffer = u->buffer;
@@ -151,8 +156,8 @@ VkDescriptorType descriptor_type(const string &s) {
 	    i.info.pAccelerationStructures = &a->structure;
 	}
 
-	void DescriptorSet::set_buffer(int binding, Buffer *u) {
-		set_buffer_with_offset(binding, u, 0);
+	void DescriptorSet::set_uniform_buffer(int binding, Buffer *u) {
+		set_uniform_buffer_with_offset(binding, u, 0);
 	}
 
 	void DescriptorSet::update() {
@@ -222,8 +227,9 @@ VkDescriptorType descriptor_type(const string &s) {
 		info.pBindings = &bindings[0];
 
 		VkDescriptorSetLayout layout;
-		if (vkCreateDescriptorSetLayout(default_device->device, &info, nullptr, &layout) != VK_SUCCESS)
-			throw Exception("failed to create descriptor set layout!");
+		auto r = vkCreateDescriptorSetLayout(default_device->device, &info, nullptr, &layout);
+		if (r != VK_SUCCESS)
+			throw Exception("failed to create descriptor set layout!  " + result2str(r));
 		return layout;
 	}
 

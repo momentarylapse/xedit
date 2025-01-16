@@ -34,12 +34,13 @@ namespace vulkan {
 		void _load(const Path &filename);
 		void write(const Image &image);
 		void writex(const void *image, int nx, int ny, int nz, const string &format);
+		void read(void* data);
 
 
 		void set_options(const string &op) const;
 
 		void _destroy();
-		void _create_image(const void *data, VkImageType type, VkFormat format, bool allow_mip, bool as_storage, bool cube);
+		void _create_image(const void *data, VkImageType type, VkFormat format, int num_layers, VkSampleCountFlagBits samples, bool allow_mip, bool as_storage, bool cube);
 		void _create_sampler() const;
 
 
@@ -71,6 +72,11 @@ namespace vulkan {
 	public:
 		CubeMap(int size, const string &format);
 		void write_side(int side, const Image &image);
+	};
+
+	class TextureMultiSample : public Texture {
+	public:
+		TextureMultiSample(int nx, int ny, int samples, const string &format);
 	};
 };
 

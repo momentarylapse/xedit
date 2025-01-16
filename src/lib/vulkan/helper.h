@@ -14,7 +14,7 @@ namespace vulkan{
 		VkDeviceMemory memory = nullptr;
 		VkFormat format = VK_FORMAT_UNDEFINED;
 
-		void create(VkImageType type, uint32_t width, uint32_t height, uint32_t depth, uint32_t mip_levels, uint32_t num_layers, VkFormat format, VkImageUsageFlags usage, bool cube);
+		void create(VkImageType type, uint32_t width, uint32_t height, uint32_t depth, uint32_t mip_levels, uint32_t num_layers, VkSampleCountFlagBits samples, VkFormat format, VkImageUsageFlags usage, bool cube);
 		void _destroy();
 
 
@@ -32,6 +32,7 @@ namespace vulkan{
 	//void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& buffer_memory);
 	void copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
 	void copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth, uint32_t level, uint32_t layer);
+	void copy_image_to_buffer(VkImage image, uint32_t width, uint32_t height, uint32_t depth, uint32_t level, uint32_t layer, VkBuffer buffer);
 };
 
 #endif

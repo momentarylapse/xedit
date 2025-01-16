@@ -29,7 +29,7 @@ bool ContextVulkan::start() {
 
 
 void ContextVulkan::_create_swap_chain_and_stuff() {
-	swap_chain = new vulkan::SwapChain(window->window, device);
+	swap_chain = vulkan::SwapChain::create_for_glfw(device, window->window);
 	auto swap_images = swap_chain->create_textures();
 	for (auto t: swap_images)
 		wait_for_frame_fences.add(new vulkan::Fence(device));
