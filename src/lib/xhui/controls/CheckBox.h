@@ -2,7 +2,7 @@
 
 #include "Label.h"
 
-namespace hui {
+namespace xhui {
 
 	class CheckBox : public Label {
 	public:

@@ -2,7 +2,7 @@
 
 #include "Edit.h"
 
-namespace hui {
+namespace xhui {
 
 class MultilineEdit : public Edit {
 public:

@@ -2,7 +2,7 @@
 #include "../Painter.h"
 #include "../../math/complex.h"
 
-namespace hui {
+namespace xhui {
 
 DrawingArea::DrawingArea(const string &_id) : Control(_id) {
 	expand_x = true;

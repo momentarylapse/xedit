@@ -6,7 +6,7 @@
 #include "../draw/font.h"
 #include "../../os/msg.h"
 
-namespace hui {
+namespace xhui {
 
 HeaderBar::HeaderBar(Window *w, const string &_id) : Control(_id) {
 	expand_x = true;

@@ -15,29 +15,29 @@
 int main() {
 
 	try {
-		hui::init();
+		xhui::init();
 	} catch (Exception &e) {
 		msg_error(e.message());
 		return 1;
 	}
 
-	auto w = new hui::Window("test", 1024, 768);
-	auto g = new hui::Grid("grid");
-	auto g2 = new hui::Grid("grid2");
-	auto ll = new hui::Label("label", "test");
-	auto ed = new hui::Edit("edit", "bla");
-	auto list = new hui::ListView("list", "a\\b\\c");
+	auto w = new xhui::Window("test", 600,400);//1024, 768);
+	auto g = new xhui::Grid("grid");
+	auto g2 = new xhui::Grid("grid2");
+	auto ll = new xhui::Label("label", "test");
+	auto ed = new xhui::Edit("edit", "bla");
+	auto list = new xhui::ListView("list", "a\\b\\c");
 	w->add(g);
 	g->add(ll, 0, 0);
-	g->add(new hui::Button("button1", "a small test g"), 1, 0);
-	g->add(new hui::Button("button2", "more test"), 1, 1);
+	g->add(new xhui::Button("button1", "a small test g"), 1, 0);
+	g->add(new xhui::Button("button2", "more test"), 1, 1);
 	g->add(ed, 2, 0);
-	g->add(new hui::Button("button3", "x"), 2, 1);
-	g->add(new hui::DrawingArea("area"), 2, 2);
+	g->add(new xhui::Button("button3", "x"), 2, 1);
+	g->add(new xhui::DrawingArea("area"), 2, 2);
 	g->add(g2, 1, 2);
-	g2->add(new hui::CheckBox("checkbox", "bb"), 0, 0);
+	g2->add(new xhui::CheckBox("checkbox", "bb"), 0, 0);
 	g2->add(list, 0, 1);
-	g2->add(new hui::MultilineEdit("multilineedit", "just a small\ntest"), 0, 2);
+	g2->add(new xhui::MultilineEdit("multilineedit", "just a small\ntest"), 0, 2);
 
 	list->add_string("1\\2\\3");
 	list->add_string("hallo\\test\\3");
@@ -52,7 +52,7 @@ int main() {
 	});
 	w->event_xp("area", "hui:draw", [] (Painter *p) {
 		return;
-		p->set_color(hui::Theme::_default.background_low);
+		p->set_color(xhui::Theme::_default.background_low);
 		p->set_roundness(8);
 		p->draw_rect(p->area());
 		p->set_roundness(0);
@@ -61,28 +61,28 @@ int main() {
 		vec2 p0 = {20, 20};
 		string text = "Test  g";
 		auto dims = font::get_text_dimensions(text);
-		p->set_color(hui::Theme::_default.border);
+		p->set_color(xhui::Theme::_default.border);
 		p->draw_line({p0.x, p0.y + dims.bounding_top_to_line}, {p0.x + dims.bounding_width, p0.y + dims.bounding_top_to_line});
 		p->set_fill(false);
 		p->draw_rect(dims.bounding_box(p0));
 		p->set_fill(true);
 
-		p->set_color(hui::Theme::_default.text);
+		p->set_color(xhui::Theme::_default.text);
 		p->draw_str(p0, text);
 
 		//p->draw_str({50, 200}, "Test g\nbla gg");
 
 		p->set_roundness(20);
 		p->draw_rect({50, 300, 150, 250});
-		((hui::Painter*)p)->softness = 10;
+		((xhui::Painter*)p)->softness = 10;
 		p->draw_rect({50, 300, 300, 400});
-		((hui::Painter*)p)->softness = 0;
+		((xhui::Painter*)p)->softness = 0;
 	});
 	w->event("edit", [ed] {
 		msg_write("edit: " + ed->text);
 	});
 
-	hui::run();
+	xhui::run();
 
 	return 0;
 }

@@ -4,7 +4,7 @@
 #include "../../math/rect.h"
 #include "../../math/vec2.h"
 
-namespace hui {
+namespace xhui {
 
 class Painter;
 class Window;

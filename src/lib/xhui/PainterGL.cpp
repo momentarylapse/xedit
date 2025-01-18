@@ -13,7 +13,7 @@ namespace nix {
 }
 
 
-namespace hui {
+namespace xhui {
 
 
 nix::Texture *tex_text = nullptr;

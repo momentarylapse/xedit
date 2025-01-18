@@ -4,7 +4,7 @@
 
 #include "../vulkan/vulkan.h"
 
-namespace hui {
+namespace xhui {
 
 class Painter;
 class Window;

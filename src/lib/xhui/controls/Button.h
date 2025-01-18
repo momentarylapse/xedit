@@ -2,7 +2,7 @@
 
 #include "Label.h"
 
-namespace hui {
+namespace xhui {
 
 class Button : public Label {
 public:

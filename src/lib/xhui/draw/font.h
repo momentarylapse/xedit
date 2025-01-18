@@ -6,7 +6,7 @@ class Image;
 class rect;
 class vec2;
 
-namespace hui {
+namespace xhui {
 enum class Align;
 }
 
@@ -30,6 +30,6 @@ struct TextDimensions {
 void set_font(const string &font_name, float font_size);
 float get_text_width(const string &text);
 TextDimensions get_text_dimensions(const string &text);
-void render_text(const string &text, hui::Align align, Image &im);
+void render_text(const string &text, xhui::Align align, Image &im);
 
 }

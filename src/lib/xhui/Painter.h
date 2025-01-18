@@ -4,7 +4,7 @@
 #include "../image/ImagePainter.h"
 #include "../math/vec2.h"
 
-namespace hui {
+namespace xhui {
 
 class Window;
 #if HAS_LIB_VULKAN

@@ -6,7 +6,7 @@
 #include <functional>
 #include "Panel.h"
 
-namespace hui {
+namespace xhui {
 
 class Control;
 class HeaderBar;
@@ -44,7 +44,6 @@ public:
 
 private:
 	GLFWwindow *window;
-	float ui_scale;
 
 	struct InputState {
 		vec2 m;;

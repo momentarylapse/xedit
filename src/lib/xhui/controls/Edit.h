@@ -2,7 +2,7 @@
 
 #include "Control.h"
 
-namespace hui {
+namespace xhui {
 
 class Edit : public Control {
 public:

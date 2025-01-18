@@ -3,11 +3,12 @@
 #include "Window.h"
 #include "Painter.h"
 
-namespace hui {
+namespace xhui {
 
 void init();
 void run();
 
+extern float ui_scale;
 
 enum class Align {
 	RIGHT = 1,

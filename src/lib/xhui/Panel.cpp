@@ -1,7 +1,7 @@
 #include "Panel.h"
 #include "Painter.h"
 
-namespace hui {
+namespace xhui {
 
 
 

@@ -2,7 +2,7 @@
 
 #include "Control.h"
 
-namespace hui {
+namespace xhui {
 
 
 class Grid : public Control {

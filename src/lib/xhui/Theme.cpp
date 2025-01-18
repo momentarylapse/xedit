@@ -3,7 +3,7 @@
 #include "../os/path.h"
 #include "../os/msg.h"
 
-namespace hui {
+namespace xhui {
 
 Theme Theme::_default;
 

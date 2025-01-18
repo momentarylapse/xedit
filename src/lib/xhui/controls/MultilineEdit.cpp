@@ -1,6 +1,6 @@
 #include "MultilineEdit.h"
 
-namespace hui {
+namespace xhui {
 
 MultilineEdit::MultilineEdit(const string &_id, const string &t) : Edit(_id, t) {
 	expand_y = true;

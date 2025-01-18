@@ -2,7 +2,7 @@
 
 #include "Label.h"
 
-namespace hui {
+namespace xhui {
 
 	class ListView : public Control {
 	public:

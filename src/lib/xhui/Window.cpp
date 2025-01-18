@@ -8,7 +8,7 @@
 #include "../os/msg.h"
 
 
-namespace hui {
+namespace xhui {
 
 Array<Window*> _windows_;
 
@@ -18,8 +18,8 @@ Window::Window(const string &_title, int w, int h, Flags _flags) : Panel(":windo
 	title = _title;
 	flags = _flags;
 	Panel::window = this;
-	ui_scale = 1.0f;
-	window = glfwCreateWindow(w * ui_scale, h * ui_scale, title.c_str(), nullptr, nullptr);
+
+	window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr);
 
 	if (flags & Flags::OWN_DECORATION) {
 		glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
@@ -32,8 +32,6 @@ Window::Window(const string &_title, int w, int h, Flags _flags) : Panel(":windo
 	}
 
 	glfwSetWindowUserPointer(window, this);
-	float _ui_scale_y;
-	glfwGetWindowContentScale(window, &ui_scale, &_ui_scale_y);
 
 	padding = Theme::_default.window_margin;
 
@@ -66,62 +64,62 @@ Window::~Window() {
 int key_decode(int key) {
 	for (int i=0; i<10; i++)
 		if (key == GLFW_KEY_0 + i)
-			return hui::KEY_0 + i;
+			return xhui::KEY_0 + i;
 	for (int i=0; i<26; i++)
 		if (key == GLFW_KEY_A + i)
-			return hui::KEY_A + i;
+			return xhui::KEY_A + i;
 	for (int i=0; i<12; i++)
 		if (key == GLFW_KEY_F1 + i)
-			return hui::KEY_F1 + i;
+			return xhui::KEY_F1 + i;
 	if (key == GLFW_KEY_ENTER)
-		return hui::KEY_RETURN;
+		return xhui::KEY_RETURN;
 	if (key == GLFW_KEY_SPACE)
-		return hui::KEY_SPACE;
+		return xhui::KEY_SPACE;
 	if (key == GLFW_KEY_BACKSPACE)
-		return hui::KEY_BACKSPACE;
+		return xhui::KEY_BACKSPACE;
 	if (key == GLFW_KEY_UP)
-		return hui::KEY_UP;
+		return xhui::KEY_UP;
 	if (key == GLFW_KEY_DOWN)
-		return hui::KEY_DOWN;
+		return xhui::KEY_DOWN;
 	if (key == GLFW_KEY_LEFT)
-		return hui::KEY_LEFT;
+		return xhui::KEY_LEFT;
 	if (key == GLFW_KEY_RIGHT)
-		return hui::KEY_RIGHT;
+		return xhui::KEY_RIGHT;
 	if (key == GLFW_KEY_LEFT_SHIFT)
-		return hui::KEY_LSHIFT;
+		return xhui::KEY_LSHIFT;
 	if (key == GLFW_KEY_RIGHT_SHIFT)
-		return hui::KEY_RSHIFT;
+		return xhui::KEY_RSHIFT;
 	if (key == GLFW_KEY_LEFT_CONTROL)
-		return hui::KEY_LCONTROL;
+		return xhui::KEY_LCONTROL;
 	if (key == GLFW_KEY_RIGHT_CONTROL)
-		return hui::KEY_RCONTROL;
+		return xhui::KEY_RCONTROL;
 	if (key == GLFW_KEY_PAGE_UP)
-		return hui::KEY_PAGE_UP;
+		return xhui::KEY_PAGE_UP;
 	if (key == GLFW_KEY_PAGE_DOWN)
-		return hui::KEY_PAGE_DOWN;
+		return xhui::KEY_PAGE_DOWN;
 	if (key == GLFW_KEY_HOME)
-		return hui::KEY_HOME;
+		return xhui::KEY_HOME;
 	if (key == GLFW_KEY_END)
-		return hui::KEY_END;
+		return xhui::KEY_END;
 	if (key == GLFW_KEY_DELETE)
-		return hui::KEY_DELETE;
+		return xhui::KEY_DELETE;
 	if (key == GLFW_KEY_INSERT)
-		return hui::KEY_INSERT;
+		return xhui::KEY_INSERT;
 	if (key == GLFW_KEY_TAB)
-		return hui::KEY_TAB;
+		return xhui::KEY_TAB;
 	return -1;
 }
 
 int mods_decode(int mods) {
 	int r = 0;
 	if (mods == GLFW_MOD_SHIFT)
-		r += hui::KEY_SHIFT;
+		r += xhui::KEY_SHIFT;
 	if (mods == GLFW_MOD_CONTROL)
-		r += hui::KEY_CONTROL;
+		r += xhui::KEY_CONTROL;
 	if (mods == GLFW_MOD_ALT)
-		r += hui::KEY_ALT;
+		r += xhui::KEY_ALT;
 	//if (mods == GLFW_MOD_SUPER)
-	//	r += hui::KEY_SUPER;
+	//	r += xhui::KEY_SUPER;
 	return r;
 }
 

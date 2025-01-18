@@ -2,7 +2,7 @@
 #include "../Painter.h"
 #include "../Theme.h"
 
-namespace hui {
+namespace xhui {
 
 
 

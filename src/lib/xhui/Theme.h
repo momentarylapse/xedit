@@ -2,7 +2,7 @@
 
 #include "../image/color.h"
 
-namespace hui {
+namespace xhui {
 
 class Theme {
 public:

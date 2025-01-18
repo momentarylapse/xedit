@@ -3,7 +3,7 @@
 #include "../draw/font.h"
 #include "../Theme.h"
 
-namespace hui {
+namespace xhui {
 
 	ListView::ListView(const string &_id, const string &t) : Control(_id) {
 		can_grab_focus = true;

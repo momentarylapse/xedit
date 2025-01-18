@@ -5,7 +5,7 @@
 
 class Painter;
 
-namespace hui {
+namespace xhui {
 
 using Callback = std::function<void()>;
 using CallbackP = std::function<void(::Painter*)>;

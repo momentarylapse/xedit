@@ -3,7 +3,7 @@
 #include "../Theme.h"
 #include "../draw/font.h"
 
-namespace hui {
+namespace xhui {
 
 Label::Label(const string &_id, const string &t) : Control(_id) {
 	text_w = text_h = 0;
@@ -34,8 +34,9 @@ void Label::get_content_min_size(int &w, int &h) {
 
 void Label::_draw(Painter *p) {
 	p->set_color(Theme::_default.text_label);
+	p->set_font(Theme::_default.font_name, Theme::_default.font_size, false, false);
 	auto dim = font::get_text_dimensions(title);
-	p->draw_str({_area.center().x - dim.bounding_width/2, _area.center().y - dim.inner_height()/2}, title);
+	p->draw_str({_area.center().x - dim.bounding_width / ui_scale / 2, _area.center().y - dim.inner_height() / ui_scale / 2}, title);
 }
 
 }

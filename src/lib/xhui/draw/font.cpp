@@ -115,7 +115,7 @@ float get_text_width(const string &text) {
 	return dim.bounding_width;
 }
 
-void render_text(const string &text, hui::Align align, Image &im) {
+void render_text(const string &text, xhui::Align align, Image &im) {
 	auto utf32 = text.utf8_to_utf32();
 
 	//auto glyph_index = FT_Get_Char_Index(face, 'A');

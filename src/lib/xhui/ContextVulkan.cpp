@@ -6,7 +6,7 @@
 #include "../os/msg.h"
 #include "../image/image.h"
 
-namespace hui {
+namespace xhui {
 
 ContextVulkan::ContextVulkan(Window* w) {
 	window = w;

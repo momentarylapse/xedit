@@ -2,7 +2,7 @@
 #include "../Painter.h"
 #include "../../os/msg.h"
 
-namespace hui {
+namespace xhui {
 
 
 rect smaller_rect(const rect& r, float d) {
