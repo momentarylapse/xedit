@@ -2,13 +2,28 @@
 
 #include "Window.h"
 #include "Painter.h"
+#include "../os/path.h"
 
 namespace xhui {
 
-void init();
+void init(const Array<string> &arg, const string& app_name);
 void run();
 
 extern float ui_scale;
+
+class Application {
+public:
+	static Path directory_static;
+	static Path directory;
+	static Path initial_working_directory;
+	static Path filename;
+	static bool installed;
+	static void guess_directories(const Array<string> &arg, const string &app_name);
+};
+
+int run_repeated(float dt, Callback f);
+int run_later(float dt, Callback f);
+void cancel_runner(int id);
 
 enum class Align {
 	RIGHT = 1,

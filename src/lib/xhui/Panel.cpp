@@ -7,6 +7,7 @@ namespace xhui {
 
 Panel::Panel(const string &_id) : Control(_id) {
 	ignore_hover = true;
+	owner = this;
 
 	expand_x = true;
 	expand_y = true;
@@ -80,18 +81,24 @@ void Panel::event_xp(const string &id, const string &msg, CallbackP f) {
 	event_handlers.add(e);
 }
 
-void Panel::handle_event(const string &id, const string &msg) {
+bool match_event(Panel::EventHandler& e, const string &id, const string &msg, bool is_default) {
+	if (e.id != id)
+		return false;
+	if (e.msg == "" and is_default)
+		return true;
+	return e.msg == msg;
+}
+
+void Panel::handle_event(const string &id, const string &msg, bool is_default) {
 	for (auto &e: event_handlers)
-		if (e.id == id and e.f) {
+		if (match_event(e, id, msg, is_default) and e.f)
 			e.f();
-		}
 }
 
 void Panel::handle_event_p(const string &id, const string &msg, Painter *p) {
 	for (auto &e: event_handlers)
-		if (e.id == id and e.fp) {
+		if (match_event(e, id, msg, false) and e.fp)
 			e.fp(p);
-		}
 }
 
 }

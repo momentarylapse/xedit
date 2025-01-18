@@ -15,7 +15,7 @@
 int main() {
 
 	try {
-		xhui::init();
+		xhui::init({""}, "xhui");
 	} catch (Exception &e) {
 		msg_error(e.message());
 		return 1;
