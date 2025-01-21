@@ -203,10 +203,10 @@ void Window::_refresh_callback(GLFWwindow *window) {
 
 void Window::_resize_callback(GLFWwindow* window, int width, int height) {
 	auto w = (Window*)glfwGetWindowUserPointer(window);
-/*#if HAS_LIB_VULKAN
+#if HAS_LIB_VULKAN
 	if (w->context)
 		w->context->resize(width, height);
-#endif*/
+#endif
 	w->_refresh_requested = true;
 }
 
@@ -404,6 +404,16 @@ bool Window::button_down(int index) const {
 		return state.mbut and !state_prev.mbut;
 	if (index == 0)
 		return state.lbut and !state_prev.lbut;
+	return false;
+}
+
+	bool Window::is_key_pressed(int key) const {
+	if (key == KEY_CONTROL)
+		return state.key[KEY_LCONTROL] or state.key[KEY_RCONTROL];
+	if (key == KEY_SHIFT)
+		return state.key[KEY_LSHIFT] or state.key[KEY_RSHIFT];
+	if (key >= 0 and key < 256)
+		return state.key[key];
 	return false;
 }
 
