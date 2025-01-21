@@ -2,20 +2,112 @@
 #include "Window.h"
 #include "Theme.h"
 #include "draw/font.h"
+#include "config.h"
 #include "../os/time.h"
 #include "../os/filesystem.h"
 
 namespace xhui {
+	extern Array<Window*> _windows_;
 
-extern Array<Window*> _windows_;
+	float ui_scale = 1;
 
-float ui_scale = 1;
+	Path Application::directory;
+	Path Application::directory_static;
+	Path Application::initial_working_directory;
+	Path Application::filename;
+	bool Application::installed;
+	bool Application::_end_requested = false;
 
-Path Application::directory;
-Path Application::directory_static;
-Path Application::initial_working_directory;
-Path Application::filename;
-bool Application::installed;
+
+	Configuration config;
+
+	Array<string> make_args(int num_args, char *args[]) {
+		Array<string> a;
+		for (int i=0; i<num_args; i++)
+			a.add(args[i]);
+		return a;
+	}
+};
+
+int xhui_main(const Array<string> &);
+
+	// for a system independent usage of this library
+
+#ifdef OS_WINDOWS
+
+	int main(int num_args, char* args[]) {
+		return xhui_main(hui::make_args(num_args, args));
+	}
+
+#ifdef _CONSOLE
+
+	int _tmain(int num_args, _TCHAR *args[]) {
+		return xhui_main(hui::make_args(num_args, args));
+	}
+
+#else
+
+	// split by space... but parts might be in quotes "a b"
+	Array<string> parse_command_line(const string& s) {
+		Array<string> a;
+		a.add("-dummy-");
+
+		for (int i=0; i<s.num; i++) {
+			if (s[i] == '\"') {
+				string t;
+				bool escape = false;
+				i ++;
+				for (int j = i; j<s.num; j++) {
+					i = j;
+					if (escape) {
+						escape = false;
+					} else {
+						if (s[j] == '\\')
+							escape = true;
+						else if (s[j] == '\"')
+							break;
+					}
+					t.add(s[j]);
+				}
+				a.add(t.unescape());
+				i ++;
+			} else if (s[i] == ' ') {
+				continue;
+			} else {
+				string t;
+				for (int j=i; j<s.num; j++) {
+					i = j;
+					if (s[j] == ' ')
+						break;
+					t.add(s[j]);
+				}
+				a.add(t);
+			}
+		}
+		return a;
+	}
+
+	int APIENTRY WinMain(HINSTANCE hInstance,
+						 HINSTANCE hPrevInstance,
+						 LPTSTR    lpCmdLine,
+						 int       nCmdShow)
+	{
+		return xhui_main(parse_command_line(lpCmdLine));
+	}
+
+#endif
+
+#endif
+#if defined(OS_LINUX) || defined(OS_MAC) || defined(OS_MINGW)
+
+	int main(int num_args, char *args[]) {
+		return xhui_main(xhui::make_args(num_args, args));
+	}
+
+#endif
+
+
+namespace xhui {
 
 void init(const Array<string> &arg, const string& app_name) {
 	//msg_init();
@@ -103,6 +195,10 @@ void Application::guess_directories(const Array<string> &arg, const string &app_
 #endif
 }
 
+void Application::end() {
+	_end_requested = true;
+}
+
 struct Runner {
 	bool used, repeat;
 	float dt;
@@ -161,7 +257,7 @@ void iterate_runners(float dt) {
 
 void run() {
 	os::Timer timer;
-	while (true) {
+	while (!Application::_end_requested) {
 		glfwPollEvents();
 
 		for (auto w: _windows_)
@@ -180,5 +276,24 @@ void run() {
 		os::sleep(0.008f);
 	};
 }
+
+namespace event_id {
+	const string Click = "hui:click";
+	const string Changed = "hui:changed";
+	const string MouseMove = "hui:mouse-move";
+	const string MouseEnter = "hui:mouse-enter";
+	const string MouseLeave = "hui:mouse-leave";
+	const string MouseWheel = "hui:mouse-wheel";
+	const string Draw = "hui:draw";
+	const string Initialize = "hui:initialize";
+	const string LeftButtonDown = "hui:left-button-down";
+	const string LeftButtonUp = "hui:left-button-up";
+	const string MiddleButtonDown = "hui:middle-button-down";
+	const string MiddleButtonUp = "hui:middle-button-up";
+	const string RightButtonDown = "hui:right-button-down";
+	const string RightButtonUp = "hui:right-button-up";
+	const string KeyDown = "hui:key-down";
+	const string KeyUp = "hui:key-up";
+};
 
 }

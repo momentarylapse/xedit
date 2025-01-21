@@ -42,11 +42,15 @@ public:
 
 	void request_destroy();
 
-private:
+	bool button(int index) const;
+	bool button_down(int index) const;
+	void set_mouse_mode(int mode);
+
+protected:
 	GLFWwindow *window;
 
 	struct InputState {
-		vec2 m;;
+		vec2 m;
 		vec2 scroll;
 		bool lbut, mbut, rbut;
 		bool key[256];

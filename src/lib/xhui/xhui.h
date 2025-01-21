@@ -19,6 +19,9 @@ public:
 	static Path filename;
 	static bool installed;
 	static void guess_directories(const Array<string> &arg, const string &app_name);
+	static void end();
+
+	static bool _end_requested;
 };
 
 int run_repeated(float dt, Callback f);
@@ -138,6 +141,25 @@ enum {
 	KEY_CONTROL = 256,
 	KEY_SHIFT = 512,
 	KEY_ALT = 1024
+};
+
+namespace event_id {
+	extern const string Click;
+	extern const string Changed;
+	extern const string MouseMove;
+	extern const string MouseEnter;
+	extern const string MouseLeave;
+	extern const string MouseWheel;
+	extern const string Draw;
+	extern const string Initialize;
+	extern const string LeftButtonDown;
+	extern const string LeftButtonUp;
+	extern const string MiddleButtonDown;
+	extern const string MiddleButtonUp;
+	extern const string RightButtonDown;
+	extern const string RightButtonUp;
+	extern const string KeyDown;
+	extern const string KeyUp;
 };
 
 

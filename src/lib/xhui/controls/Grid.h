@@ -7,7 +7,7 @@ namespace xhui {
 
 class Grid : public Control {
 public:
-	Grid(const string &id);
+	explicit Grid(const string &id);
 
 	void _draw(Painter *p) override;
 
@@ -20,6 +20,7 @@ public:
 	void add(Control *c, int x, int y);
 	int nx = 0, ny = 0;
 	int spacing;
+	int margin = 0;
 
 	void get_grid_min_sizes(Array<int> &w, Array<int> &h);
 	void get_grid_greed_factors(Array<float> &x, Array<float> &y);

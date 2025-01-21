@@ -24,7 +24,7 @@ list(APPEND COMPILE_DEFINITIONS HAS_LIB_ZLIB=1)
 # lib: gl or vulkan (mandatory)
 set(GL_OR_VULKAN "gl" CACHE STRING "Use gl or vulkan?")
 find_package(OpenGL)
-if(GL_FOUND)
+if(OPENGL_FOUND AND NOT APPLE AND NOT WIN32)
 	list(APPEND GL_OR_VULKAN_FOUND "gl")
 endif()
 pkg_check_modules(VULKAN vulkan)
@@ -182,6 +182,7 @@ add_executable(xhui
 	src/lib/xhui/controls/Label.cpp
 	src/lib/xhui/controls/ListView.cpp
 	src/lib/xhui/controls/MultilineEdit.cpp
+	src/lib/xhui/controls/Overlay.cpp
 	src/lib/xhui/draw/font.cpp
 	src/lib/xhui/ContextVulkan.cpp
 	src/lib/xhui/PainterGL.cpp
@@ -196,6 +197,7 @@ target_link_directories(xhui PUBLIC ${LINK_DIRECTORIES})
 target_compile_options(xhui PUBLIC ${COMPILE_OPTIONS})
 target_compile_definitions(xhui PUBLIC ${COMPILE_DEFINITIONS} INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(xhui PUBLIC ${DEPS})
+target_include_directories(xhui PUBLIC src)
 
 
 #=======================================================================================

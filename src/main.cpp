@@ -12,7 +12,7 @@
 #include "lib/xhui/Theme.h"
 #include "lib/xhui/draw/font.h"
 
-int main() {
+int xhui_main(const Array<string>& args) {
 
 	try {
 		xhui::init({""}, "xhui");
