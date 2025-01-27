@@ -1,5 +1,9 @@
 #include "xhui.h"
+
+#include <lib/os/msg.h>
+
 #include "Window.h"
+#include "Dialog.h"
 #include "Theme.h"
 #include "draw/font.h"
 #include "config.h"
@@ -8,6 +12,7 @@
 
 namespace xhui {
 	extern Array<Window*> _windows_;
+	extern Array<Dialog*> _dialogs_;
 
 	float ui_scale = 1;
 
@@ -212,6 +217,7 @@ Runner* create_runner() {
 	for (auto r: runners)
 		if (!r->used) {
 			r->used = true;
+			r->t = 0;
 			return r;
 		}
 	auto r = new Runner;
@@ -263,6 +269,12 @@ void run() {
 		for (auto w: _windows_)
 			w->_poll_events();
 
+		for (int i=_dialogs_.num-1; i>=0; i--)
+			if (_dialogs_[i]->_destroy_requested) {
+				_dialogs_[i]->window->request_redraw();
+				delete _dialogs_[i];
+			}
+
 		for (int i=_windows_.num-1; i>=0; i--)
 			if (_windows_[i]->_destroy_requested) {
 				delete _windows_[i];
@@ -278,6 +290,7 @@ void run() {
 }
 
 namespace event_id {
+	const string Close = "hui:close";
 	const string Click = "hui:click";
 	const string Changed = "hui:changed";
 	const string MouseMove = "hui:mouse-move";
@@ -294,6 +307,7 @@ namespace event_id {
 	const string RightButtonUp = "hui:right-button-up";
 	const string KeyDown = "hui:key-down";
 	const string KeyUp = "hui:key-up";
+	const string Select = "hui:select";
 };
 
 }

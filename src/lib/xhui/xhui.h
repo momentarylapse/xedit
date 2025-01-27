@@ -144,6 +144,7 @@ enum {
 };
 
 namespace event_id {
+	extern const string Close;
 	extern const string Click;
 	extern const string Changed;
 	extern const string MouseMove;
@@ -160,6 +161,7 @@ namespace event_id {
 	extern const string RightButtonUp;
 	extern const string KeyDown;
 	extern const string KeyUp;
+	extern const string Select;
 };
 
 

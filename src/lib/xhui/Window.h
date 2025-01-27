@@ -11,6 +11,7 @@ namespace xhui {
 class Control;
 class HeaderBar;
 class Painter;
+class Dialog;
 #if HAS_LIB_VULKAN
 class ContextVulkan;
 #endif
@@ -23,6 +24,8 @@ enum Flags {
 class Window : public Panel {
 	friend class Painter;
 	friend class Control;
+	friend class Panel;
+	friend class Dialog;
 	friend class ContextVulkan;
 public:
 
@@ -99,6 +102,8 @@ protected:
 public:
 
 	bool _destroy_requested = false;
+
+	Dialog* dialog = nullptr;
 };
 
 class WindowX : public Window {

@@ -16,8 +16,12 @@ public:
 
 	void _draw(Painter *p) override;
 	void negotiate_area(const rect &available) override;
+	Array<Control*> get_children() const override;
 
 	void add(Control *c);
+
+	void set_string(const string& id, const string& text);
+	void enable(const string& id, bool enabled);
 
 
 	void event(const string &id, Callback f);
@@ -37,8 +41,8 @@ public:
 	};
 	Array<EventHandler> event_handlers;
 
-	void handle_event(const string &id, const string &msg, bool is_default);
-	void handle_event_p(const string &id, const string &msg, Painter *p);
+	bool handle_event(const string &id, const string &msg, bool is_default);
+	bool handle_event_p(const string &id, const string &msg, Painter *p);
 
 };
 

@@ -122,6 +122,7 @@ add_executable(xhui
 	src/lib/image/image_png.cpp
 	src/lib/image/image_tga.cpp
 	src/lib/image/ImagePainter.cpp
+	src/lib/math/Box.cpp
 	src/lib/math/complex.cpp
 	src/lib/math/interpolation.cpp
 	src/lib/math/mat3.cpp
@@ -183,8 +184,11 @@ add_executable(xhui
 	src/lib/xhui/controls/ListView.cpp
 	src/lib/xhui/controls/MultilineEdit.cpp
 	src/lib/xhui/controls/Overlay.cpp
+	src/lib/xhui/dialogs/FileSelectionDialog.cpp
+	src/lib/xhui/dialogs/QuestionDialog.cpp
 	src/lib/xhui/draw/font.cpp
 	src/lib/xhui/ContextVulkan.cpp
+	src/lib/xhui/Dialog.cpp
 	src/lib/xhui/PainterGL.cpp
 	src/lib/xhui/PainterVulkan.cpp
 	src/lib/xhui/Panel.cpp
