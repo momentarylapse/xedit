@@ -354,7 +354,7 @@ void Window::_on_draw() {
 		top_control->_draw(p);
 	}
 	if (dialog) {
-		p->set_color(color(0.2f, 0, 0, 0));
+		p->set_color(color(0.4f, 0, 0, 0));
 		p->draw_rect(a);
 		const vec2 m = a.center();
 		const vec2 size = vec2(dialog->width, dialog->height);
@@ -385,16 +385,33 @@ void Window::set_title(const string& t) {
 }
 
 Control *Window::get_hover_control(const vec2 &p) {
-	if (dialog) {
-		foreachb (auto c, dialog->controls)
+	Array<Control*> seeds;
+	if (dialog)
+		seeds.add(dialog->top_control);
+	else
+		seeds.add(top_control);
+	int cur_seed = 0;
+
+	// we might need multiple seeds, if we encounter Overlays!
+
+	Control* best = nullptr;
+	while (cur_seed < seeds.num) {
+		auto c = seeds[cur_seed ++];
+		while (c) {
 			if (c->_area.inside(p) and !c->ignore_hover)
-				return c;
-	} else {
-		foreachb (auto c, controls)
-			if (c->_area.inside(p) and !c->ignore_hover)
-				return c;
+				best = c;
+			Control* next = nullptr;
+			for (auto cc: c->get_children())
+				if (cc->_area.inside(p)) {
+					if (next)
+						seeds.add(cc);
+					else
+						next = cc;
+				}
+			c = next;
+		}
 	}
-	return nullptr;
+	return best;
 }
 
 
