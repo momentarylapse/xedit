@@ -184,14 +184,17 @@ add_executable(xhui
 	src/lib/xhui/controls/ListView.cpp
 	src/lib/xhui/controls/MultilineEdit.cpp
 	src/lib/xhui/controls/Overlay.cpp
+	src/lib/xhui/controls/SpinButton.cpp
 	src/lib/xhui/dialogs/FileSelectionDialog.cpp
 	src/lib/xhui/dialogs/QuestionDialog.cpp
 	src/lib/xhui/draw/font.cpp
 	src/lib/xhui/ContextVulkan.cpp
 	src/lib/xhui/Dialog.cpp
+	src/lib/xhui/language.cpp
 	src/lib/xhui/PainterGL.cpp
 	src/lib/xhui/PainterVulkan.cpp
 	src/lib/xhui/Panel.cpp
+	src/lib/xhui/Resource.cpp
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp

@@ -7,6 +7,7 @@
 #include "lib/xhui/controls/Grid.h"
 #include "lib/xhui/controls/DrawingArea.h"
 #include "lib/xhui/controls/MultilineEdit.h"
+#include "lib/xhui/controls/SpinButton.h"
 #include "lib/os/msg.h"
 
 #include "lib/xhui/Theme.h"
@@ -36,8 +37,11 @@ int xhui_main(const Array<string>& args) {
 	g->add(new xhui::DrawingArea("area"), 2, 2);
 	g->add(g2, 1, 2);
 	g2->add(new xhui::CheckBox("checkbox", "bb"), 0, 0);
-	g2->add(list, 0, 1);
-	g2->add(new xhui::MultilineEdit("multilineedit", "just a small\ntest"), 0, 2);
+	auto spin = new xhui::SpinButton("spin", 13);
+	spin->set_option("range", "0:20:0.1");
+	g2->add(spin, 0, 1);
+	g2->add(list, 0, 2);
+	g2->add(new xhui::MultilineEdit("multilineedit", "just a small\ntest"), 0, 3);
 
 	list->add_string("1\\2\\3");
 	list->add_string("hallo\\test\\3");
@@ -80,6 +84,9 @@ int xhui_main(const Array<string>& args) {
 	});
 	w->event("edit", [ed] {
 		msg_write("edit: " + ed->text);
+	});
+	w->event("spin", [spin] {
+		msg_write(format("spin: %f", spin->get_float()));
 	});
 
 	xhui::run();
