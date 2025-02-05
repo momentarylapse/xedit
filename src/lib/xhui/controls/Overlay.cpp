@@ -10,18 +10,20 @@ namespace xhui {
 Overlay::Overlay(const string &_id) : Control(_id) {
 	ignore_hover = true;
 
-	expand_x = true;
-	expand_y = true;
+	size_mode_x = SizeMode::ForwardChild;
+	size_mode_y = SizeMode::ForwardChild;
 }
 
 void Overlay::add(Control *c) {
 	children.add(c);
-	c->_register(owner);
+	if (owner)
+		c->_register(owner);
 }
 
 void Overlay::_draw(Painter *p) {
 	for (auto c: children)
-		c->_draw(p);
+		if (c->visible)
+			c->_draw(p);
 }
 
 void Overlay::get_content_min_size(int &_w, int &_h) {
@@ -36,6 +38,7 @@ void Overlay::get_content_min_size(int &_w, int &_h) {
 }
 
 void Overlay::get_greed_factor(float &_x, float &_y) {
+	// SizeMode::Forward...
 	_x = 0;
 	_y = 0;
 	for (auto c: children) {

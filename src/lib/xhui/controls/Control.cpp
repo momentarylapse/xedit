@@ -14,8 +14,9 @@ Control::Control(const string &_id) {
 	id = _id;
 	min_width_user = -1;
 	min_height_user = -1;
-	expand_x = true;
-	expand_y = true;
+	size_mode_x = SizeMode::Expand;
+	size_mode_y = SizeMode::Expand;
+	_area = rect::EMPTY;
 }
 
 void Control::_register(Panel* _owner) {
@@ -23,8 +24,12 @@ void Control::_register(Panel* _owner) {
 	if (dynamic_cast<Panel*>(this))
 		return;
 
+	//msg_write("REG  " + id + "   ->   " + _owner->id);
+
 	if (owner) {
-		msg_error("trying to register a control twice  " + id);
+		/*msg_error("trying to register a control twice  " + id);
+		msg_write(p2s(owner));
+		msg_write(p2s(_owner));*/
 		return;
 	}
 	owner = _owner;
@@ -57,8 +62,15 @@ Array<Control*> Control::get_children_recursive(bool include_me) const {
 
 
 void Control::request_redraw() {
-	if (owner and owner->window)
-		owner->window->redraw(id);
+	if (owner) {
+		if (auto w = owner->get_window()) {
+			w->redraw(id);
+			return;
+		}
+	} else if (auto w = dynamic_cast<Window*>(this)) {
+		w->redraw(id);
+	}
+	//msg_write(id + "  can not refresh  " + p2s(owner));
 }
 
 
@@ -69,9 +81,9 @@ void Control::get_content_min_size(int &w, int &h) {
 
 void Control::get_greed_factor(float &x, float &y) {
 	x = y = 0;
-	if (expand_x)
+	if (size_mode_x == SizeMode::Expand)
 		x = 1;
-	if (expand_y)
+	if (size_mode_y == SizeMode::Expand)
 		y = 1;
 }
 
@@ -88,8 +100,10 @@ void Control::negotiate_area(const rect &available) {
 }
 
 bool Control::has_focus() const {
-	if (owner and owner->window)
-		return owner->window->focus_control == this;
+	if (!owner)
+		return false;
+	if (auto w = owner->get_window())
+		return w->focus_control == this;
 	return false;
 }
 
@@ -104,10 +118,20 @@ void Control::emit_event(const string& msg, bool is_default) {
 
 void Control::set_option(const string& key, const string& value) {
 	if (key == "expandx") {
-		expand_x = value._bool();
+		size_mode_x = SizeMode::Expand;
+		if (value._bool())
+			size_mode_x = SizeMode::Shrink;
 		request_redraw();
 	} else if (key == "expandy") {
-		expand_y = value._bool();
+		size_mode_y = SizeMode::Expand;
+		if (value._bool())
+			size_mode_y = SizeMode::Shrink;
+		request_redraw();
+	} else if (key == "noexpandx") {
+		size_mode_x = SizeMode::Shrink;
+		request_redraw();
+	} else if (key == "noexpandy") {
+		size_mode_y = SizeMode::Shrink;
 		request_redraw();
 	} else if (key == "width") {
 		min_width_user = value._int();
@@ -115,6 +139,21 @@ void Control::set_option(const string& key, const string& value) {
 	} else if (key == "height") {
 		min_height_user = value._int();
 		request_redraw();
+	} else if (key == "ignorehover") {
+		ignore_hover = true;
+	} else if (key == "ignorefocus") {
+		can_grab_focus = false;
+	} else if (key == "cangrabfocus") {
+		can_grab_focus = value._bool() or (value == "");
+	} else if (key == "grabfocus") {
+		can_grab_focus = true;
+		run_later(0.01f, [this] {
+			if (owner)
+				if (auto w = owner->get_window())
+					w->focus_control = this;
+		});
+	} else if (key == "visible") {
+		visible = value._bool() or value == "";
 	}
 }
 

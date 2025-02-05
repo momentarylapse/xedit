@@ -2,12 +2,15 @@
 #include "Painter.h"
 #include "language.h"
 #include "Resource.h"
-
+#include "Theme.h"
 #include "controls/Button.h"
 #include "controls/CheckBox.h"
+#include "controls/ColorButton.h"
 #include "controls/DrawingArea.h"
 #include "controls/Edit.h"
+#include "controls/FileSelector.h"
 #include "controls/Grid.h"
+#include "controls/Group.h"
 #include "controls/Label.h"
 #include "controls/ListView.h"
 #include "controls/MultilineEdit.h"
@@ -21,19 +24,21 @@ namespace xhui {
 
 Panel::Panel(const string &_id) : Control(_id) {
 	ignore_hover = true;
-	owner = this;
 
-	expand_x = true;
-	expand_y = true;
+	padding = 0;
+	size_mode_x = SizeMode::ForwardChild;
+	size_mode_y = SizeMode::ForwardChild;
 }
 
 void Panel::_draw(Painter *p) {
-	if (top_control)
+	if (top_control and top_control->visible)
 		top_control->_draw(p);
 }
 
 void Panel::negotiate_area(const rect &available) {
 	_area = available;
+	if (top_control)
+		top_control->negotiate_area(smaller_rect(_area, padding));
 
 	/*Array<int> w, h;
 	get_grid_min_sizes(w, h);
@@ -66,13 +71,25 @@ void Panel::negotiate_area(const rect &available) {
 	}*/
 }
 
+Window* Panel::get_window() {
+	if (auto w = dynamic_cast<Window*>(this))
+		return w;
+	if (owner)
+		return owner->get_window();
+	return nullptr;
+}
+
+
 void Panel::add(Control *c, int x, int y) {
 	if (target_control) {
 		target_control->add(c, x, y);
 	} else {
 		top_control = c;
 	}
-	c->_register(this);
+	// don't register sub-panels!
+	if (dynamic_cast<Panel*>(c) == nullptr)
+		c->_register(this);
+	request_redraw();
 }
 
 void Panel::add(Control *c) {
@@ -142,11 +159,84 @@ void Panel::set_string(const string& id, const string& text) {
 			c->set_string(text);
 }
 
+void Panel::add_string(const string& id, const string& text) {
+	for (auto& c: controls)
+		if (c->id == id)
+			c->add_string(text);
+}
+
+void Panel::set_float(const string& id, float value) {
+	for (auto& c: controls)
+		if (c->id == id)
+			c->set_float(value);
+}
+
+void Panel::set_int(const string& id, int value) {
+	for (auto& c: controls)
+		if (c->id == id)
+			c->set_int(value);
+}
+
+void Panel::set_color(const string& id, const color& col) {
+	for (auto& c: controls)
+		if (c->id == id)
+			c->set_color(col);
+}
+
+string Panel::get_string(const string& id) const {
+	for (auto& c: controls)
+		if (c->id == id)
+			return c->get_string();
+	return "";
+}
+
+float Panel::get_float(const string& id) const {
+	for (auto& c: controls)
+		if (c->id == id)
+			return c->get_float();
+	return 0;
+}
+
+int Panel::get_int(const string& id) const {
+	for (auto& c: controls)
+		if (c->id == id)
+			return c->get_int();
+	return 0;
+}
+
+color Panel::get_color(const string& id) const {
+	for (auto& c: controls)
+		if (c->id == id)
+			return c->get_color();
+	return Black;
+}
+
+
 void Panel::enable(const string& id, bool enabled) {
 	for (auto& c: controls)
 		if (c->id == id)
 			c->enable(enabled);
 }
+
+void Panel::set_visible(const string& id, bool visible) {
+	for (auto& c: controls)
+		if (c->id == id)
+			c->visible = visible;
+	request_redraw();
+}
+
+void Panel::set_options(const string& id, const string& options) {
+	for (auto& c: controls)
+		if (c->id == id)
+			for (const auto& o: options.explode(",")) {
+				auto xx = o.explode("=");
+				if (xx.num >= 2)
+					c->set_option(xx[0], xx[1]);
+				else
+					c->set_option(xx[0], "");
+			}
+}
+
 
 Array<Control*> Panel::get_children() const {
 	if (top_control)
@@ -155,30 +245,44 @@ Array<Control*> Panel::get_children() const {
 }
 
 
-void Panel::add_control(const string &type, const string &title, int x, int y, const string &id) {
+void Panel::add_control(const string &type, const string &_title, int x, int y, const string &id) {
 	//printf("HuiPanelAddControl %s  %s  %d  %d  %s\n", type.c_str(), title.c_str(), x, y, id.c_str());
+	string title = _title;
+	if (title.head(1) == "!") {
+		auto x = title.explode("\\");
+		if (x.num >= 2)
+			title = x[1];
+	}
 	if (type == "Button")
-		add(new Button(title, id), x, y);
-/*	else if (type == "ColorButton")
-		add_color_button(title, x, y, id);
-	else if (type == "DefButton")
-		add_def_button(title, x, y, id);*/
-	else if ((type == "Label") or (type == "Text"))
-		add(new Label(title, id), x, y);
-	else if (type == "Edit")
-		add(new Edit(title, id), x, y);
-	else if (type == "MultilineEdit")
-		add(new MultilineEdit(title, id), x, y);
-//	else if (type == "Group")
-//		add_group(title, x, y, id);
+		add(new Button(id, title), x, y);
 	else if (type == "CheckBox")
-		add(new CheckBox(title, id), x, y);
+		add(new CheckBox(id, title), x, y);
+	else if (type == "ColorButton")
+		add(new ColorButton(id), x, y);
+	else if (type == "DrawingArea")
+		add(new DrawingArea(id), x, y);
+	else if (type == "Edit")
+		add(new Edit(id, title), x, y);
+	else if (type == "FileSelector")
+		add(new FileSelector(id), x, y);
+	else if (type == "Grid")
+		add(new Grid(id), x, y);
+	else if (type == "Group")
+		add(new Group(id, title), x, y);
+	else if (type == "Label")
+		add(new Label(id, title), x, y);
+	else if (type == "ListView")
+		add(new ListView(id, title), x, y);
+	else if (type == "MultilineEdit")
+		add(new MultilineEdit(id, title), x, y);
+	else if (type == "Overlay")
+		add(new Overlay(id), x, y);
+	else if (type == "SpinButton")
+		add(new SpinButton(id, title._float()), x, y);
 //	else if (type == "ComboBox")
 //		add_combo_box(title, x, y, id);
 //	else if (type == "TabControl")
 //		add_tab_control(title, x, y, id);
-	else if (type == "ListView")
-		add(new ListView(title, id), x, y);
 //	else if (type == "TreeView")
 //		add_tree_view(title, x, y, id);
 //	else if (type == "IconView")
@@ -189,14 +293,6 @@ void Panel::add_control(const string &type, const string &title, int x, int y, c
 //		add_slider(title, x, y, id);
 //	else if (type == "Image")
 //		add_image(title, x, y, id);
-	else if (type == "DrawingArea")
-		add(new DrawingArea(id), x, y);
-	else if (type == "Grid")
-		add(new Grid(id), x, y);
-	else if (type == "Overlay")
-		add(new Overlay(id), x, y);
-	else if (type == "SpinButton")
-		add(new SpinButton(id, title._float()), x, y);
 /*	else if (type == "RadioButton")
 		add_radio_button(title, x, y, id);
 	else if (type == "ToggleButton")
@@ -215,18 +311,18 @@ void Panel::add_control(const string &type, const string &title, int x, int y, c
 		msg_error("unknown hui control: " + type);
 }
 
-void Panel::_add_control(const string &ns, Resource &cmd, const string &parent_id) {
+void Panel::_add_control(const string &ns, const Resource &cmd, const string &parent_id) {
 	//msg_write(format("%d:  %d / %d",j,(cmd->type & 1023),(cmd->type >> 10)).c_str(),4);
 	set_target(parent_id);
 	add_control(cmd.type, get_language_r(ns, cmd),
 				cmd.x, cmd.y,
 				cmd.id);
 
-	/*for (string &o: cmd.options)
+	for (const string &o: cmd.options)
 		set_options(cmd.id, o);
 
 	enable(cmd.id, cmd.enabled());
-	if (cmd.has("hidden"))
+	/*if (cmd.has("hidden"))
 		hide_control(cmd.id, true);
 
 	if (cmd.image().num > 0)
@@ -237,9 +333,73 @@ void Panel::_add_control(const string &ns, Resource &cmd, const string &parent_i
 	if (tooltip.num > 0)
 		set_tooltip(cmd.id, tooltip);*/
 
-	for (Resource &c: cmd.children)
+	for (const Resource &c: cmd.children)
 		_add_control(ns, c, cmd.id);
 }
+
+void Panel::embed(const string& target, int x, int y, Panel* p) {
+	set_target(target);
+	add(p, x, y);
+	p->owner = this;
+	request_redraw();
+}
+
+
+void Panel::from_source(const string& source) {
+	from_resource(parse_resource(source));
+}
+void Panel::from_resource(const Resource& res) {
+
+	bool res_is_window = ((res.type == "Dialog") or (res.type == "Window"));
+	auto window = get_window();
+	bool panel_is_window = window and !owner;
+
+	// directly change window?
+	if (panel_is_window and res_is_window) {
+	//	for (auto &o: res.options)
+	//		window->__set_options(o);
+
+		// title
+		window->set_title(get_language(res.id, res.id));
+
+		// size
+		int width = res.value("width", "0")._int();
+		int height = res.value("height", "0")._int();
+//		if (width + height > 0)
+//			window->set_size(width, height);
+
+		// menu/toolbar?
+		string toolbar = res.value("toolbar");
+		string menu = res.value("menu");
+//		if (menu != "")
+//			window->set_menu(create_resource_menu(menu, this));
+//		if (toolbar != "")
+//			window->get_toolbar(TOOLBAR_TOP)->set_by_id(toolbar);
+
+/*		for (const auto &c: res.children)
+			if (c.type == "HeaderBar") {
+				window->_add_headerbar();
+				for (auto &cc: c.children)
+					_add_control(id, cc, ":header:");
+			}*/
+	}
+
+//	set_id(res.id);
+
+	int bw = res.value("borderwidth", "-1")._int();
+	if (bw >= 0)
+		padding = bw;
+
+
+	// controls
+	if (res_is_window) {
+		if (res.children.num > 0)
+			_add_control(id, res.children[0], "");
+	} else {
+//		embed_resource(res, "", 0, 0);
+	}
+}
+
 
 
 }

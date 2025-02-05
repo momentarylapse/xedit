@@ -175,16 +175,20 @@ add_executable(xhui
 	src/lib/vulkan/vulkan.cpp
 	src/lib/xhui/controls/Button.cpp
 	src/lib/xhui/controls/CheckBox.cpp
+	src/lib/xhui/controls/ColorButton.cpp
 	src/lib/xhui/controls/Control.cpp
 	src/lib/xhui/controls/DrawingArea.cpp
 	src/lib/xhui/controls/Edit.cpp
+	src/lib/xhui/controls/FileSelector.cpp
 	src/lib/xhui/controls/Grid.cpp
+	src/lib/xhui/controls/Group.cpp
 	src/lib/xhui/controls/HeaderBar.cpp
 	src/lib/xhui/controls/Label.cpp
 	src/lib/xhui/controls/ListView.cpp
 	src/lib/xhui/controls/MultilineEdit.cpp
 	src/lib/xhui/controls/Overlay.cpp
 	src/lib/xhui/controls/SpinButton.cpp
+	src/lib/xhui/dialogs/ColorSelectionDialog.cpp
 	src/lib/xhui/dialogs/FileSelectionDialog.cpp
 	src/lib/xhui/dialogs/QuestionDialog.cpp
 	src/lib/xhui/draw/font.cpp

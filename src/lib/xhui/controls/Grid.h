@@ -21,6 +21,7 @@ public:
 	int nx = 0, ny = 0;
 	int spacing;
 	int margin = 0;
+	bool card = false;
 
 	void get_grid_min_sizes(Array<int> &w, Array<int> &h);
 	void get_grid_greed_factors(Array<float> &x, Array<float> &y);
@@ -29,6 +30,7 @@ public:
 	void get_content_min_size(int &w, int &h) override;
 	void negotiate_area(const rect &available) override;
 	Array<Control*> get_children() const override;
+	void set_option(const string& key, const string& value) override;
 };
 
 }

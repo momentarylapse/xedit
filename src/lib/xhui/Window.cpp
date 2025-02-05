@@ -18,7 +18,6 @@ Window::Window(const string &title, int w, int h) : Window(title, w, h, Flags::N
 Window::Window(const string &_title, int w, int h, Flags _flags) : Panel(":window:") {
 	title = _title;
 	flags = _flags;
-	Panel::window = this;
 	memset(&state, 0, sizeof(state));
 	memset(&state_prev, 0, sizeof(state_prev));
 
@@ -153,6 +152,8 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 	k += mods_decode(mods);
 	//std::cout << "key " << k << "    " << key << " " << action << " " << mods << "\n";
 
+	w->state.key_code = k;
+
 	if (action == GLFW_PRESS) {
 		//w->state.key
 		w->_on_key_down(k);
@@ -232,6 +233,19 @@ void Window::set_position(int x, int y) {
 	glfwSetWindowPos(window, x, y);
 }
 
+void Window::maximize(bool maximized) {
+	if (maximized)
+		glfwMaximizeWindow(window);
+	else
+		glfwRestoreWindow(window);
+}
+
+bool Window::is_maximized() const {
+	return glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+}
+
+
+
 // TODO: widget offset?
 void Window::_on_left_button_down(const vec2& m) {
 	state.lbut = true;
@@ -246,6 +260,12 @@ void Window::_on_left_button_down(const vec2& m) {
 }
 void Window::_on_left_button_up(const vec2& m) {
 	state.lbut = false;
+	if (drag.active and hover_control)
+		hover_control->emit_event(event_id::DragDrop, false);
+	drag.active = false;
+	drag.source = nullptr;
+	request_redraw();
+
 	if (hover_control)
 		hover_control->on_left_button_up(m);
 	on_left_button_up(m);
@@ -268,7 +288,20 @@ void Window::_on_right_button_up(const vec2& m) {
 }
 void Window::_on_mouse_move(const vec2 &m, const vec2& d) {
 	auto hover = get_hover_control(m);
-	if (hover != hover_control and !state.lbut) {
+	if (state.lbut and drag.source) {
+		if (drag.active) {
+			drag.m = m;
+			// update events...
+
+		} else if (drag.pre_distance < 10) {
+			drag.pre_distance += d.length();
+			if (drag.pre_distance > 10) {
+				drag.source->emit_event(event_id::DragStart, false);
+			}
+		}
+	}
+
+	if (hover != hover_control and !state.lbut or drag.active) {
 		if (hover_control)
 			hover_control->on_mouse_leave(m);
 		hover_control = hover;
@@ -356,10 +389,9 @@ void Window::_on_draw() {
 	}
 
 	// contents
-	if (top_control) {
-		top_control->negotiate_area(smaller_rect(a, padding));
-		top_control->_draw(p);
-	}
+	Panel::negotiate_area(a);
+	Panel::_draw(p);
+
 	if (dialog) {
 		p->set_color(color(0.4f, 0, 0, 0));
 		p->draw_rect(a);
@@ -368,6 +400,27 @@ void Window::_on_draw() {
 		dialog->negotiate_area({m - size/2, m + size/2});
 		dialog->_draw(p);
 	}
+
+	if (drag.active) {
+		p->set_font_size(Theme::_default.font_size * 1.5f);
+		p->set_color(Red);
+		p->draw_str(state.m + vec2(20, 0), drag.title);
+		p->set_font_size(Theme::_default.font_size);
+	}
+
+#if 0
+	if (hover_control) {
+		p->set_color(Red);
+		p->set_fill(false);
+		p->draw_rect(hover_control->_area);
+		p->set_fill(true);
+	}
+
+	static int frame = 0;
+	frame ++;
+	p->set_color(Red);
+	p->draw_str({20,20}, str(frame));
+#endif
 
 	p->end();
 	_refresh_requested = false;
@@ -405,11 +458,11 @@ Control *Window::get_hover_control(const vec2 &p) {
 	while (cur_seed < seeds.num) {
 		auto c = seeds[cur_seed ++];
 		while (c) {
-			if (c->_area.inside(p) and !c->ignore_hover)
+			if (c->_area.inside(p) and !c->ignore_hover and c->visible)
 				best = c;
 			Control* next = nullptr;
 			for (auto cc: c->get_children())
-				if (cc->_area.inside(p)) {
+				if (cc->_area.inside(p) and cc->visible) {
 					if (next)
 						seeds.add(cc);
 					else
@@ -459,6 +512,20 @@ void Window::set_mouse_mode(int mode) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 }
+
+void Window::start_pre_drag(Control* source) {
+	drag.pre_distance = 0;
+	drag.source = source;
+	drag.active = false;
+}
+
+void Window::start_drag(const string& title, const string& payload) {
+	drag.title = title;
+	drag.payload = payload;
+	drag.active = true;
+	request_redraw();
+}
+
 
 
 void Window::request_destroy() {

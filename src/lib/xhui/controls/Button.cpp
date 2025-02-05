@@ -7,8 +7,8 @@ namespace xhui {
 
 Button::Button(const string &_id, const string &t) : Label(_id, t) {
 	can_grab_focus = true;
-	expand_x = true;
-	expand_y = false;
+	size_mode_x = SizeMode::Expand;
+	size_mode_y = SizeMode::Shrink;
 }
 
 void Button::enable(bool enabled) {
@@ -19,6 +19,10 @@ void Button::enable(bool enabled) {
 	request_redraw();
 }
 
+void Button::on_click() {
+	emit_event(event_id::Click, true);
+}
+
 
 void Button::on_left_button_down(const vec2&) {
 	if (state != State::DISABLED)
@@ -26,13 +30,14 @@ void Button::on_left_button_down(const vec2&) {
 	request_redraw();
 	emit_event(event_id::LeftButtonDown, false);
 }
+
 void Button::on_left_button_up(const vec2&) {
 	if (state != State::DISABLED)
 		state = State::HOVER;
 	request_redraw();
-
 	emit_event(event_id::LeftButtonUp, false);
-	emit_event(event_id::Click, true);
+	if (state != State::DISABLED)
+		on_click();
 }
 void Button::on_mouse_enter(const vec2&) {
 	if (state != State::DISABLED)
@@ -49,10 +54,10 @@ void Button::on_mouse_leave(const vec2&) {
 
 void Button::get_content_min_size(int &w, int &h) {
 	if (text_w < 0) {
-		font::set_font(Theme::_default.font_name, Theme::_default.font_size);
+		font::set_font(Theme::_default.font_name, Theme::_default.font_size * ui_scale);
 		auto dim = font::get_text_dimensions(title);
-		text_w = int(dim.bounding_width);
-		text_h = int(dim.inner_height());
+		text_w = int(dim.bounding_width / ui_scale);
+		text_h = int(dim.inner_height() / ui_scale);
 	}
 	w = text_w + (int)Theme::_default.button_margin_x * 2;
 	h = text_h + (int)Theme::_default.button_margin_y * 2;

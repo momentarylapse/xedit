@@ -33,8 +33,17 @@ void SpinButton::set_float(float f) {
 	request_redraw();
 }
 
+int SpinButton::get_int() {
+	return (int)value;
+}
+
+void SpinButton::set_int(int i) {
+	set_float((float)i);
+}
+
 void SpinButton::on_edit() {
 	_update_value_from_text();
+	emit_event(event_id::Changed, true);
 }
 
 void SpinButton::_update_text_from_value() {
@@ -45,7 +54,7 @@ void SpinButton::_update_text_from_value() {
 }
 
 SpinButton::Hover SpinButton::get_hover(const vec2& m) const {
-	if (_area.inside(m)) {
+	if (_area.inside(m) and enabled) {
 		if (m.x > _area.x2 - BUTTON_DX)
 			return Hover::Plus;
 		if (m.x > _area.x2 - BUTTON_DX * 2)
@@ -79,10 +88,12 @@ void SpinButton::on_left_button_down(const vec2& m) {
 	case Hover::Plus:
 		value = clamp(value + step, _min, _max);
 		_update_text_from_value();
+		emit_event(event_id::Changed, true);
 		break;
 	case Hover::Minus:
 		value = clamp(value - step, _min, _max);
 		_update_text_from_value();
+		emit_event(event_id::Changed, true);
 		break;
 	case Hover::Other:
 		Edit::on_left_button_down(m);
@@ -98,6 +109,8 @@ void SpinButton::on_left_button_up(const vec2& m) {
 }
 
 void SpinButton::on_mouse_wheel(const vec2& d) {
+	if (!enabled)
+		return;
 	int n = (int)d.y;
 	// TODO better "small" step tweak
 	// maybe accumulate?
@@ -107,6 +120,7 @@ void SpinButton::on_mouse_wheel(const vec2& d) {
 		n = -1;*/
 	value = clamp(value + (float)n * step, _min, _max);
 	_update_text_from_value();
+	emit_event(event_id::Changed, true);
 }
 
 
@@ -137,6 +151,8 @@ void SpinButton::_draw(Painter* p) {
 	p->draw_line(area_plus.p00(), area_plus.p01());
 
 	p->set_color(Theme::_default.text);
+	if (!enabled)
+		p->set_color(Theme::_default.text_disabled);
 	vec2 m = (_area.p10() + _area.p11()) / 2 - vec2(dx/2,0);
 	p->set_line_width(2);
 	float r = 5;
@@ -153,13 +169,13 @@ void SpinButton::_draw(Painter* p) {
 void SpinButton::set_option(const string& key, const string& value) {
 	if (key == "range") {
 		auto x = value.explode(":");
-		if (x.num >= 3) {
+		if (x.num >= 1 and x[0].num > 0)
+			_min = x[0]._float();
+		if (x.num >= 2 and x[1].num > 0)
+			_max = x[1]._float();
+		if (x.num >= 3 and x[2].num > 0) {
 			step = x[2]._float();
 			decimals = max((int)(-log10f(step) + 0.5f), 0);
-		}
-		if (x.num >= 2) {
-			_min = x[0]._float();
-			_max = x[1]._float();
 		}
 		request_redraw();
 	} else {
