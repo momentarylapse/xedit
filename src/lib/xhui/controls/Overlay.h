@@ -11,15 +11,16 @@ public:
 
 	void _draw(Painter *p) override;
 
-	Array<Control*> children;
+	shared_array<Control> children;
 
-	void add(Control *c);
-	void add(Control *c, int, int) override { add(c); }
+	void add_child(shared<Control> c);
+	void add_child(shared<Control> c, int, int) override { add_child(c); }
+	void remove_child(Control* c) override;
 	
-	void get_greed_factor(float &x, float &y) override;
-	void get_content_min_size(int &w, int &h) override;
+	void get_greed_factor(float &x, float &y) const override;
+	void get_content_min_size(int &w, int &h) const override;
 	void negotiate_area(const rect &available) override;
-	Array<Control*> get_children() const override { return children; }
+	Array<Control*> get_children(ChildFilter) const override { return weak(children); }
 };
 
 }

@@ -1,4 +1,7 @@
 #include "ListView.h"
+
+#include <lib/os/msg.h>
+
 #include "../Painter.h"
 #include "../draw/font.h"
 #include "../Theme.h"
@@ -26,8 +29,12 @@ namespace xhui {
 	void ListView::on_left_button_up(const vec2&) {
 		request_redraw();
 
-		emit_event(event_id::Click, true);
+		emit_event(event_id::Click, false);
 	}
+void ListView::on_left_double_click(const vec2& m) {
+	emit_event(event_id::Activate, true);
+}
+
 	void ListView::on_mouse_enter(const vec2&) {
 		//state = State::HOVER;
 		request_redraw();
@@ -52,7 +59,7 @@ namespace xhui {
 
 
 
-	void ListView::get_content_min_size(int &w, int &h) {
+	void ListView::get_content_min_size(int &w, int &h) const {
 		column_widths.resize(headers.num);
 		column_offsets.resize(headers.num);
 		w = 5;
@@ -121,6 +128,7 @@ namespace xhui {
 		request_redraw();
 	}
 	void ListView::reset() {
+		selected.clear();
 		cells.clear();
 		request_redraw();
 	}

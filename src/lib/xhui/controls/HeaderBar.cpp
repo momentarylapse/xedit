@@ -21,7 +21,7 @@ HeaderBar::HeaderBar(Window *w, const string &_id) : Control(_id) {
 	button_close->size_mode_x = SizeMode::Shrink;
 	button_close->size_mode_y = SizeMode::Expand;
 	button_close->primary = true;
-	grid_right->add(button_close, 0, 0);
+	grid_right->add_child(button_close, 0, 0);
 
 	owner->event(":header-button-close:", [this] {
 		if (auto w = owner->get_window())
@@ -29,7 +29,7 @@ HeaderBar::HeaderBar(Window *w, const string &_id) : Control(_id) {
 	});
 }
 
-void HeaderBar::get_content_min_size(int &w, int &h) {
+void HeaderBar::get_content_min_size(int &w, int &h) const {
 	w = 0;
 	h = Theme::_default.headerbar_height;
 }
@@ -89,7 +89,7 @@ void HeaderBar::_draw(Painter *p) {
 	grid_right->_draw(p);
 }
 
-Array<Control*> HeaderBar::get_children() const {
+Array<Control*> HeaderBar::get_children(ChildFilter) const {
 	return {grid_left, grid_right, button_close};
 }
 

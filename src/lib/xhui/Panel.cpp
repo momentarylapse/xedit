@@ -1,4 +1,7 @@
 #include "Panel.h"
+
+#include <lib/base/algo.h>
+
 #include "Painter.h"
 #include "language.h"
 #include "Resource.h"
@@ -16,6 +19,7 @@
 #include "controls/MultilineEdit.h"
 #include "controls/Overlay.h"
 #include "controls/SpinButton.h"
+#include "controls/TabControl.h"
 #include "../os/msg.h"
 
 namespace xhui {
@@ -71,6 +75,28 @@ void Panel::negotiate_area(const rect &available) {
 	}*/
 }
 
+void Panel::get_content_min_size(int& w, int& h) const {
+	w = h = 0;
+	if (top_control) {
+		top_control->get_content_min_size(w, h);
+	}
+}
+
+void Panel::get_greed_factor(float& x, float& y) const {
+	if (top_control)
+		top_control->get_greed_factor(x, y);
+	if (size_mode_x == SizeMode::Expand)
+		x = 1;
+	else if (size_mode_x == SizeMode::Shrink)
+		x = 0;
+	if (size_mode_y == SizeMode::Expand)
+		y = 1;
+	else if (size_mode_y == SizeMode::Shrink)
+		y = 0;
+}
+
+
+
 Window* Panel::get_window() {
 	if (auto w = dynamic_cast<Window*>(this))
 		return w;
@@ -80,20 +106,20 @@ Window* Panel::get_window() {
 }
 
 
-void Panel::add(Control *c, int x, int y) {
+void Panel::add_child(shared<Control> c, int x, int y) {
 	if (target_control) {
-		target_control->add(c, x, y);
+		target_control->add_child(c, x, y);
 	} else {
 		top_control = c;
 	}
 	// don't register sub-panels!
-	if (dynamic_cast<Panel*>(c) == nullptr)
+	if (dynamic_cast<Panel*>(c.get()) == nullptr)
 		c->_register(this);
 	request_redraw();
 }
 
-void Panel::add(Control *c) {
-	add(c, 0, 0);
+void Panel::add_child(shared<Control> c) {
+	add_child(c, 0, 0);
 }
 
 void Panel::set_target(const string& id) {
@@ -102,28 +128,43 @@ void Panel::set_target(const string& id) {
 			target_control = c;
 }
 
-void Panel::event(const string &id, Callback f) {
+static int event_next_uid = 0;
+
+int Panel::event(const string &id, Callback f) {
 	EventHandler e;
+	e.uid = event_next_uid ++;
 	e.id = id;
 	e.f = f;
 	event_handlers.add(e);
+	return e.uid;
 }
 
-void Panel::event_x(const string &id, const string &msg, Callback f) {
+int Panel::event_x(const string &id, const string &msg, Callback f) {
 	EventHandler e;
+	e.uid = event_next_uid ++;
 	e.id = id;
 	e.msg = msg;
 	e.f = f;
 	event_handlers.add(e);
+	return e.uid;
 }
 
-void Panel::event_xp(const string &id, const string &msg, CallbackP f) {
+int Panel::event_xp(const string &id, const string &msg, CallbackP f) {
 	EventHandler e;
+	e.uid = event_next_uid ++;
 	e.id = id;
 	e.msg = msg;
 	e.fp = f;
 	event_handlers.add(e);
+	return e.uid;
 }
+
+void Panel::remove_event_handler(int uid) {
+	base::remove_if(event_handlers, [uid] (const EventHandler& e) {
+		return e.uid == uid;
+	});
+}
+
 
 bool match_event(Panel::EventHandler& e, const string &id, const string &msg, bool is_default) {
 	if (e.id != id)
@@ -211,6 +252,11 @@ color Panel::get_color(const string& id) const {
 	return Black;
 }
 
+void Panel::reset(const string& id) {
+	for (auto& c: controls)
+		if (c->id == id)
+			c->reset();
+}
 
 void Panel::enable(const string& id, bool enabled) {
 	for (auto& c: controls)
@@ -238,9 +284,9 @@ void Panel::set_options(const string& id, const string& options) {
 }
 
 
-Array<Control*> Panel::get_children() const {
+Array<Control*> Panel::get_children(ChildFilter) const {
 	if (top_control)
-		return {top_control};
+		return {top_control.get()};
 	return {};
 }
 
@@ -249,40 +295,40 @@ void Panel::add_control(const string &type, const string &_title, int x, int y, 
 	//printf("HuiPanelAddControl %s  %s  %d  %d  %s\n", type.c_str(), title.c_str(), x, y, id.c_str());
 	string title = _title;
 	if (title.head(1) == "!") {
-		auto x = title.explode("\\");
-		if (x.num >= 2)
-			title = x[1];
+		int p0 = title.find("\\");
+		if (p0 > 0)
+			title = title.sub(p0 + 1);
 	}
 	if (type == "Button")
-		add(new Button(id, title), x, y);
+		add_child(new Button(id, title), x, y);
 	else if (type == "CheckBox")
-		add(new CheckBox(id, title), x, y);
+		add_child(new CheckBox(id, title), x, y);
 	else if (type == "ColorButton")
-		add(new ColorButton(id), x, y);
+		add_child(new ColorButton(id), x, y);
 	else if (type == "DrawingArea")
-		add(new DrawingArea(id), x, y);
+		add_child(new DrawingArea(id), x, y);
 	else if (type == "Edit")
-		add(new Edit(id, title), x, y);
+		add_child(new Edit(id, title), x, y);
 	else if (type == "FileSelector")
-		add(new FileSelector(id), x, y);
+		add_child(new FileSelector(id), x, y);
 	else if (type == "Grid")
-		add(new Grid(id), x, y);
+		add_child(new Grid(id), x, y);
 	else if (type == "Group")
-		add(new Group(id, title), x, y);
+		add_child(new Group(id, title), x, y);
 	else if (type == "Label")
-		add(new Label(id, title), x, y);
+		add_child(new Label(id, title), x, y);
 	else if (type == "ListView")
-		add(new ListView(id, title), x, y);
+		add_child(new ListView(id, title), x, y);
 	else if (type == "MultilineEdit")
-		add(new MultilineEdit(id, title), x, y);
+		add_child(new MultilineEdit(id, title), x, y);
 	else if (type == "Overlay")
-		add(new Overlay(id), x, y);
+		add_child(new Overlay(id), x, y);
 	else if (type == "SpinButton")
-		add(new SpinButton(id, title._float()), x, y);
+		add_child(new SpinButton(id, title._float()), x, y);
+	else if (type == "TabControl")
+		add_child(new TabControl(id, title), x, y);
 //	else if (type == "ComboBox")
 //		add_combo_box(title, x, y, id);
-//	else if (type == "TabControl")
-//		add_tab_control(title, x, y, id);
 //	else if (type == "TreeView")
 //		add_tree_view(title, x, y, id);
 //	else if (type == "IconView")
@@ -337,12 +383,43 @@ void Panel::_add_control(const string &ns, const Resource &cmd, const string &pa
 		_add_control(ns, c, cmd.id);
 }
 
-void Panel::embed(const string& target, int x, int y, Panel* p) {
+void Panel::remove_control(Control* ccc) {
+	// no need to be efficient :/
+	for (auto c: controls)
+		for (auto cc: c->get_children(ChildFilter::All))
+			if (cc == ccc) {
+				c->remove_child(cc);
+				request_redraw();
+				return;
+			}
+}
+
+void Panel::remove_control(const string& id) {
+	if (auto c = get_control(id))
+		remove_control(c);
+}
+
+Control* Panel::get_control(const string& id) {
+	for (auto c: controls)
+		if (c->id == id)
+			return c;
+	return nullptr;
+}
+
+
+
+void Panel::embed(const string& target, int x, int y, shared<Panel> p) {
 	set_target(target);
-	add(p, x, y);
+	add_child(p.to<Control>(), x, y);
 	p->owner = this;
 	request_redraw();
 }
+
+void Panel::unembed(Panel* p) {
+	remove_control(p);
+	p->owner = nullptr;
+}
+
 
 
 void Panel::from_source(const string& source) {

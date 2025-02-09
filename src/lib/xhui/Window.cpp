@@ -1,4 +1,7 @@
 #include "Window.h"
+
+#include <lib/os/time.h>
+
 #include "xhui.h"
 #include "Painter.h"
 #include "ContextVulkan.h"
@@ -89,6 +92,8 @@ int key_decode(int key) {
 		return xhui::KEY_SPACE;
 	if (key == GLFW_KEY_BACKSPACE)
 		return xhui::KEY_BACKSPACE;
+	if (key == GLFW_KEY_ESCAPE)
+		return xhui::KEY_ESCAPE;
 	if (key == GLFW_KEY_UP)
 		return xhui::KEY_UP;
 	if (key == GLFW_KEY_DOWN)
@@ -143,7 +148,7 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 
 	auto w = (Window*)glfwGetWindowUserPointer(window);
 
-	if (action == GLFW_PRESS) {
+	if (action == GLFW_PRESS or action == GLFW_REPEAT) {
 		w->state.key[k] = true;
 	} if (action == GLFW_RELEASE) {
 		w->state.key[k] = false;
@@ -154,7 +159,7 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 
 	w->state.key_code = k;
 
-	if (action == GLFW_PRESS) {
+	if (action == GLFW_PRESS or action == GLFW_REPEAT) {
 		//w->state.key
 		w->_on_key_down(k);
 	} if (action == GLFW_RELEASE) {
@@ -182,9 +187,14 @@ void Window::_cursor_enter_callback(GLFWwindow *window, int enter) {
 void Window::_mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
 	//std::cout << "button " << button << " " << action << " " << mods << "\n";
 	auto w = (Window*)glfwGetWindowUserPointer(window);
+	static os::Timer timer;
 	if (action == GLFW_PRESS) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT)
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			w->_on_left_button_down(w->state.m);
+			float dt = timer.get();
+			if (dt > 0.05f and dt < 0.5f)
+				w->_on_left_double_click(w->state.m);
+		}
 		if (button == GLFW_MOUSE_BUTTON_MIDDLE)
 			w->_on_middle_button_down(w->state.m);
 		if (button == GLFW_MOUSE_BUTTON_RIGHT)
@@ -269,6 +279,12 @@ void Window::_on_left_button_up(const vec2& m) {
 	if (hover_control)
 		hover_control->on_left_button_up(m);
 	on_left_button_up(m);
+}
+void Window::_on_left_double_click(const vec2& m) {
+	state.lbut = true;
+	if (hover_control)
+		hover_control->on_left_double_click(m);
+	on_left_double_click(m);
 }
 void Window::_on_middle_button_down(const vec2& m) {
 	state.mbut = true;
@@ -447,9 +463,9 @@ void Window::set_title(const string& t) {
 Control *Window::get_hover_control(const vec2 &p) {
 	Array<Control*> seeds;
 	if (dialog)
-		seeds.add(dialog->top_control);
+		seeds.add(dialog->top_control.get());
 	else
-		seeds.add(top_control);
+		seeds.add(top_control.get());
 	int cur_seed = 0;
 
 	// we might need multiple seeds, if we encounter Overlays!
@@ -461,7 +477,7 @@ Control *Window::get_hover_control(const vec2 &p) {
 			if (c->_area.inside(p) and !c->ignore_hover and c->visible)
 				best = c;
 			Control* next = nullptr;
-			for (auto cc: c->get_children())
+			for (auto cc: c->get_children(ChildFilter::OnlyActive))
 				if (cc->_area.inside(p) and cc->visible) {
 					if (next)
 						seeds.add(cc);

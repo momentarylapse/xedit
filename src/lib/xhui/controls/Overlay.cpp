@@ -1,4 +1,7 @@
 #include "Overlay.h"
+
+#include <lib/base/algo.h>
+
 #include "../Panel.h"
 #include "../../os/msg.h"
 
@@ -14,11 +17,19 @@ Overlay::Overlay(const string &_id) : Control(_id) {
 	size_mode_y = SizeMode::ForwardChild;
 }
 
-void Overlay::add(Control *c) {
+void Overlay::add_child(shared<Control> c) {
 	children.add(c);
 	if (owner)
 		c->_register(owner);
 }
+
+void Overlay::remove_child(Control* c) {
+	c->_unregister();
+	base::remove_if(children, [c] (const auto& child) {
+		return child.get() == c;
+	});
+}
+
 
 void Overlay::_draw(Painter *p) {
 	for (auto c: children)
@@ -26,7 +37,7 @@ void Overlay::_draw(Painter *p) {
 			c->_draw(p);
 }
 
-void Overlay::get_content_min_size(int &_w, int &_h) {
+void Overlay::get_content_min_size(int &_w, int &_h) const {
 	_w = 0;
 	_h = 0;
 	for (auto c: children) {
@@ -37,7 +48,7 @@ void Overlay::get_content_min_size(int &_w, int &_h) {
 	}
 }
 
-void Overlay::get_greed_factor(float &_x, float &_y) {
+void Overlay::get_greed_factor(float &_x, float &_y) const {
 	// SizeMode::Forward...
 	_x = 0;
 	_y = 0;
