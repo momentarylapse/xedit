@@ -10,6 +10,9 @@ namespace xhui {
 
 		void get_content_min_size(int &w, int &h) const override;
 
+		void check(bool checked) override;
+		bool is_checked() override;
+
 		void on_mouse_enter(const vec2& m) override;
 		void on_mouse_leave(const vec2& m) override;
 		void on_left_button_down(const vec2& m) override;
@@ -18,6 +21,11 @@ namespace xhui {
 		void _draw(Painter *p) override;
 
 		bool checked = false;
+		enum class State {
+			DEFAULT,
+			HOVER,
+			PRESSED
+		} state;
 	};
 
 }

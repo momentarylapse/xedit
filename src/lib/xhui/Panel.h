@@ -10,6 +10,7 @@ namespace xhui {
 using Callback = std::function<void()>;
 using CallbackP = std::function<void(::Painter*)>;
 struct Resource;
+class Dialog;
 
 class Panel : public Control {
 public:
@@ -30,12 +31,14 @@ public:
 	void set_float(const string& id, float value);
 	void set_int(const string& id, int value);
 	void set_color(const string& id, const color& c);
+	void check(const string& id, bool checked);
 	void enable(const string& id, bool enabled);
 	void reset(const string& id);
 	void set_visible(const string& id, bool visible);
 	string get_string(const string& id) const;
 	float get_float(const string& id) const;
 	int get_int(const string& id) const;
+	bool is_checked(const string& id) const;
 	color get_color(const string& c) const;
 	void set_options(const string& id, const string& options);
 
@@ -72,8 +75,12 @@ public:
 	void embed(const string& target, int x, int y, shared<Panel> p);
 	void unembed(Panel* p);
 
+	void open_dialog(shared<Dialog> dialog);
+	void close_dialog(Dialog* dialog);
+
 	void from_source(const string& source);
 	void from_resource(const Resource& resource);
+	void from_resource(const string& id);
 };
 
 }

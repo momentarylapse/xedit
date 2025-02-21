@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Label.h"
+#include <functional>
 
 namespace xhui {
 
@@ -9,7 +10,6 @@ public:
 	Button(const string &id, const string &title);
 
 	void get_content_min_size(int &w, int &h) const override;
-	void enable(bool enabled) override;
 
 	void on_mouse_enter(const vec2& m) override;
 	void on_mouse_leave(const vec2& m) override;
@@ -21,6 +21,25 @@ public:
 	virtual void on_click();
 
 	bool primary = false;
+
+	enum class State {
+		DEFAULT,
+		HOVER,
+		PRESSED
+	};
+	State state;
+};
+
+
+class CallbackButton : public Button {
+public:
+	CallbackButton(const string& id, const string& title, const std::function<void()>& f) : Button(id, title) {
+		callback = f;
+	}
+	void on_click() override {
+		callback();
+	}
+	std::function<void()> callback;
 };
 
 }

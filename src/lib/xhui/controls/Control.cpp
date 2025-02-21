@@ -12,6 +12,7 @@ rect smaller_rect(const rect& r, float d) {
 
 Control::Control(const string &_id) {
 	id = _id;
+	enabled = true;
 	min_width_user = -1;
 	min_height_user = -1;
 	size_mode_x = SizeMode::Expand;
@@ -41,6 +42,7 @@ void Control::_register(Panel* _owner) {
 		for (auto cc: get_children(ChildFilter::All))
 			cc->_register(owner);
 	}
+	request_redraw();
 }
 
 void Control::_unregister() {
@@ -112,6 +114,12 @@ bool Control::has_focus() const {
 		return w->focus_control == this;
 	return false;
 }
+
+void Control::enable(bool _enabled) {
+	enabled = _enabled;
+	request_redraw();
+}
+
 
 void Control::on_mouse_move(const vec2& m, const vec2& d) {
 	emit_event(event_id::MouseMove, false);

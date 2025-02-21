@@ -117,7 +117,7 @@ public:
 
 	bool _destroy_requested = false;
 
-	Dialog* dialog = nullptr;
+	shared_array<Dialog> dialogs;
 };
 
 class WindowX : public Window {

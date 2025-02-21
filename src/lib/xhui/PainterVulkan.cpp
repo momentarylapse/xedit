@@ -8,6 +8,7 @@
 #include "../vulkan/vulkan.h"
 #include "../image/image.h"
 #include "../math/mat4.h"
+#include <lib/base/algo.h>
 #include "../os/msg.h"
 
 
@@ -15,28 +16,65 @@ using namespace vulkan;
 
 
 namespace xhui {
+
+mat4 mat_pixel_to_rel;
+
+Array<DescriptorSet*> descriptor_sets;
+int descriptor_sets_used = 0;
+
+DescriptorSet* get_descriptor_set(ContextVulkan* context, Texture* texture) {
+	DescriptorSet* dset = nullptr;
+	if (descriptor_sets_used < descriptor_sets.num) {
+		dset = descriptor_sets[descriptor_sets_used ++];
+	} else {
+		dset = context->pool->create_set(context->shader);
+		descriptor_sets.add(dset);
+	}
+	dset->set_texture(0, texture);
+	dset->update();
+	return dset;
+}
+
 struct TextCache {
 	string text;
 	float size;
+	int age;
 	// font...
 	Texture* texture;
 	DescriptorSet* dset;
 };
 
-mat4 mat_pixel_to_rel;
-
 Array<TextCache> text_caches;
-int text_caches_used = 0;
 
-TextCache& get_text_cache(ContextVulkan* context) {
-	if (text_caches_used < text_caches.num)
-		return text_caches[text_caches_used ++];
-	TextCache tc;
-	tc.dset = context->pool->create_set(context->shader);
-	tc.texture = new Texture();
-	text_caches.add(tc);
-	text_caches_used ++;
-	return text_caches.back();
+TextCache& get_text_cache(ContextVulkan* context, const string& text, float size) {
+	for (auto& tc: text_caches)
+		if (tc.text == text and tc.size == size) {
+			tc.age = 0;
+			return tc;
+		}
+
+	TextCache* tc = nullptr;
+	for (auto& _tc: text_caches)
+		if (_tc.age > 5)
+			tc = &_tc;
+	if (!tc) {
+		text_caches.add({});
+		tc = &text_caches.back();
+		tc->dset = context->pool->create_set(context->shader);
+		tc->texture = new Texture();
+	}
+
+	tc->text = text;
+	tc->size = size;
+	tc->age = 0;
+	Image im;
+	font::render_text(text, Align::LEFT, im);
+	tc->texture->write(im);
+	tc->texture->set_options("minfilter=nearest");
+
+	tc->dset->set_texture(0, tc->texture);
+	tc->dset->update();
+	return *tc;
 }
 
 struct Parameters {
@@ -68,8 +106,10 @@ Painter::Painter(Window *w) {
 	_area = {0, (float)width, 0, (float)height};
 	native_area = {0, (float)context->swap_chain->width, 0, (float)context->swap_chain->height};
 	native_area_window = native_area;
+	_clip = _area;
 	cb->set_viewport(native_area);
 	cb->begin_render_pass(context->render_pass, fb);
+	cb->set_scissor(native_area);
 	cb->clear(native_area, {Black}, 1);
 }
 
@@ -86,7 +126,10 @@ void Painter::end() {
 
 	context->device->wait_idle();
 
-	text_caches_used = 0;
+	descriptor_sets_used = 0;
+
+	for (auto& tc: text_caches)
+		tc.age ++;
 }
 
 void Painter::clear(const color &c) {
@@ -111,13 +154,10 @@ void Painter::set_color(const color &c) {
 void Painter::draw_str(const vec2 &p, const string &str) {
 	if (str.num == 0)
 		return;
-	Image im;
-	font::render_text(str, Align::LEFT, im);
-	auto& tc = get_text_cache(context);
-	tc.texture->write(im);
-	tc.texture->set_options("minfilter=nearest");
-	float w = im.width / ui_scale;
-	float h = im.height / ui_scale;
+	auto& tc = get_text_cache(context, str, font_size);
+
+	float w = (float)tc.texture->width / ui_scale;
+	float h = (float)tc.texture->height / ui_scale;
 	Parameters params;
 	params.matrix = mat_pixel_to_rel * mat4::translation(vec3(offset_x + p.x, offset_y + p.y, 0)) * mat4::scale(w, h, 1);
 	params.col = _color;
@@ -125,17 +165,19 @@ void Painter::draw_str(const vec2 &p, const string &str) {
 	params.radius = 0;
 	params.softness = 0;
 
+	tc.dset->set_texture(0, tc.texture);
+	tc.dset->update();
+
 	cb->bind_pipeline(context->pipeline_alpha);
 	cb->push_constant(0, sizeof(params), &params);
 
-	tc.dset->set_texture(0, tc.texture);
-	tc.dset->update();
 	cb->bind_descriptor_set(0, tc.dset);
 	cb->draw(context->vb);
 }
 
 vec2 Painter::get_str_size(const string &str) {
-	return {font::get_text_width(str) * ui_scale, font_size * ui_scale};
+	const auto dims = font::get_text_dimensions(str);
+	return {dims.bounding_width / ui_scale, dims.inner_height() / ui_scale};
 }
 
 void Painter::set_line_width(float width) {
@@ -274,6 +316,26 @@ void Painter::set_transform(float rot[], const vec2 &offset) {
 }
 
 void Painter::set_clip(const rect &r) {
+	_clip = r;
+	cb->set_scissor({r.x1 * ui_scale, r.x2 * ui_scale, r.y1 * ui_scale, r.y2 * ui_scale});
+}
+
+
+
+void Painter::draw_ximage(const rect& r, const XImage* image) {
+	auto dset = get_descriptor_set(context, image->texture.get());
+	Parameters params;
+	params.matrix = mat_pixel_to_rel * mat4::translation(vec3(offset_x + r.x1, offset_y + r.y1, 0)) * mat4::scale(r.width(), r.height(), 1);
+	params.col = _color;
+	params.size = {r.width(),r.height()};
+	params.radius = 0;
+	params.softness = 0;
+
+	cb->bind_pipeline(context->pipeline_alpha);
+	cb->push_constant(0, sizeof(params), &params);
+
+	cb->bind_descriptor_set(0, dset);
+	cb->draw(context->vb);
 }
 
 

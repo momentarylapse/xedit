@@ -13,33 +13,34 @@ namespace xhui {
 
 class TabControlHeader : public Grid {
 public:
-	class HeaderButton : public Button {
-		public:
-		HeaderButton(const string& id, const string& title, std::function<void()> f) : Button(id, title) {
-			callback = f;
-			size_mode_x = SizeMode::Shrink;
-			size_mode_y = SizeMode::Shrink;
-		}
-		void on_click() override {
-			callback();
-		}
-		std::function<void()> callback;
-	};
-
-	explicit TabControlHeader(const string& id, const Array<string>& headers, std::function<void(int)> f) : Grid(id) {
+	explicit TabControlHeader(const string& id, const Array<string>& headers, const std::function<void(int)>& f) : Grid(id) {
 		callback = f;
-		for (const auto&& [i, h] : enumerate(headers))
-			Grid::add_child(new HeaderButton(id + i2s(i), h, [this, i=i] {
+		for (const auto&& [i, h] : enumerate(headers)) {
+			auto b = new CallbackButton(id + i2s(i), h, [this, i=i] {
 				current_page = i;
+				update_buttons();
 				callback(i);
-			}), i, 0);
+			});
+			b->size_mode_x = SizeMode::Shrink;
+			b->size_mode_y = SizeMode::Shrink;
+			Grid::add_child(b, i, 0);
+			buttons.add(b);
+		}
 		current_page = 0;
+		update_buttons();
 	}
 	void set_current_page(int p) {
 		current_page = p;
+		update_buttons();
+	}
+	void update_buttons() {
+		for (auto&& [i, b]: enumerate(buttons))
+			b->primary = (i == current_page);
+		request_redraw();
 	}
 	int current_page;
 	std::function<void(int)> callback;
+	Array<CallbackButton*> buttons;
 };
 
 TabControl::TabControl(const string& id, const string& title) : Control(id) {

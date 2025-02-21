@@ -171,8 +171,14 @@ void Window::_cursor_position_callback(GLFWwindow *window, double xpos, double y
 	//msg_write(format("mouse %f  %f", xpos, ypos));
 	auto w = (Window*)glfwGetWindowUserPointer(window);
 	w->state_prev.m = w->state.m;
-	w->state.m.x = (float)xpos; // / w->ui_scale;
-	w->state.m.y = (float)ypos; // / w->ui_scale;
+#ifdef OS_MAC
+	w->state.m.x = (float)xpos;
+	w->state.m.y = (float)ypos;
+#else
+	// why?!? this should be consistent...
+	w->state.m.x = (float)xpos / ui_scale;
+	w->state.m.y = (float)ypos / ui_scale;
+#endif
 	w->_on_mouse_move(w->state.m, w->state.m - w->state_prev.m);
 }
 
@@ -288,18 +294,26 @@ void Window::_on_left_double_click(const vec2& m) {
 }
 void Window::_on_middle_button_down(const vec2& m) {
 	state.mbut = true;
+	if (hover_control)
+		hover_control->on_middle_button_down(m);
 	on_middle_button_down(m);
 }
 void Window::_on_middle_button_up(const vec2& m) {
 	state.mbut = false;
+	if (hover_control)
+		hover_control->on_middle_button_up(m);
 	on_middle_button_up(m);
 }
 void Window::_on_right_button_down(const vec2& m) {
 	state.rbut = true;
+	if (hover_control)
+		hover_control->on_right_button_down(m);
 	on_right_button_down(m);
 }
 void Window::_on_right_button_up(const vec2& m) {
 	state.rbut = false;
+	if (hover_control)
+		hover_control->on_right_button_up(m);
 	on_right_button_up(m);
 }
 void Window::_on_mouse_move(const vec2 &m, const vec2& d) {
@@ -356,7 +370,6 @@ void Window::_on_key_up(int k) {
 
 
 void Window::_on_draw() {
-
 #if HAS_LIB_VULKAN
 	if (!context)
 		context = new ContextVulkan(this);
@@ -408,13 +421,13 @@ void Window::_on_draw() {
 	Panel::negotiate_area(a);
 	Panel::_draw(p);
 
-	if (dialog) {
-		p->set_color(color(0.4f, 0, 0, 0));
+	for (auto dlg: dialogs) {
+		p->set_color(color(0.3f, 0, 0, 0));
 		p->draw_rect(a);
 		const vec2 m = a.center();
-		const vec2 size = vec2(dialog->width, dialog->height);
-		dialog->negotiate_area({m - size/2, m + size/2});
-		dialog->_draw(p);
+		const vec2 size = vec2(dlg->width, dlg->height);
+		dlg->negotiate_area({m - size/2, m + size/2});
+		dlg->_draw(p);
 	}
 
 	if (drag.active) {
@@ -462,8 +475,8 @@ void Window::set_title(const string& t) {
 
 Control *Window::get_hover_control(const vec2 &p) {
 	Array<Control*> seeds;
-	if (dialog)
-		seeds.add(dialog->top_control.get());
+	if (dialogs.num > 0)
+		seeds.append(dialogs.back()->get_children(ChildFilter::All));
 	else
 		seeds.add(top_control.get());
 	int cur_seed = 0;

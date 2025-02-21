@@ -1,18 +1,21 @@
+
 #include "xhui.h"
-
-#include <lib/os/msg.h>
-
+#include "Resource.h"
 #include "Window.h"
 #include "Dialog.h"
 #include "Theme.h"
 #include "draw/font.h"
 #include "config.h"
+#include "language.h"
 #include "../os/time.h"
 #include "../os/filesystem.h"
+#include "../os/msg.h"
+#include "../vulkan/Texture.h"
+#include "../vulkan/Device.h"
+
 
 namespace xhui {
 	extern Array<Window*> _windows_;
-	extern Array<Dialog*> _dialogs_;
 
 	float ui_scale = 1;
 
@@ -136,6 +139,19 @@ void init(const Array<string> &arg, const string& app_name) {
 	Theme::load_default();
 
 	font::init();
+
+
+	if (os::fs::exists(Application::directory | "config.txt"))
+		config.load(Application::directory | "config.txt");
+
+
+	//if ((flags & Flags::DONT_LOAD_RESOURCE) == 0)
+	if (os::fs::exists(Application::directory_static | "hui_resources.txt"))
+		load_resource(Application::directory_static | "hui_resources.txt");
+
+	string def_lang = "English";
+	//if (def_lang.num > 0)
+		set_language(config.get_str("Language", def_lang));
 }
 
 //   filename -> executable file
@@ -269,11 +285,10 @@ void run() {
 		for (auto w: _windows_)
 			w->_poll_events();
 
-		for (int i=_dialogs_.num-1; i>=0; i--)
-			if (_dialogs_[i]->_destroy_requested) {
-				_dialogs_[i]->request_redraw();
-				delete _dialogs_[i];
-			}
+		for (auto w: _windows_)
+			if (w->dialogs.num > 0)
+				if (w->dialogs.back()->_destroy_requested)
+					w->close_dialog(w->dialogs.back().get());
 
 		for (int i=_windows_.num-1; i>=0; i--)
 			if (_windows_[i]->_destroy_requested) {
@@ -312,5 +327,42 @@ namespace event_id {
 	const string DragStart = "hui:drag-start";
 	const string DragDrop = "hui:drag-drop";
 };
+
+static Array<XImage*> _images_;
+
+Path find_image(const string& name) {
+	const auto path = Application::directory_static | "icons" | "hicolor" | "24x24" | "actions" | (name + ".png");
+	if (os::fs::exists(path))
+		return path;
+	return "";
+}
+
+XImage* load_image(const string& name) {
+	for (auto* im: _images_)
+		if (im->uid == name)
+			return im;
+
+	const auto path = find_image(name);
+	if (path.is_empty())
+		return nullptr;
+
+	auto im = new XImage;
+	im->filename = path;
+	im->uid = name;
+#if HAS_LIB_VULKAN
+	if (vulkan::default_device)
+		im->texture = vulkan::Texture::load(path);
+#endif
+	_images_.add(im);
+	return im;
+}
+
+void prepare_image(XImage* image) {
+#if HAS_LIB_VULKAN
+	if (!image->texture)
+		if (vulkan::default_device)
+			image->texture = vulkan::Texture::load(image->filename);
+#endif
+}
 
 }

@@ -4,6 +4,12 @@
 #include "Painter.h"
 #include "../os/path.h"
 
+#if HAS_LIB_VULKAN
+namespace vulkan {
+	class Texture;
+}
+#endif
+
 namespace xhui {
 
 void init(const Array<string> &arg, const string& app_name);
@@ -166,6 +172,17 @@ namespace event_id {
 	extern const string DragStart;
 	extern const string DragDrop;
 };
+
+struct XImage {
+	string uid;
+	Path filename;
+#if HAS_LIB_VULKAN
+	shared<vulkan::Texture> texture;
+#endif
+};
+
+XImage* load_image(const string& name);
+void prepare_image(XImage* image);
 
 
 }

@@ -176,6 +176,7 @@ add_executable(xhui
 	src/lib/xhui/controls/Button.cpp
 	src/lib/xhui/controls/CheckBox.cpp
 	src/lib/xhui/controls/ColorButton.cpp
+	src/lib/xhui/controls/ComboBox.cpp
 	src/lib/xhui/controls/Control.cpp
 	src/lib/xhui/controls/DrawingArea.cpp
 	src/lib/xhui/controls/Edit.cpp
@@ -189,13 +190,16 @@ add_executable(xhui
 	src/lib/xhui/controls/Overlay.cpp
 	src/lib/xhui/controls/SpinButton.cpp
 	src/lib/xhui/controls/TabControl.cpp
+	src/lib/xhui/controls/Toolbar.cpp
 	src/lib/xhui/dialogs/ColorSelectionDialog.cpp
 	src/lib/xhui/dialogs/FileSelectionDialog.cpp
+	src/lib/xhui/dialogs/MenuPopup.cpp
 	src/lib/xhui/dialogs/QuestionDialog.cpp
 	src/lib/xhui/draw/font.cpp
 	src/lib/xhui/ContextVulkan.cpp
 	src/lib/xhui/Dialog.cpp
 	src/lib/xhui/language.cpp
+	src/lib/xhui/Menu.cpp
 	src/lib/xhui/PainterGL.cpp
 	src/lib/xhui/PainterVulkan.cpp
 	src/lib/xhui/Panel.cpp

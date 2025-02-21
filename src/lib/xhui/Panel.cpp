@@ -2,6 +2,7 @@
 
 #include <lib/base/algo.h>
 
+#include "Dialog.h"
 #include "Painter.h"
 #include "language.h"
 #include "Resource.h"
@@ -9,6 +10,7 @@
 #include "controls/Button.h"
 #include "controls/CheckBox.h"
 #include "controls/ColorButton.h"
+#include "controls/ComboBox.h"
 #include "controls/DrawingArea.h"
 #include "controls/Edit.h"
 #include "controls/FileSelector.h"
@@ -20,6 +22,7 @@
 #include "controls/Overlay.h"
 #include "controls/SpinButton.h"
 #include "controls/TabControl.h"
+#include "controls/Toolbar.h"
 #include "../os/msg.h"
 
 namespace xhui {
@@ -218,6 +221,12 @@ void Panel::set_int(const string& id, int value) {
 			c->set_int(value);
 }
 
+void Panel::check(const string& id, bool value) {
+	for (auto& c: controls)
+		if (c->id == id)
+			c->check(value);
+}
+
 void Panel::set_color(const string& id, const color& col) {
 	for (auto& c: controls)
 		if (c->id == id)
@@ -243,6 +252,13 @@ int Panel::get_int(const string& id) const {
 		if (c->id == id)
 			return c->get_int();
 	return 0;
+}
+
+bool Panel::is_checked(const string& id) const {
+	for (auto& c: controls)
+		if (c->id == id)
+			return c->is_checked();
+	return false;
 }
 
 color Panel::get_color(const string& id) const {
@@ -305,6 +321,8 @@ void Panel::add_control(const string &type, const string &_title, int x, int y, 
 		add_child(new CheckBox(id, title), x, y);
 	else if (type == "ColorButton")
 		add_child(new ColorButton(id), x, y);
+	else if (type == "ComboBox")
+		add_child(new ComboBox(id, title), x, y);
 	else if (type == "DrawingArea")
 		add_child(new DrawingArea(id), x, y);
 	else if (type == "Edit")
@@ -327,8 +345,8 @@ void Panel::add_control(const string &type, const string &_title, int x, int y, 
 		add_child(new SpinButton(id, title._float()), x, y);
 	else if (type == "TabControl")
 		add_child(new TabControl(id, title), x, y);
-//	else if (type == "ComboBox")
-//		add_combo_box(title, x, y, id);
+	else if (type == "Toolbar")
+		add_child(new Toolbar(id), x, y);
 //	else if (type == "TreeView")
 //		add_tree_view(title, x, y, id);
 //	else if (type == "IconView")
@@ -426,42 +444,68 @@ void Panel::from_source(const string& source) {
 	from_resource(parse_resource(source));
 }
 void Panel::from_resource(const Resource& res) {
-
 	bool res_is_window = ((res.type == "Dialog") or (res.type == "Window"));
-	auto window = get_window();
-	bool panel_is_window = window and !owner;
 
+	//	set_id(res.id);
+	id = res.id;
+
+	if (res_is_window) {
+		int width = res.value("width", "0")._int();
+		int height = res.value("height", "0")._int();
+		for (auto &o: res.options)
+			set_options(id, o);
+
+		if (auto dlg = dynamic_cast<Dialog*>(this)) {
+			if (width + height > 0) {
+				dlg->width = width;
+				dlg->height = height;
+			}
+			dlg->set_title(get_language(res.id, res.id));
+		} else if (auto win = dynamic_cast<Window*>(this)) {
+			/*if (width + height > 0) {
+				win->width = width;
+				win->height = height;
+			}*/
+			win->title = get_language(res.id, res.id);
+
+			// menu/toolbar?
+			string toolbar = res.value("toolbar");
+			string menu = res.value("menu");
+			//		if (menu != "")
+			//			window->set_menu(create_resource_menu(menu, this));
+			//		if (toolbar != "")
+			//			window->get_toolbar(TOOLBAR_TOP)->set_by_id(toolbar);
+
+			/*		for (const auto &c: res.children)
+						if (c.type == "HeaderBar") {
+							window->_add_headerbar();
+							for (auto &cc: c.children)
+								_add_control(id, cc, ":header:");
+						}*/
+		}
+	}
+
+#if 0
 	// directly change window?
 	if (panel_is_window and res_is_window) {
-	//	for (auto &o: res.options)
-	//		window->__set_options(o);
 
 		// title
-		window->set_title(get_language(res.id, res.id));
+		//window->set_title(get_language(res.id, res.id));
 
 		// size
 		int width = res.value("width", "0")._int();
 		int height = res.value("height", "0")._int();
-//		if (width + height > 0)
+			msg_write("DDDDD");
+			if (width + height > 0) {
+				dlg->width = width;
+				dlg->height = height;
+			}
+			dlg->title = get_language(res.id, res.id);
+		}
 //			window->set_size(width, height);
 
-		// menu/toolbar?
-		string toolbar = res.value("toolbar");
-		string menu = res.value("menu");
-//		if (menu != "")
-//			window->set_menu(create_resource_menu(menu, this));
-//		if (toolbar != "")
-//			window->get_toolbar(TOOLBAR_TOP)->set_by_id(toolbar);
-
-/*		for (const auto &c: res.children)
-			if (c.type == "HeaderBar") {
-				window->_add_headerbar();
-				for (auto &cc: c.children)
-					_add_control(id, cc, ":header:");
-			}*/
 	}
-
-//	set_id(res.id);
+#endif
 
 	int bw = res.value("borderwidth", "-1")._int();
 	if (bw >= 0)
@@ -476,6 +520,35 @@ void Panel::from_resource(const Resource& res) {
 //		embed_resource(res, "", 0, 0);
 	}
 }
+
+void Panel::from_resource(const string& id) {
+	if (auto cmd = get_resource(id))
+		from_resource(*cmd);
+	else
+		msg_error("resource id not found: " + id);
+}
+
+void Panel::open_dialog(shared<Dialog> dialog) {
+	dialog->owner = this;
+	if (auto w = get_window()) {
+		w->dialogs.add(dialog.get());
+	}
+	request_redraw();
+}
+
+void Panel::close_dialog(Dialog* dialog) {
+	for (int i=0; i<controls.num; i++)
+		if (controls[i] == (Control*)dialog) {
+			controls.erase(i);
+		}
+	if (auto w = get_window()) {
+		w->dialogs.pop();
+		// dialog might be deleted now!
+		w->hover_control = nullptr;
+	}
+	request_redraw();
+}
+
 
 
 
