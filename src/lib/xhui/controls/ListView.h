@@ -21,7 +21,7 @@ public:
 	void set_option(const string& key, const string& value) override;
 	Array<Control*> get_children(ChildFilter f) const override;
 
-	void get_content_min_size(int &w, int &h) const override;
+	vec2 get_content_min_size() const override;
 	void negotiate_area(const rect& available) override;
 
 	void on_mouse_enter(const vec2& m) override;
@@ -39,8 +39,8 @@ public:
 	int get_hover(const vec2& m) const;
 
 	Array<string> headers;
-	mutable Array<int> column_widths;
-	mutable Array<int> column_offsets;
+	mutable Array<float> column_widths;
+	mutable Array<float> column_offsets;
 	struct Cell {
 		string text;
 		Control* control;

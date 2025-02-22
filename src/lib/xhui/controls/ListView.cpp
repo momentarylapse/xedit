@@ -20,7 +20,8 @@ ListView::ListView(const string &_id, const string &t) :
 	column_widths.resize(headers.num);
 	column_offsets.resize(headers.num);
 	cell_grid = new Grid(_id + ":grid");
-	//cell_grid->margin = 10;
+	cell_grid->margin = {7,7,4,4};
+	cell_grid->spacing = 8;
 	viewport.add_child(cell_grid, 0, 0);
 	viewport.size_mode_y = SizeMode::Shrink;
 	viewport.ignore_hover = true;
@@ -91,10 +92,11 @@ int ListView::get_hover(const vec2& m) const {
 
 
 
-void ListView::get_content_min_size(int &w, int &h) const {
-	viewport.get_content_min_size(w, h);
+vec2 ListView::get_content_min_size() const {
+	vec2 s = viewport.get_content_min_size();
 	if (show_headers)
-		h += HEADER_DY;
+		s.y += HEADER_DY;
+	return s;
 }
 
 void ListView::negotiate_area(const rect& available) {
@@ -103,12 +105,16 @@ void ListView::negotiate_area(const rect& available) {
 	if (show_headers)
 		dy = HEADER_DY;
 	viewport.negotiate_area({available.p00() + vec2(0, dy), available.p11()});
+	if (show_headers and cells.num > 0) {
+		for (int i=0; i<min(headers.num, cells[0].num); i++)
+			column_offsets[i] = cells[0][i].control->_area.x1 - _area.x1;
+	}
 }
 
 
 rect ListView::row_area(int row) const {
 	const auto r0 = cells[row][0].control->_area;
-	return {_area.x1, _area.x2, r0.y1, r0.y2};
+	return {_area.x1, _area.x2, r0.y1 - 4, r0.y2 + 4};
 }
 
 
@@ -131,7 +137,7 @@ void ListView::_draw(Painter *p) {
 	}
 
 	if (hover_row >= 0) {
-		p->set_color(Theme::_default.background_hover);
+		p->set_color(Theme::_default.background_hover.with_alpha(0.3f));
 //		p->set_roundness(Theme::_default.button_radius);
 		p->draw_rect(row_area(hover_row) and viewport._area);
 		p->set_roundness(0);
