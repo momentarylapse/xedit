@@ -205,7 +205,8 @@ void Panel::set_string(const string& id, const string& text) {
 }
 
 void Panel::add_string(const string& id, const string& text) {
-	for (auto& c: controls)
+	auto ccc = controls; // some controls might register new children here...
+	for (auto& c: ccc)
 		if (c->id == id)
 			c->add_string(text);
 }
