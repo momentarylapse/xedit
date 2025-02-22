@@ -11,6 +11,8 @@ public:
 
 	vec2 get_content_min_size() const override;
 	void negotiate_area(const rect& available) override;
+	void set_string(const string& s) override;
+	string get_string() override;
 	void enable(bool enabled) override;
 
 	void on_mouse_enter(const vec2& m) override;

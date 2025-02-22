@@ -26,19 +26,23 @@ void Label::set_string(const string &s) {
 }
 
 vec2 Label::get_content_min_size() const {
-	if (text_w < 0) {
-		font::set_font(Theme::_default.font_name, font_size * ui_scale);
-		auto dim = font::get_text_dimensions(title);
-		text_w = int(dim.bounding_width / ui_scale);
-		text_h = int(dim.inner_height() / ui_scale);
+	if (image) {
+		return {10,10};
+	} else {
+		if (text_w < 0) {
+			font::set_font(Theme::_default.font_name, font_size * ui_scale);
+			auto dim = font::get_text_dimensions(title);
+			text_w = int(dim.bounding_width / ui_scale);
+			text_h = int(dim.inner_height() / ui_scale);
+		}
+		return vec2((float)text_w, (float)text_h) + margin.p00() + margin.p11();
 	}
-	return {(float)text_w + margin.x1 + margin.x2, (float)text_h + margin.y1 + margin.y2};
 }
 
 void Label::_draw(Painter *p) {
 	if (image) {
 		prepare_image(image);
-		vec2 size = _area.size() - vec2(16, 16);
+		vec2 size = _area.size();
 		p->set_color(White);
 		if (!enabled)
 			p->set_color(White.with_alpha(0.35f));

@@ -67,6 +67,13 @@ void Button::negotiate_area(const rect& available) {
 	label.negotiate_area({available.p00() + padding.p00(), available.p11() - padding.p11()});
 }
 
+void Button::set_string(const string& s) {
+	label.set_string(s);
+}
+
+string Button::get_string() {
+	return label.get_string();
+}
 
 void Button::_draw(Painter *p) {
 	color bg = Theme::_default.background_button;

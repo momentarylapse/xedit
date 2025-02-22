@@ -158,7 +158,7 @@ void ListView::add_string(const string& s) {
 	int col = 0;
 	for (const auto& t: s.explode("\\")) {
 		auto l = new Label(format("%s:%d:%d", id, row, col), t);
-		l->size_mode_x = SizeMode::Expand;
+		//l->size_mode_x = SizeMode::Expand;
 		cell_grid->add_child(l, col, row);
 		cells.back().add({t, l});
 		col ++;

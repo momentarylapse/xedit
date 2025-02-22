@@ -9,6 +9,8 @@
 
 namespace xhui {
 
+static constexpr float SPACING = 4;
+
 Group::Group(const string& id, const string& title) :
 		Control(id),
 		header(id + ":header", title)
@@ -49,15 +51,19 @@ Array<Control*> Group::get_children(ChildFilter) const {
 
 void Group::negotiate_area(const rect& available) {
 	_area = available;
-	header.negotiate_area({available.p00(), available.p10() + vec2(0, 25)});
+	float hh = header.get_content_min_size().y;
+	header.negotiate_area({available.p00(), available.p10() + vec2(0, hh)});
 	if (child)
-		child->negotiate_area({_area.p00() + vec2(0, 25), _area.p11()});
+		child->negotiate_area({_area.p00() + vec2(0, hh + SPACING), _area.p11()});
 }
 
 vec2 Group::get_content_min_size() const {
 	vec2 s = header.get_content_min_size();
-	if (child)
-		s += child->get_content_min_size();
+	if (child) {
+		vec2 cs = child->get_content_min_size();
+		s.x = max(s.x, cs.x);
+		s.y += SPACING + cs.y;
+	}
 	return s;
 }
 
