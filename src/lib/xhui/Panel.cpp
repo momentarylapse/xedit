@@ -23,6 +23,7 @@
 #include "controls/SpinButton.h"
 #include "controls/TabControl.h"
 #include "controls/Toolbar.h"
+#include "controls/Viewport.h"
 #include "../os/msg.h"
 
 namespace xhui {
@@ -288,15 +289,15 @@ void Panel::set_visible(const string& id, bool visible) {
 }
 
 void Panel::set_options(const string& id, const string& options) {
-	for (auto& c: controls)
-		if (c->id == id)
-			for (const auto& o: options.explode(",")) {
-				auto xx = o.explode("=");
-				if (xx.num >= 2)
-					c->set_option(xx[0], xx[1]);
-				else
-					c->set_option(xx[0], "");
-			}
+	for_control(id, [&options] (Control* c) {
+		for (const auto& o: options.explode(",")) {
+			auto xx = o.explode("=");
+			if (xx.num >= 2)
+				c->set_option(xx[0], xx[1]);
+			else
+				c->set_option(xx[0], "");
+		}
+	});
 }
 
 
@@ -347,6 +348,8 @@ void Panel::add_control(const string &type, const string &_title, int x, int y, 
 		add_child(new TabControl(id, title), x, y);
 	else if (type == "Toolbar")
 		add_child(new Toolbar(id), x, y);
+	else if (type == "Viewport")
+		add_child(new Viewport(id), x, y);
 //	else if (type == "TreeView")
 //		add_tree_view(title, x, y, id);
 //	else if (type == "IconView")

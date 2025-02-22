@@ -191,6 +191,7 @@ add_executable(xhui
 	src/lib/xhui/controls/SpinButton.cpp
 	src/lib/xhui/controls/TabControl.cpp
 	src/lib/xhui/controls/Toolbar.cpp
+	src/lib/xhui/controls/Viewport.cpp
 	src/lib/xhui/dialogs/ColorSelectionDialog.cpp
 	src/lib/xhui/dialogs/FileSelectionDialog.cpp
 	src/lib/xhui/dialogs/MenuPopup.cpp

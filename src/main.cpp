@@ -23,36 +23,58 @@ int xhui_main(const Array<string>& args) {
 	}
 
 	auto w = new xhui::Window("test", 600,400);//1024, 768);
-	auto g = new xhui::Grid("grid");
-	auto g2 = new xhui::Grid("grid2");
-	auto ll = new xhui::Label("label", "test");
-	auto ed = new xhui::Edit("edit", "bla");
-	auto list = new xhui::ListView("list", "a\\b\\c");
-	w->add_child(g);
-	g->add_child(ll, 0, 0);
-	g->add_child(new xhui::Button("button1", "a small test g"), 1, 0);
-	g->add_child(new xhui::Button("button2", "more test"), 1, 1);
-	g->add_child(ed, 2, 0);
-	g->add_child(new xhui::Button("button3", "x"), 2, 1);
-	g->add_child(new xhui::DrawingArea("area"), 2, 2);
-	g->add_child(g2, 1, 2);
-	g2->add_child(new xhui::CheckBox("checkbox", "bb"), 0, 0);
-	auto spin = new xhui::SpinButton("spin", 13);
-	spin->set_option("range", "0:20:0.1");
-	g2->add_child(spin, 0, 1);
-	g2->add_child(list, 0, 2);
-	g2->add_child(new xhui::MultilineEdit("multilineedit", "just a small\ntest"), 0, 3);
+	w->from_source(R"foodelim(
+Window test 'test'
+	Grid grid ''
+		Label label 'test'
+		Button button1 'a small test g'
+		Edit edit 'bla'
+		---|
+		.
+		Button button2 'more test'
+		Button button3 'x'
+		---|
+		.
+		Grid grid2 '' vertical
+			CheckBox checkbox 'bb'
+			SpinButton spin '13' range=0:20:0.1
+			ListView list 'a\\b\\c'
+			MultilineEdit multilineedit 'just a small\ntest'
+		Viewport vp '' noexpandy
+			Grid ? '' vertical
+				Label ? 'a'
+				Label ? 'a'
+				Label ? 'a'
+				Button ? 'xhgfhgf'
+				Label ? 'a'
+				Label ? 'a'
+				Label ? 'a'
+				Label ? 'a'
+				Label ? 'a'
+				Label ? 'a'
+				Label ? 'a'
+				Label ? 'a'
+				Label ? 'a'
+		---|
+		.
+		.
+		Button ? 'hjk'
+)foodelim");
+	//	DrawingArea area ''
 
-	list->add_string("1\\2\\3");
-	list->add_string("hallo\\test\\3");
-	list->add_string("1\\2\\3");
+	w->add_string("list", "1\\2\\3");
+	w->add_string("list", "hallo\\test\\3");
+	w->add_string("list", "1\\2\\3");
+	w->add_string("list", "1\\2\\3");
+	w->add_string("list", "1\\2\\3");
+	w->add_string("list", "1\\2\\3");
 
 	w->event("button1", [] {
 		msg_write("event button1 click");
 	});
-	w->event("button2", [ll] {
+	w->event("button2", [w] {
 		msg_write("event button2 click");
-		ll->set_string("x");
+		w->set_string("label", "x");
 	});
 	w->event_xp("area", "hui:draw", [] (Painter *p) {
 		return;
@@ -82,11 +104,11 @@ int xhui_main(const Array<string>& args) {
 		p->draw_rect({50, 300, 300, 400});
 		((xhui::Painter*)p)->softness = 0;
 	});
-	w->event("edit", [ed] {
-		msg_write("edit: " + ed->text);
+	w->event("edit", [w] {
+		msg_write("edit: " + w->get_string("edit"));
 	});
-	w->event("spin", [spin] {
-		msg_write(format("spin: %f", spin->get_float()));
+	w->event("spin", [w] {
+		msg_write(format("spin: %f", w->get_float("spin")));
 	});
 
 	xhui::run();
