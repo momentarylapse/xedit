@@ -10,6 +10,8 @@ namespace vulkan {
 }
 #endif
 
+class Image;
+
 namespace xhui {
 
 void init(const Array<string> &arg, const string& app_name);
@@ -176,12 +178,19 @@ namespace event_id {
 struct XImage {
 	string uid;
 	Path filename;
+	owned<::Image> image;
 #if HAS_LIB_VULKAN
 	shared<vulkan::Texture> texture;
 #endif
+	vec2 size() const;
 };
 
 XImage* load_image(const string& name);
+string create_image(const ::Image& im);
+#if HAS_LIB_VULKAN
+string texture_to_image(const shared<vulkan::Texture>& texture);
+#endif
+void delete_image(const string& name);
 void prepare_image(XImage* image);
 
 
