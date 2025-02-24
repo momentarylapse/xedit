@@ -36,7 +36,10 @@ Window test 'test'
 		---|
 		.
 		Grid grid2 '' vertical
-			CheckBox checkbox 'bb'
+			Grid ? ''
+				CheckBox checkbox 'bb'
+				RadioButton radio:a 'a'
+				RadioButton radio:b 'b'
 			SpinButton spin '13' range=0:20:0.1
 			ListView list 'a\\b\\c'
 			MultilineEdit multilineedit 'just a small\ntest'
