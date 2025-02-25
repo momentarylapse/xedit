@@ -427,8 +427,10 @@ void prepare_image(XImage* image) {
 }
 
 vec2 XImage::size() const {
+#if HAS_LIB_VULKAN
 	if (texture)
 		return {(float)texture->width, (float)texture->height};
+#endif
 	return {20,20};
 }
 
