@@ -89,7 +89,7 @@ Window test 'test'
 		p->set_font_size(font_size);
 		vec2 p0 = {20, 20};
 		string text = "Test  g";
-		auto dims = font::get_text_dimensions(text);
+		auto dims = xhui::default_font_regular->get_text_dimensions(text);
 		p->set_color(xhui::Theme::_default.border);
 		p->draw_line({p0.x, p0.y + dims.bounding_top_to_line}, {p0.x + dims.bounding_width, p0.y + dims.bounding_top_to_line});
 		p->set_fill(false);
