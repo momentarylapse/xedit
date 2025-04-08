@@ -13,6 +13,7 @@ public:
 	void set_string(const string& s) override;
 	void enable(bool enabled) override;
 	string get_string() override;
+	void set_option(const string& key, const string& value) override;
 
 	//void on_mouse_enter() override;
 	//void on_mouse_leave() override;
@@ -27,6 +28,7 @@ public:
 
 	bool multiline = false;
 	bool numerical = false;
+	bool show_focus_frame = true;
 	string text;
 	int cursor_pos = 0;
 	bool enabled = true;

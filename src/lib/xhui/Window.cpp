@@ -537,6 +537,14 @@ Control *Window::get_hover_control(const vec2 &p) {
 	return best;
 }
 
+void Window::focus(const string& id) {
+	if (auto c = get_control(id)) {
+		if (c->can_grab_focus)
+			focus_control = c;
+	}
+}
+
+
 
 bool Window::button(int index) const {
 	if (index == 2)

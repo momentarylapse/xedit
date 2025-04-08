@@ -14,9 +14,10 @@ int xhui_main(const Array<string>& args) {
 	auto w = new xhui::Window("test", 600,400);//1024, 768);
 	w->from_source(R"foodelim(
 Window test 'test' padding=0
-	MultilineEdit edit ''
+	MultilineEdit edit '' focusframe=no
 )foodelim");
-	//	DrawingArea area ''
+
+	w->focus("edit");
 
 	xhui::run();
 

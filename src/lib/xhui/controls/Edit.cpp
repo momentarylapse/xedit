@@ -104,6 +104,8 @@ void Edit::on_key_down(int key) {
 		if (c != '\n' or multiline)
 			insert(c);
 	}
+	if (key == KEY_RETURN and multiline)
+		insert('\n');
 
 	request_redraw();
 }
@@ -168,7 +170,7 @@ void Edit::_draw(Painter *p) {
 	p->draw_rect(_area);
 
 	// focus frame
-	if (has_focus()) {
+	if (has_focus() and show_focus_frame) {
 		p->set_color(Theme::_default.background_button_primary.with_alpha(0.6f));
 		p->draw_rect(_area);
 
@@ -182,6 +184,7 @@ void Edit::_draw(Painter *p) {
 
 	draw_text(p);
 }
+
 Edit::LinePos Edit::index_to_line_pos(int index) const {
 	LinePos r = {0, 0};
 	for (const auto& [line, first]: enumerate(cache.line_first_index)) {
@@ -199,5 +202,14 @@ int Edit::line_pos_to_index(const LinePos& lp) const {
 		return text.num;
 	return cache.line_first_index[lp.line] + clamp(lp.offset, 0, cache.line_num_characters[lp.line]);
 }
+
+void Edit::set_option(const string& key, const string& value) {
+	if (key == "focusframe") {
+		show_focus_frame = value._bool();
+	} else {
+		Control::set_option(key, value);
+	}
+}
+
 
 }
