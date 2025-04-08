@@ -5,8 +5,8 @@
     {
       "type": "default",
       "project": "CMakeLists.txt",
-      "projectTarget": "xhui.exe",
-      "name": "xhui.exe",
+      "projectTarget": "xedit.exe",
+      "name": "xedit.exe",
       "currentDir": "${workspaceRoot}"
     }
   ]

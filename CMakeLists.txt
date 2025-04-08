@@ -1,7 +1,7 @@
 # created by xmake
 
 cmake_minimum_required(VERSION 3.21)
-project(xhui)
+project(xedit)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
@@ -107,10 +107,10 @@ list(APPEND DEPS Threads::Threads)
 
 
 #=======================================================================================
-#    target xhui
+#    target xedit
 #=======================================================================================
 
-add_executable(xhui
+add_executable(xedit
 	src/lib/any/any.cpp
 	src/lib/base/array.cpp
 	src/lib/base/pointer.cpp
@@ -214,22 +214,22 @@ add_executable(xhui
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp
 	src/main.cpp)
-target_include_directories(xhui PUBLIC ${INCLUDE_DIRECTORIES})
-target_link_directories(xhui PUBLIC ${LINK_DIRECTORIES})
-target_compile_options(xhui PUBLIC ${COMPILE_OPTIONS})
-target_compile_definitions(xhui PUBLIC ${COMPILE_DEFINITIONS}  INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
-target_link_libraries(xhui PUBLIC ${DEPS})
-target_include_directories(xhui PUBLIC src)
+target_include_directories(xedit PUBLIC ${INCLUDE_DIRECTORIES})
+target_link_directories(xedit PUBLIC ${LINK_DIRECTORIES})
+target_compile_options(xedit PUBLIC ${COMPILE_OPTIONS})
+target_compile_definitions(xedit PUBLIC ${COMPILE_DEFINITIONS}  INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(xedit PUBLIC ${DEPS})
+target_include_directories(xedit PUBLIC src)
 
 
 #=======================================================================================
 #    install
 #=======================================================================================
 
-set(RESOURCE_DESTINATION share/xhui)
+set(RESOURCE_DESTINATION share/xedit)
 
 # binaries
-install(TARGETS xhui DESTINATION bin)	
+install(TARGETS xedit DESTINATION bin)	
 
 # resources
 install(DIRECTORY "static" DESTINATION ${RESOURCE_DESTINATION})
