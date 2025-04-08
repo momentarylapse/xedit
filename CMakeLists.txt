@@ -192,6 +192,7 @@ add_executable(xhui
 	src/lib/xhui/controls/RadioButton.cpp
 	src/lib/xhui/controls/SpinButton.cpp
 	src/lib/xhui/controls/TabControl.cpp
+	src/lib/xhui/controls/ToggleButton.cpp
 	src/lib/xhui/controls/Toolbar.cpp
 	src/lib/xhui/controls/Viewport.cpp
 	src/lib/xhui/dialogs/ColorSelectionDialog.cpp
@@ -199,6 +200,7 @@ add_executable(xhui
 	src/lib/xhui/dialogs/MenuPopup.cpp
 	src/lib/xhui/dialogs/QuestionDialog.cpp
 	src/lib/xhui/draw/font.cpp
+	src/lib/xhui/ContextGL.cpp
 	src/lib/xhui/ContextVulkan.cpp
 	src/lib/xhui/Dialog.cpp
 	src/lib/xhui/language.cpp
@@ -215,7 +217,7 @@ add_executable(xhui
 target_include_directories(xhui PUBLIC ${INCLUDE_DIRECTORIES})
 target_link_directories(xhui PUBLIC ${LINK_DIRECTORIES})
 target_compile_options(xhui PUBLIC ${COMPILE_OPTIONS})
-target_compile_definitions(xhui PUBLIC ${COMPILE_DEFINITIONS} INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_compile_definitions(xhui PUBLIC ${COMPILE_DEFINITIONS}  INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(xhui PUBLIC ${DEPS})
 target_include_directories(xhui PUBLIC src)
 

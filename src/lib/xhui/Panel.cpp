@@ -1,7 +1,4 @@
 #include "Panel.h"
-
-#include <lib/base/algo.h>
-
 #include "Dialog.h"
 #include "Painter.h"
 #include "language.h"
@@ -24,8 +21,10 @@
 #include "controls/RadioButton.h"
 #include "controls/SpinButton.h"
 #include "controls/TabControl.h"
+#include "controls/ToggleButton.h"
 #include "controls/Toolbar.h"
 #include "controls/Viewport.h"
+#include "../base/algo.h"
 #include "../os/msg.h"
 
 namespace xhui {
@@ -48,7 +47,7 @@ void Panel::_draw(Painter *p) {
 void Panel::negotiate_area(const rect &available) {
 	_area = available;
 	if (top_control)
-		top_control->negotiate_area(smaller_rect(_area, padding));
+		top_control->negotiate_area(_area.grow(-padding));
 
 	/*Array<int> w, h;
 	get_grid_min_sizes(w, h);
@@ -83,7 +82,8 @@ void Panel::negotiate_area(const rect &available) {
 
 vec2 Panel::get_content_min_size() const {
 	if (top_control)
-		return top_control->get_content_min_size();
+		return top_control->get_effective_min_size() + vec2(padding, padding) * 2;
+		//return top_control->get_content_min_size();
 	return {0, 0};
 }
 
@@ -354,6 +354,8 @@ void Panel::add_control(const string &type, const string &_title, int x, int y, 
 		add_child(new SpinButton(id, title._float()), x, y);
 	else if (type == "TabControl")
 		add_child(new TabControl(id, title), x, y);
+	else if (type == "ToggleButton")
+		add_child(new ToggleButton(id, title), x, y);
 	else if (type == "Toolbar")
 		add_child(new Toolbar(id), x, y);
 	else if (type == "Viewport")
@@ -366,9 +368,7 @@ void Panel::add_control(const string &type, const string &_title, int x, int y, 
 //		add_slider(title, x, y, id);
 //	else if (type == "Image")
 //		add_image(title, x, y, id);
-/*	else if (type == "ToggleButton")
-		add_toggle_button(title, x, y, id);
-	else if ((type == "Expander") or (type == "Revealer"))
+/*	else if ((type == "Expander") or (type == "Revealer"))
 		add_expander(title, x, y, id);
 	else if (type == "Scroller")
 		add_scroller(title, x, y, id);

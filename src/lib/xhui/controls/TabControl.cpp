@@ -3,7 +3,7 @@
 //
 
 #include "TabControl.h"
-#include "Button.h"
+#include "ToggleButton.h"
 #include "Grid.h"
 #include "../Painter.h"
 #include "../Theme.h"
@@ -15,14 +15,17 @@ class TabControlHeader : public Grid {
 public:
 	explicit TabControlHeader(const string& id, const Array<string>& headers, const std::function<void(int)>& f) : Grid(id) {
 		callback = f;
+		spacing = 2;
 		for (const auto&& [i, h] : enumerate(headers)) {
-			auto b = new CallbackButton(id + i2s(i), h, [this, i=i] {
+			auto b = new CallbackToggleButton(id + i2s(i), h, [this, i=i] {
 				current_page = i;
 				update_buttons();
 				callback(i);
 			});
+			b->padding.x1 = b->padding.x2 = Theme::_default.button_margin_y;
 			b->size_mode_x = SizeMode::Shrink;
 			b->size_mode_y = SizeMode::Shrink;
+			b->flat = true;
 			Grid::add_child(b, i, 0);
 			buttons.add(b);
 		}
@@ -35,12 +38,11 @@ public:
 	}
 	void update_buttons() {
 		for (auto&& [i, b]: enumerate(buttons))
-			b->primary = (i == current_page);
-		request_redraw();
+			b->check(i == current_page);
 	}
 	int current_page;
 	std::function<void(int)> callback;
-	Array<CallbackButton*> buttons;
+	Array<CallbackToggleButton*> buttons;
 };
 
 TabControl::TabControl(const string& id, const string& title) : Control(id) {
@@ -59,10 +61,10 @@ vec2 TabControl::get_content_min_size() const {
 
 	for (const auto& p: pages)
 		if (p.child)
-			s = vec2::max(s, p.child->get_content_min_size());
+			s = vec2::max(s, p.child->get_effective_min_size());
 
 	{
-		vec2 cs = header->get_content_min_size();
+		vec2 cs = header->get_effective_min_size();
 		s.y += cs.y + Theme::_default.spacing;
 	}
 	return s;
@@ -71,7 +73,7 @@ vec2 TabControl::get_content_min_size() const {
 void TabControl::negotiate_area(const rect& available) {
 	_area = available;
 	{
-		vec2 s = header->get_content_min_size();
+		vec2 s = header->get_effective_min_size();
 		header->negotiate_area({available.p00(), available.p10() + vec2(0, s.y)});
 	}
 	for (auto& p: pages)

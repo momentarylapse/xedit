@@ -12,13 +12,25 @@ class Control;
 class HeaderBar;
 class Painter;
 class Dialog;
-#if HAS_LIB_VULKAN
-class ContextVulkan;
-#endif
+class Context;
 
 enum Flags {
 	NONE = 0,
 	OWN_DECORATION = 64
+};
+
+struct Event {
+	enum class Type {
+		MouseMove,
+		Scroll,
+		ButtonDown,
+		ButtonUp,
+		KeyDown,
+		KeyUp
+	} type;
+	vec2 param1 = {0, 0};
+	int param2 = 0;
+	int param3 = 0;
 };
 
 class Window : public Panel {
@@ -26,14 +38,15 @@ class Window : public Panel {
 	friend class Control;
 	friend class Panel;
 	friend class Dialog;
-	friend class ContextVulkan;
+	friend class Context;
 public:
 
 	Window(const string& title, int width, int height);
 	Window(const string& title, int width, int height, Flags flags);
 	~Window() override;
 
-	void _poll_events();
+	void _handle_events();
+	void _compress_events();
 
 	void redraw(const string& id);
 
@@ -52,9 +65,7 @@ public:
 	bool button_down(int index) const;
 	bool is_key_pressed(int key) const;
 	void set_mouse_mode(int mode);
-
-protected:
-	GLFWwindow *window;
+	vec2 mouse_position() const;
 
 	struct InputState {
 		vec2 m;
@@ -62,9 +73,16 @@ protected:
 		bool lbut, mbut, rbut;
 		bool key[256];
 		int key_code;
+		int key_char;
 	} state, state_prev;
 
+protected:
+	GLFWwindow *window;
+
+	Array<Event> event_stack;
+
 	static void _key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+	static void _char_callback(GLFWwindow* window, unsigned int codepoint);
 	static void _cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 	static void _cursor_enter_callback(GLFWwindow *window, int enter);
 	static void _mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
@@ -99,9 +117,7 @@ protected:
 
 	HeaderBar* header_bar = nullptr;
 
-#if HAS_LIB_VULKAN
-	ContextVulkan* context = nullptr;
-#endif
+	Context* context = nullptr;
 
 public:
 	struct Drag {

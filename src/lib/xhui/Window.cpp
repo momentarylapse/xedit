@@ -1,14 +1,15 @@
 #include "Window.h"
 
-#include <lib/os/time.h>
+#include <lib/base/algo.h>
 
 #include "xhui.h"
 #include "Painter.h"
-#include "ContextVulkan.h"
+#include "Context.h"
 #include "Dialog.h"
 #include "Theme.h"
 #include "controls/Control.h"
 #include "controls/HeaderBar.h"
+#include "../os/time.h"
 #include "../os/msg.h"
 
 
@@ -44,6 +45,7 @@ Window::Window(const string &_title, int w, int h, Flags _flags) : Panel(":windo
 	padding = Theme::_default.window_margin;
 
 	glfwSetKeyCallback(window, _key_callback);
+	glfwSetCharCallback(window, _char_callback);
 	glfwSetCursorPosCallback(window, _cursor_position_callback);
 	glfwSetCursorEnterCallback(window, _cursor_enter_callback);
 	glfwSetMouseButtonCallback(window, _mouse_button_callback);
@@ -158,6 +160,7 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 	//std::cout << "key " << k << "    " << key << " " << action << " " << mods << "\n";
 
 	w->state.key_code = k;
+	w->state.key_char = 0;
 
 	if (action == GLFW_PRESS or action == GLFW_REPEAT) {
 		//w->state.key
@@ -167,25 +170,27 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 	}
 }
 
+void Window::_char_callback(GLFWwindow* window, unsigned int codepoint) {
+	auto w = (Window*)glfwGetWindowUserPointer(window);
+	w->state.key_char = (int)codepoint;
+	w->_on_key_down(KEY_KEY_CODE);
+}
+
+
 static bool resync_next_mouse_move = false;
 
 void Window::_cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
 	//msg_write(format("mouse %f  %f", xpos, ypos));
 	auto w = (Window*)glfwGetWindowUserPointer(window);
-	w->state_prev.m = w->state.m;
+	Event e;
+	e.type = Event::Type::MouseMove;
 #ifdef OS_MAC
-	w->state.m.x = (float)xpos;
-	w->state.m.y = (float)ypos;
+	e.param1 = {(float)xpos, (float)ypos};
 #else
 	// why?!? this should be consistent...
-	w->state.m.x = (float)xpos / ui_scale;
-	w->state.m.y = (float)ypos / ui_scale;
+	e.param1 = {(float)xpos / ui_scale, (float)ypos / ui_scale};
 #endif
-	if (resync_next_mouse_move) {
-		w->state_prev.m = w->state.m;
-		resync_next_mouse_move = false;
-	}
-	w->_on_mouse_move(w->state.m, w->state.m - w->state_prev.m);
+	w->event_stack.add(e);
 }
 
 void Window::_cursor_enter_callback(GLFWwindow *window, int enter) {
@@ -236,10 +241,8 @@ void Window::_refresh_callback(GLFWwindow *window) {
 
 void Window::_resize_callback(GLFWwindow* window, int width, int height) {
 	auto w = (Window*)glfwGetWindowUserPointer(window);
-#if HAS_LIB_VULKAN
 	if (w->context)
 		w->context->resize(width, height);
-#endif
 	w->_refresh_requested = true;
 }
 
@@ -376,10 +379,8 @@ void Window::_on_key_up(int k) {
 
 
 void Window::_on_draw() {
-#if HAS_LIB_VULKAN
 	if (!context)
-		context = new ContextVulkan(this);
-#endif
+		context = new Context(this);
 	auto p = new Painter(this);
 	auto a = p->area();
 	_area = p->area();
@@ -397,14 +398,14 @@ void Window::_on_draw() {
 		p->draw_rect(a);
 		p->softness = 0;
 
-		a = smaller_rect(a, R_shadow);
+		a = a.grow(-R_shadow);
 
 		rect header = rect(a.x1, a.x2, a.y1, a.y1 + Theme::_default.headerbar_height);
 
 		// window border
 		p->set_roundness(R+1);
 		p->set_color(Theme::_default.border);
-		p->draw_rect(smaller_rect(a, -1));
+		p->draw_rect(a.grow(1));
 
 		// main background
 		p->accumulate_alpha = false;
@@ -431,7 +432,7 @@ void Window::_on_draw() {
 		p->set_color(color(0.3f, 0, 0, 0));
 		p->draw_rect(a);
 		const vec2 m = a.center();
-		const vec2 size = vec2(dlg->width, dlg->height);
+		const vec2 size = vec2((float)dlg->width, (float)dlg->height);
 		dlg->negotiate_area({m - size/2, m + size/2});
 		dlg->_draw(p);
 	}
@@ -462,7 +463,34 @@ void Window::_on_draw() {
 	delete p;
 }
 
-void Window::_poll_events() {
+void Window::_compress_events() {
+	// find last MouseMove event
+	int n = 0;
+	for (auto& e: event_stack)
+		if (e.type == Event::Type::MouseMove)
+			e.param2 = n ++;
+
+	// remove all other MouseMove events
+	base::remove_if(event_stack, [n] (const Event& e) {
+		return e.type == Event::Type::MouseMove and e.param2 < n - 1;
+	});
+}
+
+void Window::_handle_events() {
+	_compress_events();
+	for (const auto& e: event_stack) {
+		if (e.type == Event::Type::MouseMove) {
+			state_prev.m = state.m;
+			state.m = e.param1;
+			if (resync_next_mouse_move) {
+				state_prev.m = state.m;
+				resync_next_mouse_move = false;
+			}
+			_on_mouse_move(state.m, state.m - state_prev.m);
+		}
+	}
+	event_stack.clear();
+
 	if (_refresh_requested)
 		_on_draw();
 
@@ -549,6 +577,11 @@ void Window::set_mouse_mode(int mode) {
 	state_prev.m = state.m;
 	resync_next_mouse_move = true;
 }
+
+vec2 Window::mouse_position() const {
+	return state.m;
+}
+
 
 void Window::start_pre_drag(Control* source) {
 	drag.pre_distance = 0;

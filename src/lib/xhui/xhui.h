@@ -9,6 +9,11 @@ namespace vulkan {
 	class Texture;
 }
 #endif
+#if HAS_LIB_GL
+namespace nix {
+	class Texture;
+}
+#endif
 
 namespace font {
 	struct Face;
@@ -20,6 +25,13 @@ namespace xhui {
 
 void init(const Array<string> &arg, const string& app_name);
 void run();
+
+#if HAS_LIB_VULKAN
+	using Texture = vulkan::Texture;
+#endif
+#if HAS_LIB_GL
+	using Texture = nix::Texture;
+#endif
 
 extern float ui_scale;
 
@@ -149,6 +161,7 @@ enum {
 
 	NUM_KEYS,
 
+	KEY_KEY_CODE,
 	KEY_ANY,
 	KEY_CONTROL = 256,
 	KEY_SHIFT = 512,
@@ -183,22 +196,19 @@ struct XImage {
 	string uid;
 	Path filename;
 	owned<::Image> image;
-#if HAS_LIB_VULKAN
-	shared<vulkan::Texture> texture;
-#endif
+	shared<Texture> texture;
 	vec2 size() const;
 };
 
 XImage* load_image(const string& name);
 string create_image(const ::Image& im);
-#if HAS_LIB_VULKAN
-string texture_to_image(const shared<vulkan::Texture>& texture);
-#endif
+string texture_to_image(const shared<Texture>& texture);
 void delete_image(const string& name);
 void prepare_image(XImage* image);
 
 
 extern font::Face* default_font_regular;
 extern font::Face* default_font_bold;
+font::Face* pick_font(const string &font, float size, bool bold, bool italic);
 
 }
