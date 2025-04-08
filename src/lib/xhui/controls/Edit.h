@@ -26,17 +26,20 @@ public:
 	void draw_text(Painter* p);
 	void draw_active_marker(Painter* p);
 
+	// byte offset in text buffer
+	using Index = int;
+
 	bool multiline = false;
 	bool numerical = false;
 	bool show_focus_frame = true;
 	string font_name;
 	float font_size;
 	string text;
-	int cursor_pos = 0;
+	Index cursor_pos = 0;
 	bool enabled = true;
 	struct Cache {
 		Array<string> lines;
-		Array<int> line_first_index;
+		Array<Index> line_first_index;
 		Array<int> line_num_characters;
 		Array<float> line_height;
 		Array<float> line_y0;
@@ -49,8 +52,12 @@ public:
 		int line, offset;
 	};
 
-	LinePos index_to_line_pos(int index) const;
-	int line_pos_to_index(const LinePos& lp) const;
+	LinePos index_to_line_pos(Index index) const;
+	Index line_pos_to_index(const LinePos& lp) const;
+	Index prior_index(Index index) const;
+	Index next_index(Index index) const;
+
+
 
 	// override in SpinButton etc
 	virtual void on_edit() {}

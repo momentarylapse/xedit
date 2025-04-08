@@ -62,9 +62,9 @@ void Edit::on_key_down(int key) {
 	const auto cur_lp = index_to_line_pos(cursor_pos);
 
 	if (key == KEY_LEFT)
-		cursor_pos = clamp(cursor_pos - 1, 0, text.num);
+		cursor_pos = clamp(prior_index(cursor_pos), 0, text.num);
 	if (key == KEY_RIGHT)
-		cursor_pos = clamp(cursor_pos + 1, 0, text.num);
+		cursor_pos = clamp(next_index(cursor_pos), 0, text.num);
 	if (key == KEY_HOME)
 		cursor_pos = cache.line_first_index[cur_lp.line];
 	if (key == KEY_END)
@@ -80,15 +80,15 @@ void Edit::on_key_down(int key) {
 
 	if (key == KEY_BACKSPACE)
 		if (cursor_pos > 0) {
-			text = text.sub_ref(0, cursor_pos - 1) + text.sub_ref(cursor_pos);
+			text = text.sub_ref(0, prior_index(cursor_pos)) + text.sub_ref(cursor_pos);
 			cache.rebuild(text);
-			cursor_pos --;
+			cursor_pos = prior_index(cursor_pos);
 			on_edit();
 			emit_event(event_id::Changed, true);
 		}
 	if (key == KEY_DELETE)
 		if (cursor_pos < text.num) {
-			text = text.sub_ref(0, cursor_pos) + text.sub_ref(cursor_pos + 1);
+			text = text.sub_ref(0, cursor_pos) + text.sub_ref(next_index(cursor_pos));
 			cache.rebuild(text);
 			on_edit();
 			emit_event(event_id::Changed, true);
@@ -97,7 +97,7 @@ void Edit::on_key_down(int key) {
 	auto insert = [this] (int c) {
 		text = text.sub_ref(0, cursor_pos) + utf32_to_utf8({c}) + text.sub_ref(cursor_pos);
 		cache.rebuild(text);
-		cursor_pos ++;
+		cursor_pos = next_index(cursor_pos);
 		on_edit();
 		emit_event(event_id::Changed, true);
 	};
@@ -187,7 +187,8 @@ void Edit::_draw(Painter *p) {
 	draw_text(p);
 }
 
-Edit::LinePos Edit::index_to_line_pos(int index) const {
+// TODO count utf8 chars
+Edit::LinePos Edit::index_to_line_pos(Index index) const {
 	LinePos r = {0, 0};
 	for (const auto& [line, first]: enumerate(cache.line_first_index)) {
 		if (index < first)
@@ -197,13 +198,29 @@ Edit::LinePos Edit::index_to_line_pos(int index) const {
 	return r;
 }
 
-int Edit::line_pos_to_index(const LinePos& lp) const {
+// TODO count utf8 chars
+Edit::Index Edit::line_pos_to_index(const LinePos& lp) const {
 	if (lp.line < 0)
 		return 0;
 	if (lp.line >= cache.lines.num)
 		return text.num;
 	return cache.line_first_index[lp.line] + clamp(lp.offset, 0, cache.line_num_characters[lp.line]);
 }
+
+Edit::Index Edit::next_index(Index index) const {
+	for (int i=index; i<min(index + 8, text.num); i++)
+		if ((text[i] & 0x80) == 0x00 or (text[i] & 0xc0) == 0x80)
+			return i + 1;
+	return index;
+}
+
+Edit::Index Edit::prior_index(Index index) const {
+	for (int i=max(index-1,0); i>=index-8; i--)
+		if ((text[i] & 0x80) == 0x00 or (text[i] & 0xc0) == 0xc0)
+			return i;
+	return index;
+}
+
 
 void Edit::set_option(const string& key, const string& value) {
 	if (key == "focusframe") {
