@@ -14,6 +14,9 @@ Edit::Edit(const string &_id, const string &t) : Control(_id) {
 	size_mode_x = SizeMode::Expand;
 	size_mode_y = SizeMode::Shrink;
 
+	font_name = Theme::_default.font_name;
+	font_size = Theme::_default.font_size;
+
 	Edit::set_string(t);
 }
 
@@ -115,7 +118,7 @@ void Edit::draw_active_marker(Painter* p) {
 }
 
 void Edit::draw_text(Painter* p) {
-	p->set_font(Theme::_default.font_name, Theme::_default.font_size, false, false);
+	p->set_font(font_name, font_size, false, false);
 
 	// update text dims
 	float inner_height = 0;
@@ -126,7 +129,7 @@ void Edit::draw_text(Painter* p) {
 		cache.line_width.clear();
 		float y0 = _area.y1 + 8;
 		for (const string &l: lines) {
-			auto dim = default_font_regular->get_text_dimensions(l);
+			auto dim = p->face->get_text_dimensions(l);
 			inner_height = dim.inner_height() / ui_scale;
 			cache.line_height.add(dim.line_dy / ui_scale);
 			cache.line_y0.add(y0);
@@ -149,14 +152,13 @@ void Edit::draw_text(Painter* p) {
 
 	// cursor
 	if (has_focus() and enabled) {
-		p->set_font(Theme::_default.font_name, Theme::_default.font_size, false, false);
 		auto lp = index_to_line_pos(cursor_pos);
 		int first = cache.line_first_index[lp.line];
-		auto dim = default_font_regular->get_text_dimensions(text.sub_ref(first, cursor_pos));
+		auto dim = p->face->get_text_dimensions(text.sub_ref(first, cursor_pos));
 		//p->set_color(Theme::_default.text_label);
 		float x = x0 + dim.bounding_width / ui_scale;
 		float y0 = cache.line_y0[lp.line];
-		p->draw_line({x, y0 - 3}, {x, y0 + Theme::_default.font_size + 3});
+		p->draw_line({x, y0 - 3}, {x, y0 + font_size + 3});
 	}
 }
 
@@ -206,6 +208,10 @@ int Edit::line_pos_to_index(const LinePos& lp) const {
 void Edit::set_option(const string& key, const string& value) {
 	if (key == "focusframe") {
 		show_focus_frame = value._bool();
+	} else if (key == "font") {
+		font_name = value;
+	} else if (key == "fontsize") {
+		font_size = value._float();
 	} else {
 		Control::set_option(key, value);
 	}

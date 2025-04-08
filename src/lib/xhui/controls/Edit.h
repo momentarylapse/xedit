@@ -29,6 +29,8 @@ public:
 	bool multiline = false;
 	bool numerical = false;
 	bool show_focus_frame = true;
+	string font_name;
+	float font_size;
 	string text;
 	int cursor_pos = 0;
 	bool enabled = true;

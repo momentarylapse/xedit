@@ -63,8 +63,14 @@ Face* load_face(const string& name, bool bold, bool italic) {
 		return true;
 	};
 
+	string namex = name;
+	if (bold)
+		namex = name + " Bold";
+
 	//msg_write(os::fs::current_directory().str());
 	if (!try_load_font(format("/System/Library/Fonts/%s.ttc", name)))
+	if (!try_load_font(format("/System/Library/Fonts/Supplemental/%s.ttc", name)))
+	if (!try_load_font(format("/System/Library/Fonts/Supplemental/%s.ttf", namex)))
 	if (!try_load_font(format("/usr/share/fonts/noto/%s-%s.ttf", name, type)))
 	if (!try_load_font(format("/usr/share/fonts/open-sans/%s-%s.ttf", name, type)))
 	if (!try_load_font(format("static/%s-%s.ttf", name, type))) {

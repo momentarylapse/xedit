@@ -209,6 +209,8 @@ void prepare_image(XImage* image);
 
 extern font::Face* default_font_regular;
 extern font::Face* default_font_bold;
+extern font::Face* default_font_mono_regular;
+extern font::Face* default_font_mono_bold;
 font::Face* pick_font(const string &font, float size, bool bold, bool italic);
 
 }
