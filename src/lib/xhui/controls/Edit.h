@@ -1,10 +1,21 @@
 #pragma once
 
+#include <lib/base/optional.h>
 #include <lib/xhui/draw/font.h>
 
 #include "Control.h"
 
 namespace xhui {
+
+enum class FontFlags {
+	None = 0,
+	Bold = 1,
+	Italic = 2,
+	Underline = 4
+};
+
+FontFlags operator|(FontFlags a, FontFlags b);
+bool operator&(FontFlags a, FontFlags b);
 
 class Edit : public Control {
 public:
@@ -74,6 +85,14 @@ public:
 	vec2 index_to_xy(Index index) const;
 	Index xy_to_index(const vec2& pos) const;
 
+	struct Markup {
+		Index i0 = 0, i1 = 0;
+		FontFlags flags = FontFlags::None;
+		color col;
+	};
+	Array<Markup> markups;
+	void add_markup(const Markup& m);
+	void clean_markup(Index i0, Index i1);
 
 
 	// override in SpinButton etc

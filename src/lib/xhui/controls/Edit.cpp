@@ -1,4 +1,8 @@
 #include "Edit.h"
+
+#include <lib/base/algo.h>
+#include <lib/base/sort.h>
+
 #include "../Painter.h"
 #include "../Theme.h"
 #include "../draw/font.h"
@@ -6,6 +10,14 @@
 #include "../../os/msg.h"
 
 namespace xhui {
+
+
+FontFlags operator|(FontFlags a, FontFlags b) {
+	return (FontFlags)((int)a | (int)b);
+}
+bool operator&(FontFlags a, FontFlags b) {
+	return (int)a & (int)b;
+}
 
 int next_utf8_index(const string& text, int index) {
 	for (int i=index; i<min(index + 8, text.num); i++)
@@ -221,11 +233,50 @@ void Edit::draw_text(Painter* p) {
 
 
 	// text
-	p->set_color(Theme::_default.text_label);
+	color col0 = Theme::_default.text_label;
 	if (!enabled)
-		p->set_color(Theme::_default.text_disabled);
+		col0 = Theme::_default.text_disabled;
+	p->set_color(col0);
 	for (const auto& [line, l]: enumerate(cache.lines)) {
-		p->draw_str({text_x0, cache.line_y0[line]}, l);
+		if (markups.num > 0) {
+			int i0 = cache.line_first_index[line];
+			int i1 = i0 + l.num;
+			float x0 = text_x0;
+			for (const auto& m: markups) {
+				if (m.i1 >= i0 and m.i0 <= i1) {
+					if (m.i0 > i0) {
+						// before marker
+						p->set_font(font_name, font_size, false, false);
+						p->set_color(col0);
+						string t = text.sub(i0, m.i0);
+						p->draw_str({x0, cache.line_y0[line]}, t);
+						x0 += p->get_str_width(t);
+						i0 = m.i0;
+					}
+
+					{
+						// marker
+						p->set_color(m.col);
+						p->set_font(font_name, font_size, m.flags & FontFlags::Bold, m.flags & FontFlags::Italic);
+						string t = text.sub(i0, min(m.i1, i1));
+						p->draw_str({x0, cache.line_y0[line]}, t);
+						x0 += p->get_str_width(t);
+						i0 = min(m.i1, i1);
+					}
+				}
+			}
+
+			if (i0 < i1) {
+				// after markers
+				p->set_color(col0);
+				p->set_font(font_name, font_size, false, false);
+				string t = text.sub(i0, i1);
+				p->draw_str({x0, cache.line_y0[line]}, t);
+			}
+
+		} else {
+			p->draw_str({text_x0, cache.line_y0[line]}, l);
+		}
 	}
 
 	// cursor
@@ -253,6 +304,14 @@ void Edit::delete_selection() {
 void Edit::replace_range(Index _i0, Index _i1, const string& t) {
 	auto i0 = min(_i0, _i1);
 	auto i1 = max(_i0, _i1);
+
+	clean_markup(i0, i1);
+	for (auto& m: markups)
+		if (m.i0 >= i1) {
+			m.i0 += (i0 - i1) + t.num;
+			m.i1 += (i0 - i1) + t.num;
+		}
+
 	text = text.sub_ref(0, i0) + t + text.sub_ref(i1);
 	cache.rebuild(text);
 	if (cursor_pos >= i1)
@@ -362,6 +421,39 @@ Edit::Index Edit::next_index(Index index) const {
 Edit::Index Edit::prior_index(Index index) const {
 	return prior_utf8_index(text, index);
 }
+
+void Edit::add_markup(const Markup& m) {
+	markups.add(m);
+	base::inplace_sort(markups, [] (const Markup& a, const Markup& b) {
+		return a.i0 <= b.i0;
+	});
+	request_redraw();
+}
+
+void Edit::clean_markup(Index i0, Index i1) {
+	// markup completely covered? -> remove
+	base::remove_if(markups, [i0, i1] (const Markup& m) {
+		return i0 <= m.i0 and i1 >= m.i1;
+	});
+	// shink?
+	for (auto& m: markups) {
+		if (m.i0 >= i0 and m.i0 <= i1)
+			m.i0 = i1;
+		if (m.i1 >= i0 and m.i1 <= i1)
+			m.i1 = i0;
+	}
+	// middle of markup?
+	Array<Markup> to_add;
+	for (auto& m: markups)
+		if (i0 > m.i0 and i1 < m.i1) {
+			to_add.add({i1, m.i1, m.flags, m.col});
+			m.i1 = i0;
+		}
+	for (const auto& m: to_add)
+		add_markup(m);
+	request_redraw();
+}
+
 
 
 void Edit::set_option(const string& key, const string& value) {

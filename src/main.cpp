@@ -22,6 +22,9 @@ Window test 'test' padding=0
 )foodelim");
 
 	w->set_string("edit", os::fs::read_text("xmake.conf"));
+	auto edit = (xhui::MultilineEdit*)w->get_control("edit");
+	edit->add_markup({5, 20, xhui::FontFlags::Bold, Red});
+	edit->add_markup({30, 40, xhui::FontFlags::Bold, Green});
 
 	w->focus("edit");
 
