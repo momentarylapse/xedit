@@ -282,7 +282,7 @@ void Edit::draw_text(Painter* p) {
 	// cursor
 	if (has_focus() and enabled) {
 		const vec2 pos = index_to_xy(cursor_pos);
-		p->draw_line({pos.x, pos.y - 3}, {pos.x, pos.y + font_size + 3});
+		p->draw_line({pos.x, pos.y}, {pos.x, pos.y + cache.line_height[0]});
 	}
 	p->set_clip(clip0);
 }
@@ -459,10 +459,16 @@ void Edit::clean_markup(Index i0, Index i1) {
 void Edit::set_option(const string& key, const string& value) {
 	if (key == "focusframe") {
 		show_focus_frame = value._bool();
+		request_redraw();
 	} else if (key == "font") {
 		font_name = value;
+		request_redraw();
+	} else if (key == "monospace") {
+		font_name = "monospace";
+		request_redraw();
 	} else if (key == "fontsize") {
 		font_size = value._float();
+		request_redraw();
 	} else {
 		Control::set_option(key, value);
 	}

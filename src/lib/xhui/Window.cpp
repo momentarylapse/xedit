@@ -504,6 +504,7 @@ void Window::_handle_events() {
 
 void Window::set_title(const string& t) {
 	title = t;
+	glfwSetWindowTitle(window, t.c_str());
 	redraw("");
 }
 

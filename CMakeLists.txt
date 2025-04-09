@@ -156,6 +156,7 @@ add_executable(xedit
 	src/lib/os/stream.cpp
 	src/lib/os/terminal.cpp
 	src/lib/os/time.cpp
+	src/lib/pattern/Observable.cpp
 	src/lib/vulkan/AccelerationStructure.cpp
 	src/lib/vulkan/Buffer.cpp
 	src/lib/vulkan/CommandBuffer.cpp
@@ -213,6 +214,8 @@ add_executable(xedit
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp
+	src/DocumentEditor.cpp
+	src/EditorWindow.cpp
 	src/main.cpp)
 target_include_directories(xedit PUBLIC ${INCLUDE_DIRECTORIES})
 target_link_directories(xedit PUBLIC ${LINK_DIRECTORIES})
