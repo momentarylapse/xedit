@@ -57,6 +57,12 @@ public:
 		void rebuild(const string& text);
 	} cache;
 
+	void delete_range(Index i0, Index i1);
+	void delete_selection();
+	void replace_range(Index i0, Index i1, const string& t);
+	void auto_insert(const string& t);
+	string get_range(Index i0, Index i1) const;
+
 	struct LinePos {
 		int line, offset;
 	};

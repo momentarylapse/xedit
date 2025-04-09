@@ -52,6 +52,11 @@ int run_repeated(float dt, Callback f);
 int run_later(float dt, Callback f);
 void cancel_runner(int id);
 
+namespace clipboard {
+	void copy(const string& text);
+	string paste();
+}
+
 enum class Align {
 	RIGHT = 1,
 	CENTER_H = 2,
@@ -165,7 +170,8 @@ enum {
 	KEY_ANY,
 	KEY_CONTROL = 256,
 	KEY_SHIFT = 512,
-	KEY_ALT = 1024
+	KEY_ALT = 1024,
+	KEY_SUPER = 2048 // mac: command
 };
 
 namespace event_id {

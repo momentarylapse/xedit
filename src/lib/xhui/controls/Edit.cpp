@@ -81,7 +81,6 @@ void Edit::on_mouse_move(const vec2& m, const vec2& d) {
 	}
 }
 
-
 void Edit::on_key_down(int key) {
 	if (!enabled) {
 		request_redraw();
@@ -89,72 +88,79 @@ void Edit::on_key_down(int key) {
 	}
 	const auto cur_lp = index_to_line_pos(cursor_pos);
 
-	if (key == KEY_LEFT)
-		set_cursor_pos(clamp(prior_index(cursor_pos), 0, text.num));
-	if (key == KEY_RIGHT)
-		set_cursor_pos(clamp(next_index(cursor_pos), 0, text.num));
-	if (key == KEY_HOME)
-		set_cursor_pos(cache.line_first_index[cur_lp.line]);
-	if (key == KEY_END)
-		set_cursor_pos(cache.line_first_index[cur_lp.line] + cache.line_num_characters[cur_lp.line]);
+	bool shift = (key & KEY_SHIFT);
+	int key_no_shift = key & ~KEY_SHIFT;
 
-	auto jump_lines = [this, cur_lp] (int dlines) {
-		set_cursor_pos(line_pos_to_index({cur_lp.line + dlines, cur_lp.offset}));
+	if (key_no_shift == KEY_LEFT)
+		set_cursor_pos(clamp(prior_index(cursor_pos), 0, text.num), shift);
+	if (key_no_shift == KEY_RIGHT)
+		set_cursor_pos(clamp(next_index(cursor_pos), 0, text.num), shift);
+#ifdef OS_MAC
+	if (key_no_shift == KEY_LEFT + KEY_ALT)
+#else
+	if (key_no_shift == KEY_HOME)
+#endif
+		set_cursor_pos(cache.line_first_index[cur_lp.line], shift);
+#ifdef OS_MAC
+	if (key_no_shift == KEY_RIGHT + KEY_ALT)
+#else
+	if (key_no_shift == KEY_END)
+#endif
+		set_cursor_pos(cache.line_first_index[cur_lp.line] + cache.line_num_characters[cur_lp.line], shift);
+
+	auto jump_lines = [this, cur_lp, shift] (int dlines) {
+		set_cursor_pos(line_pos_to_index({cur_lp.line + dlines, cur_lp.offset}), shift);
 	};
-	if (key == KEY_UP and multiline)
+	if (key_no_shift == KEY_UP and multiline)
 		jump_lines(-1);
-	if (key == KEY_DOWN and multiline)
+	if (key_no_shift == KEY_DOWN and multiline)
 		jump_lines(1);
 
-	auto delete_selection = [this] {
-		auto i0 = min(cursor_pos, selection_start);
-		auto i1 = max(cursor_pos, selection_start);
-		text = text.sub_ref(0, i0) + text.sub_ref(i1);
-		cache.rebuild(text);
-		set_cursor_pos(i0);
-		on_edit();
-		emit_event(event_id::Changed, true);
-	};
+#ifdef OS_MAC
+	if (key == KEY_C + KEY_SUPER)
+#else
+	if (key == KEY_C + KEY_CONTROL)
+#endif
+		clipboard::copy(get_range(selection_start, cursor_pos));
+#ifdef OS_MAC
+	if (key == KEY_V + KEY_SUPER)
+#else
+	if (key == KEY_V + KEY_CONTROL)
+#endif
+		auto_insert(clipboard::paste());
+#ifdef OS_MAC
+	if (key == KEY_X + KEY_SUPER) {
+#else
+	if (key == KEY_X + KEY_CONTROL) {
+#endif
+		clipboard::copy(get_range(selection_start, cursor_pos));
+		delete_selection();
+	}
 
 	if (key == KEY_BACKSPACE) {
 		if (cursor_pos != selection_start) {
 			delete_selection();
 		} else if (cursor_pos > 0) {
-			text = text.sub_ref(0, prior_index(cursor_pos)) + text.sub_ref(cursor_pos);
-			cache.rebuild(text);
-			set_cursor_pos(prior_index(cursor_pos));
-			on_edit();
-			emit_event(event_id::Changed, true);
+			delete_range(prior_index(cursor_pos), cursor_pos);
 		}
 	}
 	if (key == KEY_DELETE) {
 		if (cursor_pos != selection_start) {
 			delete_selection();
 		} else if (cursor_pos < text.num) {
-			text = text.sub_ref(0, cursor_pos) + text.sub_ref(next_index(cursor_pos));
-			cache.rebuild(text);
-			on_edit();
-			emit_event(event_id::Changed, true);
+			delete_range(cursor_pos, next_index(cursor_pos));
 		}
 	}
-
-	auto insert = [this] (int c) {
-		text = text.sub_ref(0, cursor_pos) + utf32_to_utf8({c}) + text.sub_ref(cursor_pos);
-		cache.rebuild(text);
-		set_cursor_pos(next_index(cursor_pos));
-		on_edit();
-		emit_event(event_id::Changed, true);
-	};
 
 	if (key == KEY_KEY_CODE) {
 		auto c = owner->get_window()->state.key_char;
 		if (c != '\n' or multiline)
-			insert(c);
+			auto_insert(utf32_to_utf8({c}));
 	}
 	if (key == KEY_RETURN and multiline)
-		insert('\n');
+		auto_insert("\n");
 	if (key == KEY_TAB and multiline)
-		insert('\t');
+		auto_insert("\t");
 
 	request_redraw();
 }
@@ -228,6 +234,37 @@ void Edit::draw_text(Painter* p) {
 		p->draw_line({pos.x, pos.y - 3}, {pos.x, pos.y + font_size + 3});
 	}
 	p->set_clip(clip0);
+}
+
+string Edit::get_range(Index _i0, Index _i1) const {
+	auto i0 = min(_i0, _i1);
+	auto i1 = max(_i0, _i1);
+	return text.sub_ref(i0, i1);
+}
+
+void Edit::delete_range(Index i0, Index i1) {
+	replace_range(i0, i1, "");
+}
+
+void Edit::delete_selection() {
+	delete_range(selection_start, cursor_pos);
+}
+
+void Edit::replace_range(Index _i0, Index _i1, const string& t) {
+	auto i0 = min(_i0, _i1);
+	auto i1 = max(_i0, _i1);
+	text = text.sub_ref(0, i0) + t + text.sub_ref(i1);
+	cache.rebuild(text);
+	if (cursor_pos >= i1)
+		set_cursor_pos(cursor_pos - (i1 - i0) + t.num);
+	else if (cursor_pos >= i0)
+		set_cursor_pos(i0 + t.num);
+	on_edit();
+	emit_event(event_id::Changed, true);
+}
+
+void Edit::auto_insert(const string& t) {
+	replace_range(selection_start, cursor_pos, t);
 }
 
 void Edit::set_cursor_pos(Index index, bool selecting) {

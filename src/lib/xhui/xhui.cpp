@@ -334,6 +334,17 @@ void run() {
 	};
 }
 
+namespace clipboard {
+	void copy(const string& text) {
+		glfwSetClipboardString(nullptr, text.c_str());
+	}
+	string paste() {
+		if (const char* text = glfwGetClipboardString(nullptr))
+			return text;
+		return "";
+	}
+}
+
 namespace event_id {
 	const string Activate = "hui:activate";
 	const string Close = "hui:close";

@@ -131,14 +131,14 @@ int key_decode(int key) {
 
 int mods_decode(int mods) {
 	int r = 0;
-	if (mods == GLFW_MOD_SHIFT)
-		r += xhui::KEY_SHIFT;
-	if (mods == GLFW_MOD_CONTROL)
-		r += xhui::KEY_CONTROL;
-	if (mods == GLFW_MOD_ALT)
-		r += xhui::KEY_ALT;
-	//if (mods == GLFW_MOD_SUPER)
-	//	r += xhui::KEY_SUPER;
+	if (mods & GLFW_MOD_SHIFT)
+		r += KEY_SHIFT;
+	if (mods & GLFW_MOD_CONTROL)
+		r += KEY_CONTROL;
+	if (mods & GLFW_MOD_ALT)
+		r += KEY_ALT;
+	if (mods & GLFW_MOD_SUPER)
+		r += KEY_SUPER;
 	return r;
 }
 
@@ -157,7 +157,7 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 	}
 
 	k += mods_decode(mods);
-	//std::cout << "key " << k << "    " << key << " " << action << " " << mods << "\n";
+	//msg_write(format("key  %d  %d  %d  %d", k, key, action, mods));
 
 	w->state.key_code = k;
 	w->state.key_char = 0;
