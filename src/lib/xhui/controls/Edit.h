@@ -32,6 +32,7 @@ public:
 	//void on_mouse_leave() override;
 	void on_left_button_down(const vec2& m) override;
 	void on_mouse_move(const vec2& m, const vec2& d) override;
+	void on_mouse_wheel(const vec2& d) override;
 	//void on_left_button_up() override;
 	void on_key_down(int key) override;
 
@@ -48,6 +49,7 @@ public:
 	bool multiline = false;
 	bool numerical = false;
 	bool show_focus_frame = true;
+	float margin_x, margin_y;
 	string font_name;
 	float font_size;
 	int tab_size;
@@ -55,6 +57,7 @@ public:
 	string text;
 	Index cursor_pos = 0;
 	Index selection_start = 0;
+	vec2 viewport_offset = {0,0};
 	bool enabled = true;
 	float text_x0 = 0;
 	struct Cache {
@@ -64,6 +67,7 @@ public:
 		Array<float> line_height;
 		Array<float> line_y0;
 		Array<float> line_width;
+		vec2 content_size;
 
 		void rebuild(const string& text);
 	} cache;

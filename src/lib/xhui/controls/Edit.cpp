@@ -43,6 +43,9 @@ Edit::Edit(const string &_id, const string &t) : Control(_id) {
 	font_name = Theme::_default.font_name;
 	font_size = Theme::_default.font_size;
 
+	margin_x = Theme::_default.edit_margin_x;
+	margin_y = 8;
+
 	tab_size = 4;
 	face = nullptr;
 
@@ -92,6 +95,13 @@ void Edit::on_mouse_move(const vec2& m, const vec2& d) {
 		set_cursor_pos(xy_to_index(m), true);
 	}
 }
+
+void Edit::on_mouse_wheel(const vec2& d) {
+	auto mm = cache.content_size - _area.size();
+	viewport_offset = vec2::max(vec2::min(viewport_offset - d * 10, mm), vec2::ZERO);
+	request_redraw();
+}
+
 
 void Edit::on_key_down(int key) {
 	if (!enabled) {
@@ -187,7 +197,7 @@ void Edit::draw_text(Painter* p) {
 	p->set_font(font_name, font_size, false, false);
 	face = p->face;
 
-	text_x0 = _area.x1 + Theme::_default.edit_margin_x;
+	text_x0 = _area.x1 + margin_x - viewport_offset.x;
 
 	// update text dims
 	float inner_height = 0;
@@ -196,14 +206,17 @@ void Edit::draw_text(Painter* p) {
 		cache.line_y0.clear();
 		cache.line_height.clear();
 		cache.line_width.clear();
-		float y0 = _area.y1 + 8;
+		float y0 = _area.y1 + margin_y - viewport_offset.y;
+		cache.content_size = {0,0};
 		for (const string &l: lines) {
 			auto dim = face->get_text_dimensions(l);
 			inner_height = dim.inner_height() / ui_scale;
 			cache.line_height.add(dim.line_dy / ui_scale);
 			cache.line_y0.add(y0);
 			cache.line_width.add(dim.dx / ui_scale);
+			cache.content_size.x = max(cache.content_size.x, dim.dx / ui_scale);
 			y0 += dim.line_dy / ui_scale;
+			cache.content_size.y += dim.line_dy / ui_scale;
 		}
 		if (!multiline)
 			cache.line_y0[0] = _area.center().y - inner_height / 2;
