@@ -73,7 +73,7 @@ DocumentEditor* EditorWindow::create_document_editor() {
 	auto edit = (xhui::MultilineEdit*)get_control(id);
 	edit->set_option("focusframe", "no");
 	edit->set_option("monospace", "");
-	edit->set_option("fontsize", "15");
+	edit->set_option("fontsize", "14");
 
 
 	auto e = new DocumentEditor(edit);

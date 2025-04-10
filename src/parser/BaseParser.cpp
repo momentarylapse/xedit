@@ -101,8 +101,6 @@ void Parser::CreateTextColors(DocumentEditor *sv, int first_line, int last_line)
 }
 
 
-#define next_char()	p=g_utf8_next_char(p);pos++
-#define set_mark()	sv->mark_word(l, pos0, pos, in_type, p0, p);p0=p;pos0=pos
 #define begin_token(t) (string(p, t.num) == t)
 #define skip_token_almost(t) p+=(t.num-1);pos+=(t.num-1)
 #define skip_token(t) p+=t.num;pos+=t.num
@@ -111,7 +109,7 @@ void Parser::CreateTextColorsDefault(DocumentEditor *sv, int first_line, int las
 	if (sv->edit->text.num > MAX_HIGHLIGHTING_SIZE)
 		return;
 
-#if 0
+
 	//update_symbols(sv);
 
 	int comment_level = 0;
@@ -127,6 +125,7 @@ void Parser::CreateTextColorsDefault(DocumentEditor *sv, int first_line, int las
 
 
 	for (int l=first_line; l<=last_line; l++) {
+		int i0 = sv->line_start(l);
 		string s = sv->get_line(l);
 
 		char *p = (char*)&s[0];
@@ -137,9 +136,25 @@ void Parser::CreateTextColorsDefault(DocumentEditor *sv, int first_line, int las
 			in_type = IN_STRING;
 		int pos0 = 0;
 		int pos = 0;
-		int num_uchars = g_utf8_strlen(p, s.num);
+
+		auto next_char = [&] {
+			p ++;
+			pos ++;
+		};
+		auto set_mark = [&] {
+			if (in_type == IN_WORD) {
+				int type2 = WordType(s.sub_ref(pos0, pos));
+				if (type2 >= 0)
+					in_type = type2;
+			}
+			sv->mark_word(i0 + pos0, i0 + pos, in_type);
+			p0 = p;
+			pos0 = pos;
+		};
+
+		//int num_uchars = g_utf8_strlen(p, s.num);
 		bool prev_was_escape = false;
-		while (pos < num_uchars) {
+		while (pos < s.num) {
 			int type = char_type(*p);
 			// still in a string?
 			if (in_type == IN_STRING) {
@@ -237,9 +252,8 @@ void Parser::CreateTextColorsDefault(DocumentEditor *sv, int first_line, int las
 			next_char();
 		}
 		if (s.num > 0)
-			sv->mark_word(l, pos0, num_uchars, in_type, p0, (char*)&s[s.num]);
+			sv->mark_word(i0 + pos0, i0 + s.num, in_type);
 	}
-#endif
 }
 
 
