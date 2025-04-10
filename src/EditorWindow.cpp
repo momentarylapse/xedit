@@ -1,12 +1,12 @@
 #include "EditorWindow.h"
-
-#include <lib/os/file.h>
-#include <lib/os/filesystem.h>
-
 #include "DocumentEditor.h"
+#include "dialogs/DocumentSwitcher.h"
 #include <lib/xhui/xhui.h>
 #include <lib/xhui/dialogs/FileSelectionDialog.h>
 #include <lib/xhui/controls/MultilineEdit.h>
+#include <lib/os/file.h>
+#include <lib/os/filesystem.h>
+#include <lib/os/msg.h>
 
 EditorWindow::EditorWindow() : obs::Node<Window>("", 800, 600) {
 	from_source(R"foodelim(
@@ -24,7 +24,8 @@ Window test 'test' padding=0
 	set_key_code("open", xhui::KEY_O + mod);
 	set_key_code("save", xhui::KEY_S + mod);
 	set_key_code("save-as", xhui::KEY_S + mod + xhui::KEY_SHIFT);
-	set_key_code("next-document", xhui::KEY_TAB + xhui::KEY_CONTROL);
+	set_key_code("next-document", xhui::KEY_TAB + xhui::KEY_ALT);//xhui::KEY_CONTROL);
+	set_key_code("previous-document", xhui::KEY_TAB + xhui::KEY_SHIFT + xhui::KEY_ALT);//xhui::KEY_CONTROL);
 
 
 	event("new", [this] {
@@ -37,7 +38,31 @@ Window test 'test' padding=0
 		});
 		create_document_editor();
 	});
+	event("next-document", [this] {
+		if (switcher) {
+			switcher->next();
+		} else {
+			switcher = new DocumentSwitcher(this);
+			open_dialog(switcher);
+		}
+	});
+	event("previous-document", [this] {
+		if (switcher) {
+			switcher->previous();
+		} else {
+			switcher = new DocumentSwitcher(this);
+			open_dialog(switcher);
+		}
+	});
 }
+
+void EditorWindow::on_key_up(int key) {
+	if (key == xhui::KEY_LALT and switcher) {
+		switcher->request_destroy();
+		switcher = nullptr;
+	}
+}
+
 
 DocumentEditor* EditorWindow::create_document_editor() {
 	static int counter = 0;

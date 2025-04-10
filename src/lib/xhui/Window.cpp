@@ -112,6 +112,14 @@ int key_decode(int key) {
 		return xhui::KEY_LCONTROL;
 	if (key == GLFW_KEY_RIGHT_CONTROL)
 		return xhui::KEY_RCONTROL;
+	if (key == GLFW_KEY_LEFT_ALT)
+		return xhui::KEY_LALT;
+	if (key == GLFW_KEY_RIGHT_ALT)
+		return xhui::KEY_RALT;
+	/*if (key == GLFW_KEY_LEFT_SUPER)
+		return xhui::KEY_LSUPER;
+	if (key == GLFW_KEY_RIGHT_SUPER)
+		return xhui::KEY_RSUPER;*/
 	if (key == GLFW_KEY_PAGE_UP)
 		return xhui::KEY_PAGE_UP;
 	if (key == GLFW_KEY_PAGE_DOWN)
@@ -144,6 +152,7 @@ int mods_decode(int mods) {
 
 
 void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+	//msg_write(format("  glfw:  %d", key));
 	int k = key_decode(key);
 	if (k < 0)
 		return;
@@ -171,6 +180,7 @@ void Window::_key_callback(GLFWwindow *window, int key, int scancode, int action
 }
 
 void Window::_char_callback(GLFWwindow* window, unsigned int codepoint) {
+	//msg_write(format("  glfw  char:  %d", codepoint));
 	auto w = (Window*)glfwGetWindowUserPointer(window);
 	w->state.key_char = (int)codepoint;
 	w->_on_key_down(KEY_KEY_CODE);

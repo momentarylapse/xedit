@@ -4,10 +4,13 @@
 #include <lib/pattern/Observable.h>
 
 class DocumentEditor;
+class DocumentSwitcher;
 
 class EditorWindow : public obs::Node<xhui::Window> {
 public:
 	EditorWindow();
+
+	void on_key_up(int key) override;
 
 	DocumentEditor* create_document_editor();
 
@@ -16,5 +19,7 @@ public:
 	void set_active(DocumentEditor* editor);
 
 	void update_title();
+
+	DocumentSwitcher* switcher = nullptr;
 };
 

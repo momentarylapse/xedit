@@ -14,8 +14,10 @@ int xhui_main(const Array<string>& args) {
 
 	auto w = new EditorWindow();
 	if (args.num >= 2) {
-		auto e = w->create_document_editor();
-		e->load(args[1]);
+		for (int i=1; i<args.num; i++) {
+			auto e = w->create_document_editor();
+			e->load(args[i]);
+		}
 	} else {
 		auto e = w->create_document_editor();
 	}

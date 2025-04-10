@@ -111,6 +111,7 @@ list(APPEND DEPS Threads::Threads)
 #=======================================================================================
 
 add_executable(xedit
+	src/dialogs/DocumentSwitcher.cpp
 	src/lib/any/any.cpp
 	src/lib/base/array.cpp
 	src/lib/base/pointer.cpp
