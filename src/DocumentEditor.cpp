@@ -14,6 +14,8 @@ void DocumentEditor::load(const Path& _filename) {
 	edit->add_markup({5, 20, xhui::FontFlags::Bold, Red});
 	edit->add_markup({30, 40, xhui::FontFlags::Bold, Green});
 
+	edit->clear_history();
+
 	out_changed();
 }
 

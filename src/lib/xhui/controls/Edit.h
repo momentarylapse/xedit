@@ -74,6 +74,7 @@ public:
 
 	void delete_range(Index i0, Index i1);
 	void delete_selection();
+	void _replace_range(Index i0, Index i1, const string& t);
 	void replace_range(Index i0, Index i1, const string& t);
 	void auto_insert(const string& t);
 	string get_range(Index i0, Index i1) const;
@@ -97,6 +98,14 @@ public:
 	Array<Markup> markups;
 	void add_markup(const Markup& m);
 	void clean_markup(Index i0, Index i1);
+
+	struct Operation {
+		Index i0, i1;
+		string t;
+	};
+	Array<Operation> history;
+	int current_history_index = 0;
+	void clear_history();
 
 
 	// override in SpinButton etc

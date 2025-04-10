@@ -139,25 +139,34 @@ void Edit::on_key_down(int key) {
 	if (key_no_shift == KEY_DOWN and multiline)
 		jump_lines(1);
 
+
 #ifdef OS_MAC
-	if (key == KEY_C + KEY_SUPER)
+	int mod = KEY_SUPER;
 #else
-	if (key == KEY_C + KEY_CONTROL)
+	int mod = KEY_CONTROL;
 #endif
+
+	if (key == KEY_C + mod)
 		clipboard::copy(get_range(selection_start, cursor_pos));
-#ifdef OS_MAC
-	if (key == KEY_V + KEY_SUPER)
-#else
-	if (key == KEY_V + KEY_CONTROL)
-#endif
+	if (key == KEY_V + mod)
 		auto_insert(clipboard::paste());
-#ifdef OS_MAC
-	if (key == KEY_X + KEY_SUPER) {
-#else
-	if (key == KEY_X + KEY_CONTROL) {
-#endif
+	if (key == KEY_X + mod) {
 		clipboard::copy(get_range(selection_start, cursor_pos));
 		delete_selection();
+	}
+	if (key == KEY_Z + mod and current_history_index > 0) {
+		auto& op = history[-- current_history_index];
+		string old = get_range(op.i0, op.i1);
+		_replace_range(op.i0, op.i1, op.t);
+		op.i1 = op.i0 + op.t.num;
+		op.t = old;
+	}
+	if (key == KEY_Y + mod and current_history_index < history.num) {
+		auto& op = history[current_history_index ++];
+		string old = get_range(op.i0, op.i1);
+		_replace_range(op.i0, op.i1, op.t);
+		op.i1 = op.i0 + op.t.num;
+		op.t = old;
 	}
 
 	if (key == KEY_BACKSPACE) {
@@ -304,7 +313,7 @@ void Edit::draw_text(Painter* p) {
 string Edit::get_range(Index _i0, Index _i1) const {
 	auto i0 = min(_i0, _i1);
 	auto i1 = max(_i0, _i1);
-	return text.sub_ref(i0, i1);
+	return text.sub(i0, i1);
 }
 
 void Edit::delete_range(Index i0, Index i1) {
@@ -315,10 +324,8 @@ void Edit::delete_selection() {
 	delete_range(selection_start, cursor_pos);
 }
 
-void Edit::replace_range(Index _i0, Index _i1, const string& t) {
-	auto i0 = min(_i0, _i1);
-	auto i1 = max(_i0, _i1);
-
+// i0 <= i1
+void Edit::_replace_range(Index i0, Index i1, const string& t) {
 	clean_markup(i0, i1);
 	for (auto& m: markups)
 		if (m.i0 >= i1) {
@@ -334,6 +341,22 @@ void Edit::replace_range(Index _i0, Index _i1, const string& t) {
 		set_cursor_pos(i0 + t.num);
 	on_edit();
 	emit_event(event_id::Changed, true);
+}
+
+void Edit::clear_history() {
+	history.clear();
+	current_history_index = 0;
+}
+
+
+void Edit::replace_range(Index _i0, Index _i1, const string& t) {
+	auto i0 = min(_i0, _i1);
+	auto i1 = max(_i0, _i1);
+	string old = get_range(i0, i1);
+	history.resize(current_history_index);
+	history.add({i0, i0 + t.num, old});
+	current_history_index ++;
+	_replace_range(i0, i1, t);
 }
 
 void Edit::auto_insert(const string& t) {
