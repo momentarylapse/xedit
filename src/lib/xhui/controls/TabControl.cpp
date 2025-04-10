@@ -108,6 +108,10 @@ void TabControl::add_child(shared<Control> c, int x, int y) {
 		pages[x].child = c;
 		if (owner)
 			c->_register(owner);
+	} else if (x == pages.num) {
+		pages.add({"+", c});
+		if (owner)
+			c->_register(owner);
 	}
 }
 

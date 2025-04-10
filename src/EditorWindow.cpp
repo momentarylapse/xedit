@@ -1,5 +1,11 @@
 #include "EditorWindow.h"
+
+#include <lib/os/file.h>
+#include <lib/os/filesystem.h>
+
 #include "DocumentEditor.h"
+#include <lib/xhui/xhui.h>
+#include <lib/xhui/dialogs/FileSelectionDialog.h>
 #include <lib/xhui/controls/MultilineEdit.h>
 
 EditorWindow::EditorWindow() : obs::Node<Window>("", 800, 600) {
@@ -7,6 +13,30 @@ EditorWindow::EditorWindow() : obs::Node<Window>("", 800, 600) {
 Window test 'test' padding=0
 	TabControl tab 'a' bar=no
 )foodelim");
+
+#ifdef OS_MAC
+	int mod = xhui::KEY_SUPER;
+#else
+	int mod = xhui::KEY_CONTROL;
+#endif
+
+	set_key_code("new", xhui::KEY_N + mod);
+	set_key_code("open", xhui::KEY_O + mod);
+	set_key_code("save", xhui::KEY_S + mod);
+	set_key_code("save-as", xhui::KEY_S + mod + xhui::KEY_SHIFT);
+	set_key_code("next-document", xhui::KEY_TAB + xhui::KEY_CONTROL);
+
+
+	event("new", [this] {
+		create_document_editor();
+	});
+	event("open", [this] {
+		xhui::FileSelectionDialog::ask(this, "open..", os::fs::current_directory(), {}).then([this] (const Path& filename) {
+			auto e = create_document_editor();
+			e->load(filename);
+		});
+		create_document_editor();
+	});
 }
 
 DocumentEditor* EditorWindow::create_document_editor() {

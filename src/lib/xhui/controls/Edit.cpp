@@ -100,6 +100,7 @@ void Edit::on_mouse_wheel(const vec2& d) {
 	auto mm = cache.content_size - _area.size();
 	viewport_offset = vec2::max(vec2::min(viewport_offset - d * 10, mm), vec2::ZERO);
 	request_redraw();
+	emit_event(event_id::Scroll, false);
 }
 
 
