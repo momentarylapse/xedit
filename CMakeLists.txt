@@ -215,8 +215,18 @@ add_executable(xedit
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp
+	src/parser/BaseParser.cpp
+	src/parser/ParserC.cpp
+	src/parser/ParserCmake.cpp
+	src/parser/ParserHui.cpp
+	src/parser/ParserIni.cpp
+	src/parser/ParserKaba.cpp
+	src/parser/ParserPython.cpp
+	src/parser/ParserShader.cpp
+	src/parser/ParserText.cpp
 	src/DocumentEditor.cpp
 	src/EditorWindow.cpp
+	src/HighlightScheme.cpp
 	src/main.cpp)
 target_include_directories(xedit PUBLIC ${INCLUDE_DIRECTORIES})
 target_link_directories(xedit PUBLIC ${LINK_DIRECTORIES})

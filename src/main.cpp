@@ -1,5 +1,7 @@
 #include "EditorWindow.h"
 #include "DocumentEditor.h"
+#include "HighlightScheme.h"
+#include "parser/BaseParser.h"
 #include "lib/os/msg.h"
 #include "lib/xhui/xhui.h"
 
@@ -11,6 +13,10 @@ int xhui_main(const Array<string>& args) {
 		msg_error(e.message());
 		return 1;
 	}
+
+	HighlightScheme::init();
+	HighlightScheme::default_scheme = HighlightScheme::get("dark2");
+	InitParser();
 
 	auto w = new EditorWindow();
 	if (args.num >= 2) {
