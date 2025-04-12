@@ -162,7 +162,7 @@ void init(const Array<string> &arg, const string& app_name) {
 	if (!default_font_regular)
 		msg_error("no font found...");
 
-	Array<string> font_names_mono = {"Courier New", "FreeMono"};
+	Array<string> font_names_mono = {"Menlo", "Courier New", "FreeMono"};
 	for (const string& name: font_names_mono) {
 		if (!default_font_mono_regular)
 			default_font_mono_regular = font::load_face(name, false, false);

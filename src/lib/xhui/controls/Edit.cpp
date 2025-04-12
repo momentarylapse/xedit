@@ -2,6 +2,7 @@
 
 #include <lib/base/algo.h>
 #include <lib/base/sort.h>
+#include <lib/os/time.h>
 
 #include "../Painter.h"
 #include "../Theme.h"
@@ -10,6 +11,9 @@
 #include "../../os/msg.h"
 
 namespace xhui {
+
+
+//#define PERF_OUT
 
 
 FontFlags operator|(FontFlags a, FontFlags b) {
@@ -202,6 +206,10 @@ void Edit::draw_active_marker(Painter* p) {
 }
 
 void Edit::draw_text(Painter* p) {
+#ifdef PERF_OUT
+	os::Timer timer;
+#endif
+
 	const auto clip0 = p->clip();
 	p->set_clip(_area);
 	p->set_font(font_name, font_size, false, false);
@@ -221,12 +229,13 @@ void Edit::draw_text(Painter* p) {
 		for (const string &l: lines) {
 			auto dim = face->get_text_dimensions(l);
 			inner_height = dim.inner_height() / ui_scale;
-			cache.line_height.add(dim.line_dy / ui_scale);
+			float dy = dim.line_dy / ui_scale * line_height_scale;
+			cache.line_height.add(dy);
 			cache.line_y0.add(y0);
 			cache.line_width.add(dim.dx / ui_scale);
 			cache.content_size.x = max(cache.content_size.x, dim.dx / ui_scale);
-			y0 += dim.line_dy / ui_scale;
-			cache.content_size.y += dim.line_dy / ui_scale;
+			y0 += dy;
+			cache.content_size.y += dy;
 		}
 		if (!multiline)
 			cache.line_y0[0] = _area.center().y - inner_height / 2;
@@ -251,7 +260,6 @@ void Edit::draw_text(Painter* p) {
 			const vec2 pos1 = index_to_xy(b);
 			p->draw_rect({pos0.x, pos1.x, pos0.y, pos0.y + cache.line_height[0]});
 		}
-
 	}
 
 
@@ -261,6 +269,10 @@ void Edit::draw_text(Painter* p) {
 		col0 = Theme::_default.text_disabled;
 	p->set_color(col0);
 	for (const auto& [line, l]: enumerate(cache.lines)) {
+		if (cache.line_y0[line] + cache.line_height[line] < _area.y1)
+			continue;
+		if (cache.line_y0[line] > _area.y2)
+			continue;
 		if (markups.num > 0) {
 			int i0 = cache.line_first_index[line];
 			int i1 = i0 + l.num;
@@ -308,6 +320,11 @@ void Edit::draw_text(Painter* p) {
 		p->draw_line({pos.x, pos.y}, {pos.x, pos.y + cache.line_height[0]});
 	}
 	p->set_clip(clip0);
+
+#ifdef PERF_OUT
+	float t = timer.get();
+	msg_write(f2s(t * 1000, 2));
+#endif
 }
 
 string Edit::get_range(Index _i0, Index _i1) const {
@@ -411,6 +428,8 @@ void Edit::_draw(Painter *p) {
 
 	// background
 	color bg = Theme::_default.background_button;
+	if (alt_background)
+		bg = Theme::_default.background;
 	p->set_color(bg);
 	p->set_roundness(Theme::_default.button_radius);
 	p->draw_rect(_area);
@@ -506,6 +525,11 @@ void Edit::set_option(const string& key, const string& value) {
 	} else if (key == "fontsize") {
 		font_size = value._float();
 		request_redraw();
+	} else if (key == "lineheightscale") {
+		line_height_scale = value._float();
+		request_redraw();
+	} else if (key == "altbg") {
+		alt_background = true;
 	} else {
 		Control::set_option(key, value);
 	}

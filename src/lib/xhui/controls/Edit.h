@@ -52,8 +52,10 @@ public:
 	float margin_x, margin_y;
 	string font_name;
 	float font_size;
+	float line_height_scale = 1.0f;
 	int tab_size;
 	font::Face* face;
+	bool alt_background = false;
 	string text;
 	Index cursor_pos = 0;
 	Index selection_start = 0;

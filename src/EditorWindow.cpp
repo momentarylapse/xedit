@@ -76,7 +76,8 @@ DocumentEditor* EditorWindow::create_document_editor() {
 	edit->set_option("fontsize", "14");
 
 
-	auto e = new DocumentEditor(edit);
+	auto e = new DocumentEditor();
+	e->create_controls(this, document_editors.num);
 	document_editors.add(e);
 
 	e->out_changed >> create_sink([this] {

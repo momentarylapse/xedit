@@ -10,7 +10,8 @@ class MultilineEdit;
 
 class DocumentEditor : public obs::Node<VirtualBase> {
 public:
-	explicit DocumentEditor(xhui::MultilineEdit* edit);
+	explicit DocumentEditor();
+	void create_controls(xhui::Window* win, int index);
 
 	void load(const Path& filename);
 	string title() const;
@@ -26,6 +27,7 @@ public:
 	void clear_markings(int first_line, int last_line);
 
 	Path filename;
-	xhui::MultilineEdit* edit;
+	xhui::MultilineEdit* edit = nullptr;
+	string grid_id, lines_id, edit_id;
 };
 
