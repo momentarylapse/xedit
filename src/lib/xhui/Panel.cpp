@@ -108,15 +108,6 @@ vec2 Panel::get_greed_factor() const {
 
 
 
-Window* Panel::get_window() {
-	if (auto w = dynamic_cast<Window*>(this))
-		return w;
-	if (owner)
-		return owner->get_window();
-	return nullptr;
-}
-
-
 void Panel::add_child(shared<Control> c, int x, int y) {
 	if (target_control) {
 		target_control->add_child(c, x, y);
@@ -569,20 +560,21 @@ base::future<void> Panel::open_dialog(shared<Dialog> dialog) {
 		w->dialogs.add(dialog.get());
 	}
 	request_redraw();
-	return dialog->promise.get_future();
+	return dialog->basic_promise.get_future();
 }
 
 void Panel::close_dialog(Dialog* dialog) {
-	dialog->promise();
+	shared<Dialog> keep_alive = dialog;
+
 	for (int i=0; i<controls.num; i++)
 		if (controls[i] == (Control*)dialog) {
 			controls.erase(i);
 		}
 	if (auto w = get_window()) {
 		w->dialogs.pop();
-		// dialog might be deleted now!
 		w->hover_control = nullptr;
 	}
+	dialog->basic_promise();
 	request_redraw();
 }
 

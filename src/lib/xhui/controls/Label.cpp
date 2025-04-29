@@ -9,6 +9,7 @@ Label::Label(const string &_id, const string &t) : Control(_id) {
 	text_w = text_h = 0;
 	font_size = Theme::_default.font_size;
 	bold = false;
+	italic = false;
 	align = Align::Left;
 	margin.x1 = margin.x2 = 0;
 	margin.y1 = margin.y2 = Theme::_default.label_margin_y;
@@ -28,11 +29,13 @@ void Label::set_string(const string &s) {
 
 vec2 Label::get_content_min_size() const {
 	if (image) {
-		return {10,10};
+		return {20,20};
 	} else {
 		if (text_w < 0) {
-			default_font_regular->set_size(font_size * ui_scale);
-			auto dim = default_font_regular->get_text_dimensions(title);
+			if (auto win = get_window())
+				ui_scale = win->ui_scale;
+			auto face = pick_font(Theme::_default.font_name, bold, italic);
+			auto dim = get_cached_text_dimensions(title, face, font_size, ui_scale);
 			text_w = int(dim.bounding_width / ui_scale);
 			text_h = int(dim.inner_height() / ui_scale);
 		}
@@ -41,9 +44,14 @@ vec2 Label::get_content_min_size() const {
 }
 
 void Label::_draw(Painter *p) {
+	ui_scale = p->ui_scale;
+
 	if (image) {
 		prepare_image(image);
-		vec2 size = _area.size();
+		vec2 s1 = _area.size();
+		vec2 s2 = image->size();
+		float scale = min(s1.x / s2.x, s1.y / s2.y);
+		vec2 size = s2 * scale;
 		p->set_color(White);
 		if (!enabled)
 			p->set_color(White.with_alpha(0.35f));
@@ -53,8 +61,8 @@ void Label::_draw(Painter *p) {
 		if (!enabled)
 			p->set_color(Theme::_default.text_disabled);
 
-		p->set_font(Theme::_default.font_name, font_size, bold, false);
-		auto dim = p->face->get_text_dimensions(title);
+		p->set_font(Theme::_default.font_name, font_size, bold, italic);
+		auto dim = get_cached_text_dimensions(title, p->face, font_size, ui_scale);
 		float x = _area.x1 + margin.x1;
 		if (align == Align::Center)
 			x = _area.center().x - dim.bounding_width / ui_scale / 2;
@@ -67,7 +75,6 @@ void Label::_draw(Painter *p) {
 void Label::set_option(const string& key, const string& value) {
 	if (key == "image") {
 		image = load_image(value);
-		request_redraw();
 	} else if (key == "align") {
 		if (value == "left")
 			align = Align::Left;
@@ -81,11 +88,16 @@ void Label::set_option(const string& key, const string& value) {
 		align = Align::Center;
 	} else if (key == "bold") {
 		bold = true;
+	} else if (key == "italic") {
+		italic = true;
 	} else if (key == "big") {
 		font_size = Theme::_default.font_size * 1.7f;
+	} else if (key == "small") {
+		font_size = Theme::_default.font_size * 0.7f;
 	} else {
 		Control::set_option(key, value);
 	}
+	request_redraw();
 }
 
 

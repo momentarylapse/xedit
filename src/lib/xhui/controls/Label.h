@@ -16,8 +16,10 @@ public:
 	void _draw(Painter *p) override;
 	vec2 get_content_min_size() const override;
 
+	mutable float ui_scale = 1.0f;
 	float font_size;
 	bool bold;
+	bool italic;
 	string title;
 	enum class Align {
 		Left,

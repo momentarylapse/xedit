@@ -55,9 +55,12 @@ void SpinButton::_update_text_from_value() {
 }
 
 vec2 SpinButton::get_content_min_size() const {
+	if (owner)
+		if (auto win = owner->get_window())
+			ui_scale = win->ui_scale;
+	auto dims = get_cached_text_dimensions(f2s(_max, decimals), default_font_regular, font_size, ui_scale);
 	auto s = Edit::get_content_min_size();
-	default_font_regular->set_size(font_size*ui_scale);
-	float w = default_font_regular->get_text_width(f2s(_max, decimals)) / ui_scale;
+	float w = dims.bounding_width / ui_scale;
 	s.x = BUTTON_DX*2 + w + margin_x*2;
 	return s;
 }
@@ -136,6 +139,7 @@ void SpinButton::on_mouse_wheel(const vec2& d) {
 
 
 void SpinButton::_draw(Painter* p) {
+	ui_scale = p->ui_scale;
 	if (text_needs_update)
 		_update_text_from_value();
 	Edit::_draw(p);
