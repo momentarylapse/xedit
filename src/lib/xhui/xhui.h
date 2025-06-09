@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Painter.h"
 #include "../os/path.h"
+#include "../base/map.h"
 
 #if HAS_LIB_VULKAN
 namespace vulkan {
@@ -28,25 +29,24 @@ void run();
 
 #if HAS_LIB_VULKAN
 	using Texture = vulkan::Texture;
-#endif
-#if HAS_LIB_GL
+#else
 	using Texture = nix::Texture;
 #endif
 
 extern float global_ui_scale;
 
-class Application {
-public:
-	static Path directory_static;
-	static Path directory;
-	static Path initial_working_directory;
-	static Path filename;
-	static bool installed;
-	static void guess_directories(const Array<string> &arg, const string &app_name);
-	static void end();
 
-	static bool _end_requested;
+enum class Flags {
+	NONE = 0,
+	DONT_LOAD_RESOURCE = 1,
+	SILENT = 2,
+	NO_ERROR_HANDLER = 4,
+	UNIQUE = 16,
+	OWN_DECORATION = 64
 };
+Flags operator|(Flags a, Flags b);
+int operator&(Flags a, Flags b);
+
 
 int run_repeated(float dt, Callback f);
 int run_later(float dt, Callback f);
@@ -166,7 +166,6 @@ enum {
 
 	NUM_KEYS,
 
-	KEY_KEY_CODE,
 	KEY_ANY,
 	KEY_CONTROL = 256,
 	KEY_SHIFT = 512,
@@ -176,6 +175,7 @@ enum {
 
 namespace event_id {
 	extern const string Activate;
+	extern const string ActivateDialogDefault;
 	extern const string Close;
 	extern const string Click;
 	extern const string Changed;
@@ -185,6 +185,7 @@ namespace event_id {
 	extern const string MouseWheel;
 	extern const string Draw;
 	extern const string Initialize;
+	extern const string JustBeforeDraw; // for y renderer.prepare()
 	extern const string LeftButtonDown;
 	extern const string LeftButtonUp;
 	extern const string MiddleButtonDown;
@@ -193,6 +194,7 @@ namespace event_id {
 	extern const string RightButtonUp;
 	extern const string KeyDown;
 	extern const string KeyUp;
+	extern const string KeyChar;
 	extern const string Select;
 	extern const string DragStart;
 	extern const string DragDrop;

@@ -15,8 +15,8 @@
 #include "../base/base.h"
 #include "../base/optional.h"
 
-class rect;
-class color;
+struct rect;
+struct color;
 
 namespace vulkan{
 
@@ -45,6 +45,7 @@ namespace vulkan{
 		TRANSFER_DST_OPTIMAL = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		SHADER_READ_ONLY_OPTIMAL = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		PRESENT_SRC = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+		COLOR_ATTACHMENT = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 	};
 
 	enum class PipelineBindPoint {
@@ -83,7 +84,7 @@ namespace vulkan{
 		void bind_pipeline(BasePipeline *p);
 		void bind_descriptor_set(int index, DescriptorSet *dset);
 		void bind_descriptor_set_dynamic(int index, DescriptorSet *dset, const Array<int> &indices);
-		void push_constant(int offset, int size, void *data);
+		void push_constant(int offset, int size, const void *data);
 
 		void begin_render_pass(RenderPass *rp, FrameBuffer *fb);
 		void next_subpass();
@@ -104,7 +105,7 @@ namespace vulkan{
 		void image_barrier(const Texture *t, AccessFlags src_access, AccessFlags dst_access, ImageLayout old_layout, ImageLayout new_layout);
 		void copy_image(const Texture *source, const Texture *dest, const Array<int> &extend);
 
-		void timestamp(int id);
+		void timestamp(int id, bool after);
 	};
 
 	CommandBuffer *begin_single_time_commands();

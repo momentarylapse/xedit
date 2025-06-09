@@ -68,8 +68,17 @@ Dialog::Dialog(const string& _title, int _width, int _height, Panel* parent, Dia
 		});
 	width = _width;
 	height = _height;
+	pos = {0, 0};
 	_area = {0, (float)width, 0, (float)height};
 	padding = Theme::_default.window_margin;
+
+	// forward default activation ([Return] key) to default button
+	event_x("*", event_id::ActivateDialogDefault, [this] {
+		for (auto c: controls)
+			if (auto b = dynamic_cast<Button*>(c))
+				if (b->_default)
+					b->emit_event(event_id::Activate, true);
+	});
 }
 
 Dialog::Dialog(const string& id, Panel* parent) : Dialog("", 400, 300, parent) {
@@ -102,6 +111,12 @@ void Dialog::negotiate_area(const rect& available) {
 		top_control->negotiate_area(available.grow(- padding));
 }
 
+void Dialog::on_key_down(int key) {
+	if (flags & DialogFlags::CloseByEscape and key == KEY_ESCAPE)
+		request_destroy();
+}
+
+
 void Dialog::_draw(Painter* p) {
 	p->set_color(Black.with_alpha(0.3f));
 	p->set_roundness(25);
@@ -129,6 +144,13 @@ void Dialog::set_title(const string& title) {
 	header->set_title(title);
 }
 
+rect Dialog::suggest_area(const rect& parent_area) const {
+	const vec2 m = parent_area.center();
+	const vec2 size = vec2((float)width, (float)height);
+	if (flags & DialogFlags::FixedPosition)
+		return {pos, pos + size};
+	return {m - size/2, m + size/2};
+}
 
 
 

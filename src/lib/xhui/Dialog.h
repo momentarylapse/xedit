@@ -18,7 +18,8 @@ enum class DialogFlags {
 	None = 0,
 	NoHeader = 1,
 	CloseByEscape = 2,
-	CloseByClickOutside = 4
+	CloseByClickOutside = 4,
+	FixedPosition = 8
 };
 DialogFlags operator|(DialogFlags a, DialogFlags b);
 bool operator&(DialogFlags a, DialogFlags b);
@@ -32,12 +33,16 @@ public:
 	Array<Control*> get_children(ChildFilter f) const override;
 	void _draw(Painter* p) override;
 
+	void on_key_down(int key) override;
+
 	void request_destroy();
 	virtual	void on_destroy() {};
 
 	void set_title(const string& title);
+	rect suggest_area(const rect& parent_area) const;
 
 	int width, height;
+	vec2 pos;
 	DialogFlags flags;
 	bool _destroy_requested = false;
 	owned<DialogHeader> header;

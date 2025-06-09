@@ -8,7 +8,7 @@
 
 int xhui_main(const Array<string>& args) {
 	try {
-		xhui::init({""}, "xhui");
+		xhui::init(args, "xhui");
 	} catch (Exception &e) {
 		msg_error(e.message());
 		return 1;

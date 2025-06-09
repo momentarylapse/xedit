@@ -66,6 +66,7 @@ public:
 	virtual void on_mouse_wheel(const vec2& d) {}
 	virtual void on_key_down(int key) {}
 	virtual void on_key_up(int key) {}
+	virtual void on_key_char(int character) {}
 
 	virtual void _draw(Painter *p) {}
 
@@ -100,7 +101,7 @@ public:
 	//virtual void negotiate_min_size();
 	virtual void negotiate_area(const rect &available);
 
-	void emit_event(const string& msg, bool is_default);
+	bool emit_event(const string& msg, bool is_default);
 };
 
 }

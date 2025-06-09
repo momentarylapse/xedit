@@ -14,10 +14,7 @@ class Painter;
 class Dialog;
 class Context;
 
-enum Flags {
-	NONE = 0,
-	OWN_DECORATION = 64
-};
+enum class Flags;
 
 struct Event {
 	enum class Type {
@@ -108,6 +105,7 @@ protected:
 	void _on_mouse_wheel(const vec2 &d);
 	void _on_key_down(int key);
 	void _on_key_up(int key);
+	void _on_key_char(int character);
 
 	bool _refresh_requested = true;
 	void _on_draw();
@@ -122,6 +120,7 @@ protected:
 	HeaderBar* header_bar = nullptr;
 
 	Context* context = nullptr;
+	bool first_draw = true;
 
 	struct EventKeyCode {
 		string id;

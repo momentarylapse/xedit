@@ -23,6 +23,8 @@ public:
 	void set_option(const string& key, const string& value) override;
 	Array<Control*> get_children(ChildFilter f) const override;
 
+	void _update_selection(const Array<int>& sel);
+
 	vec2 get_content_min_size() const override;
 	void negotiate_area(const rect& available) override;
 
@@ -35,6 +37,7 @@ public:
 	void on_left_double_click(const vec2& m) override;
 	void on_right_button_down(const vec2& m) override;
 	void on_right_button_up(const vec2& m) override;
+	void on_key_down(int key) override;
 
 	void _draw(Painter *p) override;
 	rect row_area(int row) const;
@@ -73,6 +76,7 @@ public:
 	float selection_radius;
 
 	bool show_selection = true;
+	bool sunken_background = true;
 
 	int hover_row = -1;
 

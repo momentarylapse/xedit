@@ -126,7 +126,7 @@ void CommandBuffer::bind_descriptor_set_dynamic(int index, DescriptorSet *dset, 
 	vkCmdBindDescriptorSets(buffer, cur_bind_point, current_pipeline->layout, index, 1, &dset->descriptor_set, offsets.num, (unsigned*)&offsets[0]);
 }
 
-void CommandBuffer::push_constant(int offset, int size, void *data) {
+void CommandBuffer::push_constant(int offset, int size, const void *data) {
 	//auto stage_flags = VK_SHADER_STAGE_VERTEX_BIT /*| VK_SHADER_STAGE_GEOMETRY_BIT*/ | VK_SHADER_STAGE_FRAGMENT_BIT;
 	auto stage_flags = VK_SHADER_STAGE_ALL;
 	vkCmdPushConstants(buffer, current_pipeline->layout, stage_flags, offset, size, data);
@@ -327,9 +327,10 @@ void CommandBuffer::copy_image(const Texture *source, const Texture *dest, const
 			&region);
 }
 
-void CommandBuffer::timestamp(int id) {
+void CommandBuffer::timestamp(int id, bool after) {
 	vkCmdWriteTimestamp(buffer,
-			(VkPipelineStageFlagBits)(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT),
+			after ? VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+			//(VkPipelineStageFlagBits)(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT),
 			default_device->query_pool, id);
 }
 

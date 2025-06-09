@@ -1,5 +1,6 @@
 
 #include "xhui.h"
+#include "Application.h"
 #include "Resource.h"
 #include "Window.h"
 #include "Dialog.h"
@@ -21,13 +22,7 @@ namespace xhui {
 	extern Array<Window*> _windows_;
 
 	float global_ui_scale = 1;
-
-	Path Application::directory;
-	Path Application::directory_static;
-	Path Application::initial_working_directory;
-	Path Application::filename;
-	bool Application::installed;
-	bool Application::_end_requested = false;
+	string separator = "\\";
 
 
 	font::Face* default_font_regular = nullptr;
@@ -38,12 +33,21 @@ namespace xhui {
 
 	Configuration config;
 
+	Flags operator|(Flags a, Flags b) {
+		return (Flags)((int)a | (int)b);
+	}
+	int operator&(Flags a, Flags b) {
+		return (int)a & (int)b;
+	}
+
 	Array<string> make_args(int num_args, char *args[]) {
 		Array<string> a;
 		for (int i=0; i<num_args; i++)
 			a.add(args[i]);
 		return a;
 	}
+
+	void create_default_images();
 };
 
 int xhui_main(const Array<string> &);
@@ -175,80 +179,59 @@ void init(const Array<string> &arg, const string& app_name) {
 		config.load(Application::directory | "config.txt");
 
 
-	//if ((flags & Flags::DONT_LOAD_RESOURCE) == 0)
-	if (os::fs::exists(Application::directory_static | "hui_resources.txt"))
-		load_resource(Application::directory_static | "hui_resources.txt");
+	if ((Application::flags & Flags::DONT_LOAD_RESOURCE) == 0)
+		if (os::fs::exists(Application::directory_static | "hui_resources.txt"))
+			load_resource(Application::directory_static | "hui_resources.txt");
 
 	string def_lang = "English";
 	//if (def_lang.num > 0)
 		set_language(config.get_str("Language", def_lang));
+
+	create_default_images();
 }
 
-//   filename -> executable file
-//   directory ->
-//      NONINSTALLED:  binary dir
-//      INSTALLED:     ~/.MY_APP/      <<< now always this
-//   directory_static ->
-//      NONINSTALLED:  binary dir/static/
-//      INSTALLED:     /usr/local/share/MY_APP/
-//   initial_working_directory -> working dir before running this program
-void Application::guess_directories(const Array<string> &arg, const string &app_name) {
 
-	initial_working_directory = os::fs::current_directory();
-	installed = false;
-
-
-	// executable file
-#if defined(OS_LINUX) || defined(OS_MAC) || defined(OS_MINGW) //defined(__GNUC__) || defined(OS_LINUX)
-	if (arg.num > 0)
-		filename = arg[0];
-#else // OS_WINDOWS
-	char *ttt = nullptr;
-	int r = _get_pgmptr(&ttt);
-	filename = ttt;
-	hui_win_instance = (void*)GetModuleHandle(nullptr);
-#endif
-
-
-	// first, assume a local/non-installed version
-	directory = initial_working_directory; //strip_dev_dirs(filename.parent());
-	directory_static = directory | "static";
-
-#ifdef INSTALL_PREFIX
-	// our build system should define this:
-	Path prefix = INSTALL_PREFIX;
-#else
-	// oh no... fall-back
-	Path prefix = "/usr/local";
-#endif
-
-#if defined(OS_LINUX) || defined(OS_MAC) || defined(OS_MINGW) //defined(__GNUC__) || defined(OS_LINUX)
-	// installed version?
-	if (filename.is_in(prefix) or (filename.str().find("/") < 0)) {
-		installed = true;
-		directory_static = prefix | "share" | app_name;
+void create_default_images() {
+	int size = 32;
+	float r = 6;
+	vec2 m = vec2{(float)size/2, (float)size/2};
+	{
+		Image im(size, size, color(0,0,0,0));
+		auto p = im.start_draw();
+		p->set_color(White);
+		p->set_line_width(2);
+		p->draw_line(m - vec2(r, 0), m + vec2(r, 0));
+		p->draw_line(m - vec2(0, r), m + vec2(0, r));
+		delete p;
+		set_image("hui:plus", im);
 	}
-
-	// inside an AppImage?
-	if (getenv("APPIMAGE")) {
-		installed = true;
-		directory_static = Path(getenv("APPDIR")) | "usr" | "share" | app_name;
+	{
+		Image im(size, size, color(0,0,0,0));
+		auto p = im.start_draw();
+		p->set_color(White);
+		p->set_line_width(2);
+		p->draw_line(m - vec2(r, 0), m + vec2(r, 0));
+		delete p;
+		set_image("hui:minus", im);
 	}
-
-	// inside MacOS bundle?
-	if (str(filename).find(".app/Contents/MacOS/") >= 0) {
-		installed = true;
-		directory_static = filename.parent().parent() | "Resources";
+	{
+		Image im(size, size, color(0,0,0,0));
+		auto p = im.start_draw();
+		p->set_color(White);
+		p->set_line_width(2);
+		p->draw_line(m - vec2(r, 0), m + vec2(r, 0));
+		p->draw_line(m - vec2(r, 0), m + vec2(0, r));
+		p->draw_line(m + vec2(0, r), m + vec2(r, 0));
+		p->draw_line(m - vec2(r/2, 0), m + vec2(r/2, 0));
+		p->draw_line(m - vec2(r/2, 0), m + vec2(0, r/2));
+		p->draw_line(m + vec2(0, r/2), m + vec2(r/2, 0));
+		delete p;
+		set_image("hui:triangle-down", im);
 	}
-
-	directory = format("%s/.%s/", getenv("HOME"), app_name);
-	os::fs::create_directory(directory);
-#endif
 }
 
-void Application::end() {
-	_end_requested = true;
-}
+
+
 
 struct Runner {
 	bool used, repeat;
@@ -347,6 +330,7 @@ namespace clipboard {
 
 namespace event_id {
 	const string Activate = "hui:activate";
+	const string ActivateDialogDefault = "hui:activate-dialog-default";
 	const string Close = "hui:close";
 	const string Click = "hui:click";
 	const string Changed = "hui:changed";
@@ -356,6 +340,7 @@ namespace event_id {
 	const string MouseWheel = "hui:mouse-wheel";
 	const string Draw = "hui:draw";
 	const string Initialize = "hui:initialize";
+	const string JustBeforeDraw = "hui:just-before-draw";
 	const string LeftButtonDown = "hui:left-button-down";
 	const string LeftButtonUp = "hui:left-button-up";
 	const string MiddleButtonDown = "hui:middle-button-down";
@@ -364,6 +349,7 @@ namespace event_id {
 	const string RightButtonUp = "hui:right-button-up";
 	const string KeyDown = "hui:key-down";
 	const string KeyUp = "hui:key-up";
+	const string KeyChar = "hui:key-char";
 	const string Select = "hui:select";
 	const string DragStart = "hui:drag-start";
 	const string DragDrop = "hui:drag-drop";
@@ -425,15 +411,6 @@ void set_image(const string& uid, const Image& _im) {
 	if (!im->image)
 		im->image = new Image(8,8,White);
 	*im->image = _im;
-#if HAS_LIB_VULKAN
-	if (vulkan::default_device) {
-		im->texture = new vulkan::Texture();
-		im->texture->write(*im->image);
-	}
-#else
-	im->texture = new Texture();
-	im->texture->write(*im->image);
-#endif
 }
 
 
