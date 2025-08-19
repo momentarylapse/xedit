@@ -10,6 +10,7 @@ namespace xhui {
 
 class Painter;
 class Window;
+class Dialog;
 class Panel;
 
 enum class ChildFilter {
@@ -17,11 +18,19 @@ enum class ChildFilter {
 	OnlyActive
 };
 
+enum class ControlType {
+	SomeControl,
+	Button,
+	Panel,
+	Dialog,
+	Window
+};
+
 class Control : public Sharable<VirtualBase> {
 	friend class Window;
 	friend class Panel;
 public:
-	explicit Control(const string& id);
+	explicit Control(const string& id, ControlType type = ControlType::SomeControl);
 	~Control() override;
 
 	void _register(Panel* owner);
@@ -75,6 +84,7 @@ public:
 
 	rect _area;
 	string id;
+	ControlType type;
 
 	// Control: surrounding Panel (might be Window)
 	// Panel: parent Panel
@@ -89,6 +99,7 @@ public:
 
 	float min_width_user, min_height_user;
 	SizeMode size_mode_x, size_mode_y;
+	vec2 greed_factor = vec2(1, 1); // if expanding...
 	bool can_grab_focus = false;
 	bool ignore_hover = false;
 	bool visible = true;

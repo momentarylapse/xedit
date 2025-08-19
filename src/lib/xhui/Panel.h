@@ -23,8 +23,7 @@ public:
 	vec2 get_greed_factor() const override;
 	Array<Control*> get_children(ChildFilter f) const override;
 
-	void add_child(shared<Control> c);
-	void add_child(shared<Control> c, int x, int y) override;
+	void add_child(shared<Control> c, int x=0, int y=0) override;
 	void set_target(const string& id);
 
 	void set_string(const string& id, const string& text);
@@ -37,6 +36,7 @@ public:
 	void expand(const string& id, bool expanded);
 	void reset(const string& id);
 	void set_visible(const string& id, bool visible);
+	void activate(const string& id);
 	string get_string(const string& id) const;
 	float get_float(const string& id) const;
 	int get_int(const string& id) const;
@@ -94,5 +94,7 @@ public:
 			f(this);
 	}
 };
+
+Panel* as_panel(Control* c);
 
 }

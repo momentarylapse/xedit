@@ -450,7 +450,7 @@ string string::upper() const {
 }
 
 #define STR_SMALL_STACK_DEPTH			32
-#define STR_LARGE_STACK_DEPTH			8
+#define STR_LARGE_STACK_DEPTH			32
 #define STR_SMALL_SIZE					256
 
 static int _current_stack_small_pos_ = 0;
@@ -465,7 +465,7 @@ inline char *get_str(int size) {
 		_current_stack_large_pos_ = (_current_stack_large_pos_ + 1) % STR_LARGE_STACK_DEPTH;
 		if (_stack_large_str_[_current_stack_large_pos_])
 			delete[]_stack_large_str_[_current_stack_large_pos_];
-		_stack_large_str_[_current_stack_large_pos_] = new char[size + 1];
+		_stack_large_str_[_current_stack_large_pos_] = new char[size + 4];
 		return _stack_large_str_[_current_stack_large_pos_];
 	}
 }
@@ -579,8 +579,8 @@ string f2s(float f, int dez) {
 	return t;
 }
 
-string f2s_clean(float f, int dez) {
-	auto s = f2s(f, dez);
+string f642s_clean(double f, int dez) {
+	auto s = f642s(f, dez);
 	for (int i=s.num-1; i>=0; i--)
 		if (s.back() == '0' and s[s.num-2] != '.')
 			s.pop();
@@ -1292,10 +1292,12 @@ Array<string> string::split_any(const string &splitters) const {
 	return str_split_any(*this, splitters);
 }
 
+bool _parse_tokens_smart_strings_ = false;
+
 Array<string> str_parse_tokens(const string &line, const string &splitters) {
 	Array<string> tokens;
 	string temp;
-	bool keep_quotes = splitters.has_char('\"');
+	bool keep_quotes = splitters.has_char('\"') or _parse_tokens_smart_strings_;
 
 	auto end_token = [&tokens, &temp] {
 		if (temp.num > 0)
@@ -1304,12 +1306,13 @@ Array<string> str_parse_tokens(const string &line, const string &splitters) {
 	};
 
 	for (int i=0; i<line.num; i++) {
-		if (line[i] == ' ' or line[i] == '\t' or line[i] == '\n') {
+		if (is_whitespace_x(line[i])) {
 			// whitespace
 			end_token();
 		} else if ((line[i] == '\"') or (line[i] == '\'')) {
 			// string
-			end_token();
+			if (!_parse_tokens_smart_strings_)
+				end_token();
 
 			int start = i;
 			for (int j=i+1; j<line.num; j++) {
@@ -1317,7 +1320,9 @@ Array<string> str_parse_tokens(const string &line, const string &splitters) {
 					j ++;
 				} else if (line[j] == line[start]) {
 					i = j;
-					if (keep_quotes)
+					if (_parse_tokens_smart_strings_)
+						temp += line.sub(start, i+1);
+					else if (keep_quotes)
 						tokens.add(line.sub(start, i+1));
 					else
 						tokens.add(line.sub(start+1, i).unescape());

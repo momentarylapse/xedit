@@ -21,36 +21,36 @@ list(APPEND DEPS ZLIB::ZLIB)
 list(APPEND COMPILE_DEFINITIONS HAS_LIB_ZLIB=1)
 
 
-# lib: gl or vulkan (mandatory)
-set(GL_OR_VULKAN "gl" CACHE STRING "Use gl or vulkan?")
-find_package(OpenGL)
-if(OPENGL_FOUND AND NOT APPLE AND NOT WIN32)
-	list(APPEND GL_OR_VULKAN_FOUND "gl")
-endif()
+# lib: vulkan or gl (mandatory)
+set(VULKAN_OR_GL "vulkan" CACHE STRING "Use vulkan or gl?")
 pkg_check_modules(VULKAN vulkan)
 if(VULKAN_FOUND)
-	list(APPEND GL_OR_VULKAN_FOUND "vulkan")
+	list(APPEND VULKAN_OR_GL_FOUND "vulkan")
 endif()
-if(GL_OR_VULKAN_FOUND)
-	if(NOT ${GL_OR_VULKAN} IN_LIST GL_OR_VULKAN_FOUND)
-		list(GET GL_OR_VULKAN_FOUND 0 X)
-		set(GL_OR_VULKAN ${X} CACHE STRING "choose" FORCE)
-		message(WARNING "Choice for GL_OR_VULKAN invalid, using ${GL_OR_VULKAN} instead")
+find_package(OpenGL)
+if(OPENGL_FOUND AND NOT APPLE AND NOT WIN32)
+	list(APPEND VULKAN_OR_GL_FOUND "gl")
+endif()
+if(VULKAN_OR_GL_FOUND)
+	if(NOT ${VULKAN_OR_GL} IN_LIST VULKAN_OR_GL_FOUND)
+		list(GET VULKAN_OR_GL_FOUND 0 X)
+		set(VULKAN_OR_GL ${X} CACHE STRING "choose" FORCE)
+		message(WARNING "Choice for VULKAN_OR_GL invalid, using ${VULKAN_OR_GL} instead")
 	endif()
 else()
-	message(SEND_ERROR "Neither gl or vulkan found") #  or/nor..
-	set(GL_OR_VULKAN "")
+	message(SEND_ERROR "Neither vulkan or gl found") #  or/nor..
+	set(VULKAN_OR_GL "")
 endif()
-if(GL_OR_VULKAN STREQUAL "gl")
-	list(APPEND DEPS OpenGL::OpenGL)
-	list(APPEND COMPILE_DEFINITIONS HAS_LIB_GL=1)
-endif()
-if(GL_OR_VULKAN STREQUAL "vulkan")
+if(VULKAN_OR_GL STREQUAL "vulkan")
 	list(APPEND INCLUDE_DIRECTORIES ${VULKAN_INCLUDE_DIRS})
 	list(APPEND LINK_DIRECTORIES ${VULKAN_LIBRARY_DIRS})
 	list(APPEND DEPS ${VULKAN_LIBRARIES})
 	list(APPEND COMPILE_OPTIONS ${VULKAN_CFLAGS_OTHER})
 	list(APPEND COMPILE_DEFINITIONS HAS_LIB_VULKAN=1)
+endif()
+if(VULKAN_OR_GL STREQUAL "gl")
+	list(APPEND DEPS OpenGL::OpenGL)
+	list(APPEND COMPILE_DEFINITIONS HAS_LIB_GL=1)
 endif()
 
 
@@ -69,24 +69,6 @@ if(${LIB_SHADERC_ENABLED})
 	list(APPEND COMPILE_DEFINITIONS HAS_LIB_SHADERC=1)
 else()
 	list(APPEND COMPILE_DEFINITIONS HAS_LIB_SHADERC=0)
-endif()
-
-
-# lib: spirv (optional)
-set(LIB_SPIRV_ENABLED true CACHE BOOL "Use spirv library?")
-pkg_check_modules(SPIRV spirv)
-if(SPIRV_FOUND)
-else()
-	set(LIB_SPIRV_ENABLED false CACHE BOOL "spirv library not found" FORCE)
-endif()
-if(${LIB_SPIRV_ENABLED})
-	list(APPEND INCLUDE_DIRECTORIES ${SPIRV_INCLUDE_DIRS})
-	list(APPEND LINK_DIRECTORIES ${SPIRV_LIBRARY_DIRS})
-	list(APPEND DEPS ${SPIRV_LIBRARIES})
-	list(APPEND COMPILE_OPTIONS ${SPIRV_CFLAGS_OTHER})
-	list(APPEND COMPILE_DEFINITIONS HAS_LIB_SPIRV=1)
-else()
-	list(APPEND COMPILE_DEFINITIONS HAS_LIB_SPIRV=0)
 endif()
 
 
@@ -137,6 +119,7 @@ add_executable(xedit
 	src/lib/math/vec2.cpp
 	src/lib/math/vec3.cpp
 	src/lib/math/vec4.cpp
+	src/lib/nix/_kaba_export.cpp
 	src/lib/nix/nix.cpp
 	src/lib/nix/nix_buffer.cpp
 	src/lib/nix/nix_draw.cpp
@@ -146,6 +129,7 @@ add_executable(xedit
 	src/lib/nix/nix_textures.cpp
 	src/lib/nix/nix_vertexbuffer.cpp
 	src/lib/nix/nix_view.cpp
+	src/lib/os/app.cpp
 	src/lib/os/CommandLineParser.cpp
 	src/lib/os/config.cpp
 	src/lib/os/date.cpp
@@ -158,6 +142,7 @@ add_executable(xedit
 	src/lib/os/terminal.cpp
 	src/lib/os/time.cpp
 	src/lib/pattern/Observable.cpp
+	src/lib/vulkan/_kaba_export.cpp
 	src/lib/vulkan/AccelerationStructure.cpp
 	src/lib/vulkan/Buffer.cpp
 	src/lib/vulkan/CommandBuffer.cpp
@@ -206,6 +191,7 @@ add_executable(xedit
 	src/lib/xhui/dialogs/MenuPopup.cpp
 	src/lib/xhui/dialogs/QuestionDialog.cpp
 	src/lib/xhui/draw/font.cpp
+	src/lib/xhui/_kaba_export.cpp
 	src/lib/xhui/Application.cpp
 	src/lib/xhui/ContextGL.cpp
 	src/lib/xhui/ContextVulkan.cpp
@@ -236,7 +222,7 @@ add_executable(xedit
 target_include_directories(xedit PUBLIC ${INCLUDE_DIRECTORIES})
 target_link_directories(xedit PUBLIC ${LINK_DIRECTORIES})
 target_compile_options(xedit PUBLIC ${COMPILE_OPTIONS})
-target_compile_definitions(xedit PUBLIC ${COMPILE_DEFINITIONS}  INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_compile_definitions(xedit PUBLIC ${COMPILE_DEFINITIONS}  SOURCE_ROOT="${CMAKE_SOURCE_DIR}" INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(xedit PUBLIC ${DEPS})
 target_include_directories(xedit PUBLIC src)
 

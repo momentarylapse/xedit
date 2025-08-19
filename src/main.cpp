@@ -6,7 +6,8 @@
 #include "lib/xhui/xhui.h"
 
 
-int xhui_main(const Array<string>& args) {
+namespace os::app {
+int main(const Array<string>& args) {
 	try {
 		xhui::init(args, "xhui");
 	} catch (Exception &e) {
@@ -31,5 +32,6 @@ int xhui_main(const Array<string>& args) {
 	xhui::run();
 
 	return 0;
+}
 }
 

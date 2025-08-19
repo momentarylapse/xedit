@@ -7,8 +7,9 @@ namespace xhui {
 
 
 
-Control::Control(const string &_id) {
+Control::Control(const string &_id, ControlType _type) {
 	id = _id;
+	type = _type;
 	enabled = true;
 	min_width_user = -1;
 	min_height_user = -1;
@@ -22,7 +23,7 @@ Control::~Control() = default;
 
 void Control::_register(Panel* _owner) {
 	// don't register sub-panels!
-	if (dynamic_cast<Panel*>(this))
+	if (type == ControlType::Panel)
 		return;
 
 	//msg_write("REG  " + id + "   ->   " + _owner->id);
@@ -59,7 +60,7 @@ void Control::_unregister() {
 	if (!owner)
 		return;
 	_unregister_from_window();
-	if (dynamic_cast<Panel*>(this))
+	if (type == ControlType::Panel)
 		return;
 	for (auto cc: get_children(ChildFilter::All))
 		cc->_unregister();
@@ -92,11 +93,11 @@ vec2 Control::get_content_min_size() const {
 }
 
 vec2 Control::get_greed_factor() const {
-	vec2 f = {0,0};
-	if (size_mode_x == SizeMode::Expand)
-		f.x = 1;
-	if (size_mode_y == SizeMode::Expand)
-		f.y = 1;
+	vec2 f = greed_factor;
+	if (size_mode_x != SizeMode::Expand)
+		f.x = 0;
+	if (size_mode_y != SizeMode::Expand)
+		f.y = 0;
 	return f;
 }
 
@@ -126,7 +127,7 @@ void Control::enable(bool _enabled) {
 
 
 Window* Control::get_window() const {
-	if (auto w = dynamic_cast<Window*>(const_cast<Control*>(this)))
+	if (auto w = as_window(const_cast<Control*>(this)))
 		return w;
 	if (owner)
 		return owner->get_window();
@@ -168,6 +169,14 @@ void Control::set_option(const string& key, const string& value) {
 		min_height_user = value._int();
 		size_mode_y = SizeMode::Shrink;
 		request_redraw();
+	} else if (key == "greedfactorx") {
+		greed_factor.x = value._float();
+		size_mode_x = SizeMode::Expand;
+		request_redraw();
+	} else if (key == "greedfactory") {
+		greed_factor.y = value._float();
+		size_mode_y = SizeMode::Expand;
+		request_redraw();
 	} else if (key == "ignorehover") {
 		ignore_hover = true;
 	} else if (key == "ignorefocus") {
@@ -184,8 +193,6 @@ void Control::set_option(const string& key, const string& value) {
 		visible = value._bool() or value == "";
 	}
 }
-
-
 
 
 }
