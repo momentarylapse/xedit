@@ -30,9 +30,9 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 	edit = (xhui::MultilineEdit*)win->get_control(edit_id);
 	edit->set_option("focusframe", "no");
 	edit->set_option("monospace", "");
-	edit->set_option("fontsize", "14");
+	edit->set_option("fontsize", "15");
 //	edit->set_option("fontsize", "13");
-	edit->set_option("lineheightscale", "1.2f");
+	edit->set_option("lineheightscale", "1.1f");
 	edit->set_option("altbg", "");
 
 	/*win->event(edit_id, [this, win] {
@@ -47,12 +47,17 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 		p->draw_rect(area);
 		p->set_font("monospace", 14, false, false);
 		int cursor_line = edit->index_to_line_pos(edit->cursor_pos).line;
+		float dy = -1;
 		for (const auto& [l, y0]: enumerate(edit->cache.line_y0))
 			if (y0 + edit->cache.line_height[l] > area.y1 and y0 < area.y2) {
 				p->set_color(xhui::Theme::_default.text_disabled);
 				if (l == cursor_line)
 					p->set_color(xhui::Theme::_default.text);
-				p->draw_str({area.x1, y0}, format("%3d", l+1));
+				if (dy < 0) {
+					auto size = p->get_str_size("0");
+					dy = (edit->cache.line_height[l] - size.y) / 2.0f;
+				}
+				p->draw_str({area.x1, y0 + dy}, format("%3d", l+1));
 			}
 	});
 

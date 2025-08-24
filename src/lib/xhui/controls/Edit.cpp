@@ -72,7 +72,9 @@ void Edit::Cache::rebuild(const string& text) {
 void Edit::set_string(const string &s) {
 	text = s;
 	cache.rebuild(text);
-	set_cursor_pos(0);
+	//set_cursor_pos(0); // depends on cache update (after on_draw!)
+	cursor_pos = 0;
+	selection_start = 0;
 	request_redraw();
 }
 
@@ -106,7 +108,7 @@ vec2 Edit::viewport_size() const {
 
 
 void Edit::on_mouse_wheel(const vec2& d) {
-	viewport_offset = vec2::max(vec2::min(viewport_offset - d * 10, viewport_size()), vec2::ZERO);
+	viewport_offset = vec2::max(vec2::min(viewport_offset - d * 20, viewport_size()), vec2::ZERO);
 	request_redraw();
 	emit_event(event_id::Scroll, false);
 }
@@ -263,9 +265,9 @@ void Edit::draw_text(Painter* p) {
 	text_x0 = _area.x1 + margin_x - viewport_offset.x;
 
 	// update text dims
+	float inner_height = 0;
+	float line_height = 0;
 	{
-		float inner_height = 0;
-		float bounding_height = 0;
 		auto& lines = cache.lines;
 		cache.line_y0.clear();
 		cache.line_height.clear();
@@ -275,17 +277,16 @@ void Edit::draw_text(Painter* p) {
 		for (const string &l: lines) {
 			auto dim = get_cached_text_dimensions(l, face, font_size, p->ui_scale);
 			inner_height = dim.inner_height() / ui_scale;
-			bounding_height = dim.bounding_height / ui_scale;
-			float dy = dim.line_dy / ui_scale * line_height_scale;
-			cache.line_height.add(dy);
+			line_height = dim.bounding_height / ui_scale * line_height_scale;
+			cache.line_height.add(line_height);
 			cache.line_y0.add(y0);
-			cache.line_width.add(dim.dx / ui_scale);
-			cache.content_size.x = max(cache.content_size.x, dim.dx / ui_scale);
-			y0 += dy;
-			cache.content_size.y += dy;
+			cache.line_width.add(dim.bounding_width / ui_scale);
+			cache.content_size.x = max(cache.content_size.x, dim.bounding_width / ui_scale);
+			y0 += line_height;
+			cache.content_size.y += line_height;
 		}
 		if (!multiline)
-			cache.line_y0[0] = _area.center().y - bounding_height / 2;
+			cache.line_y0[0] = _area.center().y - line_height / 2;
 	}
 
 	// selection
@@ -315,6 +316,7 @@ void Edit::draw_text(Painter* p) {
 	if (!enabled)
 		col0 = Theme::_default.text_disabled;
 	p->set_color(col0);
+	float dy = (line_height - inner_height) / 2;
 	for (const auto& [line, l]: enumerate(cache.lines)) {
 		if (cache.line_y0[line] + cache.line_height[line] < _area.y1)
 			continue;
@@ -331,7 +333,7 @@ void Edit::draw_text(Painter* p) {
 						p->set_font(font_name, font_size, false, false);
 						p->set_color(col0);
 						string t = text.sub(i0, m.i0);
-						p->draw_str({x0, cache.line_y0[line]}, t);
+						p->draw_str({x0, cache.line_y0[line] + dy}, t);
 						x0 += p->get_str_width(t);
 						i0 = m.i0;
 					}
@@ -341,7 +343,7 @@ void Edit::draw_text(Painter* p) {
 						p->set_color(m.col);
 						p->set_font(font_name, font_size, m.flags & FontFlags::Bold, m.flags & FontFlags::Italic);
 						string t = text.sub(i0, min(m.i1, i1));
-						p->draw_str({x0, cache.line_y0[line]}, t);
+						p->draw_str({x0, cache.line_y0[line] + dy}, t);
 						x0 += p->get_str_width(t);
 						i0 = min(m.i1, i1);
 					}
@@ -353,11 +355,11 @@ void Edit::draw_text(Painter* p) {
 				p->set_color(col0);
 				p->set_font(font_name, font_size, false, false);
 				string t = text.sub(i0, i1);
-				p->draw_str({x0, cache.line_y0[line]}, t);
+				p->draw_str({x0, cache.line_y0[line] + dy}, t);
 			}
 
 		} else {
-			p->draw_str({text_x0, cache.line_y0[line]}, l);
+			p->draw_str({text_x0, cache.line_y0[line] + dy}, l);
 		}
 	}
 
