@@ -30,7 +30,7 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 	edit = (xhui::MultilineEdit*)win->get_control(edit_id);
 	edit->set_option("focusframe", "no");
 	edit->set_option("monospace", "");
-//	edit->set_option("fontsize", "14");
+	edit->set_option("fontsize", "14");
 //	edit->set_option("fontsize", "13");
 	edit->set_option("lineheightscale", "1.2f");
 	edit->set_option("altbg", "");
@@ -43,9 +43,9 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 
 	win->event_xp(lines_id, xhui::event_id::Draw, [this] (Painter* p) {
 		const rect area = p->area();
-		p->set_color(xhui::Theme::_default.background_button);
+		p->set_color(xhui::Theme::_default.background);
 		p->draw_rect(area);
-		p->set_font("monospace", 13, false, false);
+		p->set_font("monospace", 14, false, false);
 		int cursor_line = edit->index_to_line_pos(edit->cursor_pos).line;
 		for (const auto& [l, y0]: enumerate(edit->cache.line_y0))
 			if (y0 + edit->cache.line_height[l] > area.y1 and y0 < area.y2) {

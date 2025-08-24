@@ -91,7 +91,7 @@ vec2 Edit::get_content_min_size() const {
 }
 
 void Edit::on_left_button_down(const vec2& m) {
-	set_cursor_pos(xy_to_index(m));
+	set_cursor_pos(xy_to_index(m), get_window()->is_key_pressed(KEY_SHIFT));
 }
 
 void Edit::on_mouse_move(const vec2& m, const vec2& d) {
@@ -194,10 +194,34 @@ void Edit::on_key_down(int key) {
 		else
 			emit_event(event_id::ActivateDialogDefault, false);
 	}
-	if (key == KEY_TAB and multiline)
-		auto_insert("\t");
+	if (key == KEY_TAB and multiline) {
+		if (index_to_line_pos(selection_start).line != index_to_line_pos(cursor_pos).line) {
+			multi_line_indent(1);
+		} else {
+			auto_insert("\t");
+		}
+	}
+	if (key == (KEY_TAB | KEY_SHIFT) and multiline) {
+		multi_line_indent(-1);
+	}
 
 	request_redraw();
+}
+
+void Edit::multi_line_indent(int indent) {
+	int line0 = index_to_line_pos(min(selection_start, cursor_pos)).line;
+	int line1 = index_to_line_pos(max(selection_start, cursor_pos)).line;
+	for (int l=line0; l<=line1; l++) {
+		int p = line_pos_to_index({l, 0});
+		if (indent > 0) {
+			replace_range(p, p, "\t");
+		} else {
+			if (get_range(p, p + 1) == "\t")
+				replace_range(p, p + 1, "");
+			else if (get_range(p, p + tab_size) == string(" ").repeat(tab_size))
+				replace_range(p, p + tab_size, "");
+		}
+	}
 }
 
 void Edit::on_key_char(int character) {
@@ -330,6 +354,8 @@ void Edit::draw_text(Painter* p) {
 		const vec2 pos = index_to_xy(cursor_pos);
 		p->draw_line({pos.x, pos.y}, {pos.x, pos.y + cache.line_height[0]});
 	}
+
+	p->set_font(Theme::_default.font_name, Theme::_default.font_size, false, false);
 	p->set_clip(clip0);
 
 #ifdef PERF_OUT
@@ -363,10 +389,15 @@ void Edit::_replace_range(Index i0, Index i1, const string& t) {
 
 	text = text.sub_ref(0, i0) + t + text.sub_ref(i1);
 	cache.rebuild(text);
-	if (cursor_pos >= i1)
-		set_cursor_pos(cursor_pos - (i1 - i0) + t.num);
-	else if (cursor_pos >= i0)
-		set_cursor_pos(i0 + t.num);
+	auto map_index = [i0, i1, &t] (int index) {
+		if (index >= i1)
+			return index - (i1 - i0) + t.num;
+		if (index >= i0)
+			return i0 + t.num;
+		return index;
+	};
+	cursor_pos = map_index(cursor_pos);
+	selection_start = map_index(selection_start);
 	on_edit();
 	emit_event(event_id::Changed, true);
 }
@@ -441,7 +472,7 @@ void Edit::_draw(Painter *p) {
 	// background
 	color bg = Theme::_default.background_button;
 	if (alt_background)
-		bg = Theme::_default.background;
+		bg = Theme::_default.background_low;
 	p->set_color(bg);
 	p->set_roundness(Theme::_default.button_radius);
 	p->draw_rect(_area);

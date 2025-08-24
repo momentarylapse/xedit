@@ -20,12 +20,18 @@ Window test 'test' padding=0
 	int mod = xhui::KEY_CONTROL;
 #endif
 
+#ifdef OS_MAC
+	int key_next_doc = xhui::KEY_TAB + xhui::KEY_ALT;//xhui::KEY_CONTROL;
+#else
+	int key_next_doc = xhui::KEY_TAB + xhui::KEY_CONTROL;
+#endif
+
 	set_key_code("new", xhui::KEY_N + mod);
 	set_key_code("open", xhui::KEY_O + mod);
 	set_key_code("save", xhui::KEY_S + mod);
 	set_key_code("save-as", xhui::KEY_S + mod + xhui::KEY_SHIFT);
-	set_key_code("next-document", xhui::KEY_TAB + xhui::KEY_ALT);//xhui::KEY_CONTROL);
-	set_key_code("previous-document", xhui::KEY_TAB + xhui::KEY_SHIFT + xhui::KEY_ALT);//xhui::KEY_CONTROL);
+	set_key_code("next-document", key_next_doc);
+	set_key_code("previous-document", key_next_doc + xhui::KEY_SHIFT);
 
 
 	event("new", [this] {
@@ -56,8 +62,9 @@ Window test 'test' padding=0
 	});
 }
 
-void EditorWindow::on_key_up(int key) {
-	if (key == xhui::KEY_LALT and switcher) {
+void EditorWindow::on_key_up(int key_code) {
+	int key = key_code & 0xff;
+	if ((key == xhui::KEY_LCONTROL or key == xhui::KEY_LALT) and switcher) {
 		switcher->request_destroy();
 		switcher = nullptr;
 	}

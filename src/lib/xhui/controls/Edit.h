@@ -81,6 +81,7 @@ public:
 	void _replace_range(Index i0, Index i1, const string& t);
 	void replace_range(Index i0, Index i1, const string& t);
 	void auto_insert(const string& t);
+	void multi_line_indent(int indent);
 	string get_range(Index i0, Index i1) const;
 
 	struct LinePos {
