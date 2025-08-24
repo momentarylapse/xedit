@@ -110,7 +110,7 @@ TextCache& get_text_cache(Context* context, const string& text, font::Face* face
 	Image im;
 	face->render_text(text, Align::LEFT, im);
 	tc->texture->write(im);
-	tc->texture->set_options("minfilter=nearest");
+	tc->texture->set_options("minfilter=nearest,magfilter=nearest,wrap=clamp");
 
 	face->set_size(font_size * ui_scale);
 	tc->dimensions = face->get_text_dimensions(text);

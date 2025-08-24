@@ -100,9 +100,13 @@ void Edit::on_mouse_move(const vec2& m, const vec2& d) {
 	}
 }
 
+vec2 Edit::viewport_size() const {
+	return vec2::max(cache.content_size - _area.size() + vec2(margin_x * 2, 0), vec2::ZERO);
+}
+
+
 void Edit::on_mouse_wheel(const vec2& d) {
-	auto mm = cache.content_size - _area.size();
-	viewport_offset = vec2::max(vec2::min(viewport_offset - d * 10, mm), vec2::ZERO);
+	viewport_offset = vec2::max(vec2::min(viewport_offset - d * 10, viewport_size()), vec2::ZERO);
 	request_redraw();
 	emit_event(event_id::Scroll, false);
 }
@@ -138,10 +142,16 @@ void Edit::on_key_down(int key) {
 	auto jump_lines = [this, cur_lp, shift] (int dlines) {
 		set_cursor_pos(line_pos_to_index({cur_lp.line + dlines, cur_lp.offset}), shift);
 	};
-	if (key_no_shift == KEY_UP and multiline)
-		jump_lines(-1);
-	if (key_no_shift == KEY_DOWN and multiline)
-		jump_lines(1);
+	if (multiline) {
+		if (key_no_shift == KEY_UP)
+			jump_lines(-1);
+		if (key_no_shift == KEY_DOWN)
+			jump_lines(1);
+		if (key_no_shift == KEY_PAGE_UP)
+			jump_lines(- (int)(_area.height() / cache.line_height[0]));
+		if (key_no_shift == KEY_PAGE_DOWN)
+			jump_lines((int)(_area.height() / cache.line_height[0]));
+	}
 
 
 #ifdef OS_MAC
@@ -253,8 +263,9 @@ void Edit::draw_text(Painter* p) {
 	text_x0 = _area.x1 + margin_x - viewport_offset.x;
 
 	// update text dims
-	float inner_height = 0;
 	{
+		float inner_height = 0;
+		float bounding_height = 0;
 		auto& lines = cache.lines;
 		cache.line_y0.clear();
 		cache.line_height.clear();
@@ -264,6 +275,7 @@ void Edit::draw_text(Painter* p) {
 		for (const string &l: lines) {
 			auto dim = get_cached_text_dimensions(l, face, font_size, p->ui_scale);
 			inner_height = dim.inner_height() / ui_scale;
+			bounding_height = dim.bounding_height / ui_scale;
 			float dy = dim.line_dy / ui_scale * line_height_scale;
 			cache.line_height.add(dy);
 			cache.line_y0.add(y0);
@@ -273,7 +285,7 @@ void Edit::draw_text(Painter* p) {
 			cache.content_size.y += dy;
 		}
 		if (!multiline)
-			cache.line_y0[0] = _area.center().y - inner_height / 2;
+			cache.line_y0[0] = _area.center().y - bounding_height / 2;
 	}
 
 	// selection
@@ -426,11 +438,29 @@ void Edit::set_cursor_pos(Index index, bool selecting) {
 	cursor_pos = index;
 	if (!selecting)
 		selection_start = index;
+	scroll_into_view(cursor_pos);
 	request_redraw();
+}
+
+void Edit::scroll_into_view(Index index) {
+	if (!face)
+		return;
+	const auto xy = index_to_xy(index);
+	if (xy.x < _area.x1)
+		viewport_offset.x -= (_area.x1 - xy.x);
+	else if (xy.x > _area.x2)
+		viewport_offset.x += (xy.x - _area.x2);
+	if (xy.y < _area.y1)
+		viewport_offset.y -= (_area.y1 - xy.y);
+	else if (xy.y + font_size > _area.y2)
+		viewport_offset.y += (xy.y - _area.y2) + font_size * 2;
+	viewport_offset = vec2::max(vec2::min(viewport_offset, viewport_size()), vec2::ZERO);
 }
 
 
 vec2 Edit::index_to_xy(Index index) const {
+	if (!face)
+		return {0,0};
 	auto lp = index_to_line_pos(index);
 	int first = cache.line_first_index[lp.line];
 	face->set_size(font_size * ui_scale);
