@@ -247,7 +247,7 @@ Array<Markup> Parser::create_markup_default(const string &text, int offset) {
 
 void InitParser() {
 	ParserAssociations.add(ParserAssociation(new ParserText, "*"));
-//	ParserAssociations.add(ParserAssociation(new ParserKaba, "kaba"));
+	ParserAssociations.add(ParserAssociation(new ParserKaba, "kaba"));
 	ParserAssociations.add(ParserAssociation(new ParserC, "c"));
 	ParserAssociations.add(ParserAssociation(new ParserC, "cpp"));
 	ParserAssociations.add(ParserAssociation(new ParserC, "h"));

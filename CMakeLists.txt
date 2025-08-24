@@ -107,6 +107,72 @@ add_executable(xedit
 	src/lib/image/image_png.cpp
 	src/lib/image/image_tga.cpp
 	src/lib/image/ImagePainter.cpp
+	src/lib/kaba/asm/asm.cpp
+	src/lib/kaba/asm/asm_arm.cpp
+	src/lib/kaba/asm/asm_x86.cpp
+	src/lib/kaba/compiler/Backend.cpp
+	src/lib/kaba/compiler/BackendAmd64.cpp
+	src/lib/kaba/compiler/BackendARM.cpp
+	src/lib/kaba/compiler/BackendArm64.cpp
+	src/lib/kaba/compiler/BackendX86.cpp
+	src/lib/kaba/compiler/CommandList.cpp
+	src/lib/kaba/compiler/Compiler.cpp
+	src/lib/kaba/compiler/mapper.cpp
+	src/lib/kaba/compiler/Serializer.cpp
+	src/lib/kaba/compiler/SerialNode.cpp
+	src/lib/kaba/dynamic/call.cpp
+	src/lib/kaba/dynamic/dynamic.cpp
+	src/lib/kaba/dynamic/exception.cpp
+	src/lib/kaba/dynamic/sorting.cpp
+	src/lib/kaba/lib/dict.cpp
+	src/lib/kaba/lib/extern.cpp
+	src/lib/kaba/lib/lib.cpp
+	src/lib/kaba/lib/lib_async.cpp
+	src/lib/kaba/lib/lib_base.cpp
+	src/lib/kaba/lib/lib_image.cpp
+	src/lib/kaba/lib/lib_kaba.cpp
+	src/lib/kaba/lib/lib_math.cpp
+	src/lib/kaba/lib/lib_net.cpp
+	src/lib/kaba/lib/lib_os.cpp
+	src/lib/kaba/lib/lib_threads.cpp
+	src/lib/kaba/lib/lib_time.cpp
+	src/lib/kaba/lib/list.cpp
+	src/lib/kaba/parser/abstract.cpp
+	src/lib/kaba/parser/Concretifier.cpp
+	src/lib/kaba/parser/import.cpp
+	src/lib/kaba/parser/lexical.cpp
+	src/lib/kaba/parser/macros.cpp
+	src/lib/kaba/parser/Parser.cpp
+	src/lib/kaba/parser/Transformer.cpp
+	src/lib/kaba/parser/type_matching.cpp
+	src/lib/kaba/syntax/Block.cpp
+	src/lib/kaba/syntax/Class.cpp
+	src/lib/kaba/syntax/Constant.cpp
+	src/lib/kaba/syntax/Function.cpp
+	src/lib/kaba/syntax/Identifier.cpp
+	src/lib/kaba/syntax/Node.cpp
+	src/lib/kaba/syntax/Operator.cpp
+	src/lib/kaba/syntax/preprocessor.cpp
+	src/lib/kaba/syntax/Statement.cpp
+	src/lib/kaba/syntax/SyntaxTree.cpp
+	src/lib/kaba/syntax/Variable.cpp
+	src/lib/kaba/template/implicit.cpp
+	src/lib/kaba/template/implicit_array.cpp
+	src/lib/kaba/template/implicit_callable.cpp
+	src/lib/kaba/template/implicit_dict.cpp
+	src/lib/kaba/template/implicit_enum.cpp
+	src/lib/kaba/template/implicit_future.cpp
+	src/lib/kaba/template/implicit_list.cpp
+	src/lib/kaba/template/implicit_optional.cpp
+	src/lib/kaba/template/implicit_pointer.cpp
+	src/lib/kaba/template/implicit_product.cpp
+	src/lib/kaba/template/implicit_regular.cpp
+	src/lib/kaba/template/template.cpp
+	src/lib/kaba/CompilerConfiguration.cpp
+	src/lib/kaba/Context.cpp
+	src/lib/kaba/Interpreter.cpp
+	src/lib/kaba/kaba.cpp
+	src/lib/kaba/Module.cpp
 	src/lib/math/Box.cpp
 	src/lib/math/complex.cpp
 	src/lib/math/interpolation.cpp
@@ -121,6 +187,10 @@ add_executable(xedit
 	src/lib/math/vec2.cpp
 	src/lib/math/vec3.cpp
 	src/lib/math/vec4.cpp
+	src/lib/net/_kaba_export.cpp
+	src/lib/net/BinaryBuffer.cpp
+	src/lib/net/net.cpp
+	src/lib/net/Socket.cpp
 	src/lib/nix/_kaba_export.cpp
 	src/lib/nix/nix.cpp
 	src/lib/nix/nix_buffer.cpp

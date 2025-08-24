@@ -5,11 +5,8 @@
  *      Author: michi
  */
 
-#if 0
 #include "ParserKaba.h"
-#include "../HighlightScheme.h"
-#include "../lib/kaba/kaba.h"
-#include "../DocumentEditor.h"
+#include <lib/kaba/kaba.h>
 
 void add_class(ParserKaba *p, const kaba::Class *c, const string &ns);
 
@@ -159,6 +156,7 @@ ParserKaba::ParserKaba() : Parser("Kaba") {
 	//	special_words.add(s.name);
 }
 
+#if 0
 void ParserKaba::clear_symbols() {
 	types.clear();
 	global_variables.clear();
@@ -200,11 +198,13 @@ void ParserKaba::update_symbols(SourceView *sv) {
 			add_class_content(this, p->base_class(), "");
 	}*/
 }
+#endif
 
 
-Array<Parser::Label> ParserKaba::FindLabels(SourceView *sv) {
+Array<Parser::Label> ParserKaba::find_labels(const string &text, int offset) {
 	Array<Parser::Label> labels;
 
+#if 0
 	int num_lines = sv->get_num_lines();
 	string last_class;
 	for (int l=0;l<num_lines;l++) {
@@ -230,10 +230,16 @@ Array<Parser::Label> ParserKaba::FindLabels(SourceView *sv) {
 			labels.add(Label(s, l, 1));
 		}
 	}
+#endif
 	return labels;
 }
 
+Array<Markup> ParserKaba::create_markup(const string &text, int offset) {
+	return create_markup_default(text, offset);
+}
 
+
+#if 0
 void ParserKaba::CreateTextColors(SourceView *sv, int first_line, int last_line) {
 
 	/*try {
@@ -248,4 +254,3 @@ void ParserKaba::CreateTextColors(SourceView *sv, int first_line, int last_line)
 	CreateTextColorsDefault(sv, first_line, last_line);
 }
 #endif
-
