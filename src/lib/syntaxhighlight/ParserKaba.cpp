@@ -6,7 +6,10 @@
  */
 
 #include "ParserKaba.h"
+//#ifdef SYNTAX_HIGHLIGHT_KABA ...
 #include <lib/kaba/kaba.h>
+
+#include "lib/os/msg.h"
 
 void add_class(ParserKaba *p, const kaba::Class *c, const string &ns);
 
@@ -156,7 +159,6 @@ ParserKaba::ParserKaba() : Parser("Kaba") {
 	//	special_words.add(s.name);
 }
 
-#if 0
 void ParserKaba::clear_symbols() {
 	types.clear();
 	global_variables.clear();
@@ -164,13 +166,15 @@ void ParserKaba::clear_symbols() {
 	constants.clear();
 }
 
-void ParserKaba::update_symbols(SourceView *sv) {
-	auto context = ownify(kaba::Context::create());
+
+void ParserKaba::prepare_symbols(const string &text, const Path& filename) {
+
+	context = kaba::Context::create();
 
 	try {
-		kaba::config.default_filename = sv->doc->filename;
+		kaba::config.default_filename = filename;
 		//msg_write(kaba::config.directory.str());
-		auto m = context->create_module_for_source(sv->get_all(), true);
+		auto m = context->create_module_for_source(text, true);
 
 		clear_symbols();
 
@@ -192,13 +196,12 @@ void ParserKaba::update_symbols(SourceView *sv) {
 		//msg_error(e.message());
 	}
 
-	/*for (auto p: kaba::packages) {
+	for (auto p: weak(context->internal_packages)) {
 		add_class(this, p->base_class(), "");
 		//if (p->used_by_default)
 			add_class_content(this, p->base_class(), "");
-	}*/
+	}
 }
-#endif
 
 
 Array<Parser::Label> ParserKaba::find_labels(const string &text, int offset) {

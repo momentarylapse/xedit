@@ -4,6 +4,7 @@
 #include <lib/syntaxhighlight/BaseParser.h>
 #include <lib/os/msg.h>
 #include <lib/xhui/xhui.h>
+#include <lib/kaba/kaba.h>
 
 
 namespace os::app {
@@ -18,6 +19,8 @@ int main(const Array<string>& args) {
 	HighlightScheme::init();
 	HighlightScheme::default_scheme = HighlightScheme::get("dark2");
 	InitParser();
+
+	kaba::init();
 
 	auto w = new EditorWindow();
 	if (args.num >= 2) {

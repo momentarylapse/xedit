@@ -70,6 +70,7 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 			if (xcounter == 0) {
 				if (auto p = GetParser(filename)) {
 					clear_markings(0, edit->text.explode("\n").num);
+					p->prepare_symbols(edit->text, filename);
 					for (const auto& m: p->create_markup(edit->text, 0))
 						mark_word(m.start, m.end, m.type);
 				}
@@ -89,6 +90,7 @@ void DocumentEditor::load(const Path& _filename) {
 	edit->set_string(os::fs::read_text(filename));
 
 	if (auto p = GetParser(filename)) {
+		p->prepare_symbols(edit->text, filename);
 		for (const auto& m: p->create_markup(edit->text, 0))
 			mark_word(m.start, m.end, m.type);
 	}
