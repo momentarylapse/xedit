@@ -1,6 +1,6 @@
 #include "EditorWindow.h"
 #include "DocumentEditor.h"
-#include "HighlightScheme.h"
+#include <lib/syntaxhighlight/Theme.h>
 #include <lib/syntaxhighlight/BaseParser.h>
 #include <lib/os/msg.h>
 #include <lib/xhui/xhui.h>
@@ -16,8 +16,8 @@ int main(const Array<string>& args) {
 		return 1;
 	}
 
-	HighlightScheme::init();
-	HighlightScheme::default_scheme = HighlightScheme::get("dark2");
+	syntaxhighlight::init();
+	syntaxhighlight::default_theme = syntaxhighlight::get_theme("dark2");
 	InitParser();
 
 	kaba::init();

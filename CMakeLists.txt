@@ -223,6 +223,7 @@ add_executable(xedit
 	src/lib/syntaxhighlight/ParserPython.cpp
 	src/lib/syntaxhighlight/ParserShader.cpp
 	src/lib/syntaxhighlight/ParserText.cpp
+	src/lib/syntaxhighlight/Theme.cpp
 	src/lib/vulkan/_kaba_export.cpp
 	src/lib/vulkan/AccelerationStructure.cpp
 	src/lib/vulkan/Buffer.cpp
@@ -289,7 +290,6 @@ add_executable(xedit
 	src/lib/xhui/xhui.cpp
 	src/DocumentEditor.cpp
 	src/EditorWindow.cpp
-	src/HighlightScheme.cpp
 	src/main.cpp)
 target_include_directories(xedit PUBLIC ${INCLUDE_DIRECTORIES})
 target_link_directories(xedit PUBLIC ${LINK_DIRECTORIES})

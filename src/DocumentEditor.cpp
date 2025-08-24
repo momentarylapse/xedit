@@ -1,6 +1,6 @@
 #include "DocumentEditor.h"
 
-#include <HighlightScheme.h>
+#include <lib/syntaxhighlight/Theme.h>
 #include <lib/base/iter.h>
 #include <lib/syntaxhighlight/BaseParser.h>
 #include <lib/os/file.h>
@@ -123,7 +123,7 @@ DocumentEditor::Index DocumentEditor::line_end(int line_no) const {
 }
 
 void DocumentEditor::mark_word(Index i0, Index i1, MarkupType type) {
-	const auto& c = HighlightScheme::default_scheme->context[(int)type];
+	const auto& c = syntaxhighlight::default_theme->context[(int)type];
 	edit->add_markup({i0, i1, c.bold ? xhui::FontFlags::Bold : xhui::FontFlags::None, c.fg});
 }
 
