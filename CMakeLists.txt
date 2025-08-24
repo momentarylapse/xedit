@@ -144,6 +144,15 @@ add_executable(xedit
 	src/lib/os/terminal.cpp
 	src/lib/os/time.cpp
 	src/lib/pattern/Observable.cpp
+	src/lib/syntaxhighlight/BaseParser.cpp
+	src/lib/syntaxhighlight/ParserC.cpp
+	src/lib/syntaxhighlight/ParserCmake.cpp
+	src/lib/syntaxhighlight/ParserHui.cpp
+	src/lib/syntaxhighlight/ParserIni.cpp
+	src/lib/syntaxhighlight/ParserKaba.cpp
+	src/lib/syntaxhighlight/ParserPython.cpp
+	src/lib/syntaxhighlight/ParserShader.cpp
+	src/lib/syntaxhighlight/ParserText.cpp
 	src/lib/vulkan/_kaba_export.cpp
 	src/lib/vulkan/AccelerationStructure.cpp
 	src/lib/vulkan/Buffer.cpp
@@ -208,15 +217,6 @@ add_executable(xedit
 	src/lib/xhui/Theme.cpp
 	src/lib/xhui/Window.cpp
 	src/lib/xhui/xhui.cpp
-	src/parser/BaseParser.cpp
-	src/parser/ParserC.cpp
-	src/parser/ParserCmake.cpp
-	src/parser/ParserHui.cpp
-	src/parser/ParserIni.cpp
-	src/parser/ParserKaba.cpp
-	src/parser/ParserPython.cpp
-	src/parser/ParserShader.cpp
-	src/parser/ParserText.cpp
 	src/DocumentEditor.cpp
 	src/EditorWindow.cpp
 	src/HighlightScheme.cpp

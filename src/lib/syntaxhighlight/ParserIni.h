@@ -14,11 +14,11 @@ class ParserIni : public Parser {
 public:
 	ParserIni();
 
-	void CreateTextColors(DocumentEditor *sv, int first_line = -1, int last_line = -1) override;
+	Array<Markup> create_markup(const string &text, int offset) override;
 
 
-	void CreateTextColorsHeader(DocumentEditor *sv, int line_no, const string& line);
-	void CreateTextColorsKeyValue(DocumentEditor *sv, int line_no, const string& line);
+	Array<Markup> create_markup_header(const string& line, int offset);
+	Array<Markup> create_markup_key_value(const string& line, int offset);
 };
 
 #endif /* SRC_PARSER_PARSERINI_H_ */

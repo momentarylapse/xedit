@@ -6,7 +6,6 @@
  */
 
 #include "ParserShader.h"
-#include "../HighlightScheme.h"
 
 ParserShader::ParserShader() : Parser("Shader") {
 	macro_begin = "#";
@@ -250,7 +249,7 @@ ParserShader::ParserShader() : Parser("Shader") {
 	compiler_functions.add("nonuniformEXT");
 }
 
-void ParserShader::CreateTextColors(DocumentEditor *sv, int first_line, int last_line) {
-	CreateTextColorsDefault(sv, first_line, last_line);
+Array<Markup> ParserShader::create_markup(const string &text, int offset) {
+	return create_markup_default(text, offset);
 }
 

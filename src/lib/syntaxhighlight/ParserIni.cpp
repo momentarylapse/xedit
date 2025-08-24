@@ -7,9 +7,6 @@
 
 #include "ParserIni.h"
 
-#include "../HighlightScheme.h"
-#include "../DocumentEditor.h"
-
 ParserIni::ParserIni() : Parser("Ini") {
 	macro_begin = "???";
 	line_comment_begin = "#";
@@ -24,8 +21,8 @@ ParserIni::ParserIni() : Parser("Ini") {
 #define skip_token(t) p+=t.num;pos+=t.num
 
 
-void ParserIni::CreateTextColorsHeader(DocumentEditor *sv, int line_no, const string& line) {
-	sv->mark_word(sv->line_start(line_no), sv->line_end(line_no), IN_MACRO);
+Array<Markup> ParserIni::create_markup_header(const string& line, int offset) {
+	return {{offset, offset + line.num, MarkupType::MACRO}};
 }
 
 bool is_numeric(const string& s) {
@@ -37,17 +34,17 @@ bool is_numeric(const string& s) {
 	return true;
 }
 
-void ParserIni::CreateTextColorsKeyValue(DocumentEditor *sv, int line_no, const string& line) {
+Array<Markup> ParserIni::create_markup_key_value(const string& line, int index0) {
 	int num_uchars = line.utf8len();
 //	char *p = (char*)line.data;//(const char*)&line[0];
 //	char *p0 = p;
-	int index0 = sv->line_start(line_no);
 
 	int i0 = line.find("=");
 	if (i0 < 0)
-		return;
+		return {};
 
-	sv->mark_word(index0, index0 + i0, IN_WORD_SPECIAL);
+	Array<Markup> markups;
+	markups.add({index0, index0 + i0, MarkupType::SPECIAL});
 	string rest = line.sub_ref(i0 + 1, line.num);
 	string value = rest.trim();
 	i0 += 1;
@@ -55,22 +52,28 @@ void ParserIni::CreateTextColorsKeyValue(DocumentEditor *sv, int line_no, const 
 		auto xx = value.sub_ref(1, value.num - 1).explode(",");
 		i0 += 1 + rest.find("[");
 		for (auto &x: xx) {
-			sv->mark_word(index0 + i0, index0 + i0 + x.num, IN_WORD_MODIFIER);
+			markups.add({index0 + i0, index0 + i0 + x.num, MarkupType::MODIFIER});
 			i0 += x.num + 1;
 		}
 
 	} else {
-		int type = IN_WORD_MODIFIER;
+		MarkupType type = MarkupType::MODIFIER;
 		if (value == "true" or value == "false")
-			type = IN_WORD_GLOBAL_VARIABLE;
+			type = MarkupType::GLOBAL_VARIABLE;
 		else if (is_numeric(value))
-			type = IN_NUMBER;
+			type = MarkupType::NUMBER;
 		else if (value.head(1) == "\"" and value.tail(1) == "\"")
-			type = IN_STRING;
-		sv->mark_word(index0 + i0, index0 + i0 + rest.num, type);
+			type = MarkupType::STRING;
+		markups.add({index0 + i0, index0 + i0 + rest.num, type});
 	}
+	return markups;
 }
 
+Array<Markup> ParserIni::create_markup(const string &text, int offset) {
+	return {};
+}
+
+#if 0
 void ParserIni::CreateTextColors(DocumentEditor *sv, int first_line, int last_line) {
 	int num_lines = sv->get_num_lines();
 	if (first_line < 0)
@@ -91,4 +94,5 @@ void ParserIni::CreateTextColors(DocumentEditor *sv, int first_line, int last_li
 			CreateTextColorsKeyValue(sv, l, s);
 	}
 }
+#endif
 

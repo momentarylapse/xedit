@@ -8,28 +8,10 @@
 #pragma once
 
 #include <lib/image/color.h>
+#include <lib/syntaxhighlight/BaseParser.h>
 
 class DocumentEditor;
 
-enum {
-	IN_WORD,
-	IN_WORD_SPECIAL,
-	IN_WORD_COMPILER_FUNCTION,
-	IN_WORD_OPERATOR_FUNCTION,
-	IN_WORD_MODIFIER,
-	IN_WORD_GLOBAL_VARIABLE,
-	IN_WORD_TYPE,
-	IN_LINE_COMMENT,
-	IN_COMMENT_LEVEL_1,
-	IN_COMMENT_LEVEL_2,
-	IN_MACRO,
-	IN_SPACE,
-	IN_STRING,
-	IN_STRING_SUBSTITUDE,
-	IN_OPERATOR,
-	IN_NUMBER,
-	NUM_TAG_TYPES
-};
 
 struct HighlightContext {
 	color fg, bg;
@@ -43,7 +25,7 @@ class HighlightScheme {
 public:
 	string name;
 	color bg;
-	HighlightContext context[NUM_TAG_TYPES];
+	HighlightContext context[(int)MarkupType::NUM_TYPES];
 	bool is_default, changed;
 	HighlightScheme();
 	HighlightScheme *copy(const string &name);

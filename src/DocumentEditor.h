@@ -8,6 +8,8 @@ namespace xhui {
 class MultilineEdit;
 }
 
+enum class MarkupType;
+
 class DocumentEditor : public obs::Node<VirtualBase> {
 public:
 	explicit DocumentEditor();
@@ -23,7 +25,7 @@ public:
 	Index line_end(int line_no) const;
 
 //	void mark_word(int line_no, int pos0, int num_uchars, int type, char* p0, char* p1);
-	void mark_word(Index i0, Index i1, int type);
+	void mark_word(Index i0, Index i1, MarkupType type);
 	void clear_markings(int first_line, int last_line);
 
 	Path filename;

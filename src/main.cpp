@@ -1,9 +1,9 @@
 #include "EditorWindow.h"
 #include "DocumentEditor.h"
 #include "HighlightScheme.h"
-#include "parser/BaseParser.h"
-#include "lib/os/msg.h"
-#include "lib/xhui/xhui.h"
+#include <lib/syntaxhighlight/BaseParser.h>
+#include <lib/os/msg.h>
+#include <lib/xhui/xhui.h>
 
 
 namespace os::app {
