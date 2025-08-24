@@ -70,29 +70,18 @@ Array<Markup> ParserIni::create_markup_key_value(const string& line, int index0)
 }
 
 Array<Markup> ParserIni::create_markup(const string &text, int offset) {
-	return {};
-}
+	int index0 = offset;
 
-#if 0
-void ParserIni::CreateTextColors(DocumentEditor *sv, int first_line, int last_line) {
-	int num_lines = sv->get_num_lines();
-	if (first_line < 0)
-		first_line = 0;
-	if (last_line < 0)
-		last_line = num_lines - 1;
-
-	sv->clear_markings(first_line, last_line);
-
-	for (int l=first_line; l<=last_line; l++) {
-		int index0 = sv->line_start(l);
-		string s = sv->get_line(l);
+	Array<Markup> markups;
+	for (const auto& s: text.explode("\n")) {
 		if (s.trim().head(1) == "[")
-			CreateTextColorsHeader(sv, l, s);
+			markups.append(create_markup_header(s, index0));
 		else if (s.trim().head(1) == "#")
-			sv->mark_word(index0, index0 + s.num, IN_LINE_COMMENT);
+			markups.add({index0, index0 + s.num, MarkupType::LINE_COMMENT});
 		else
-			CreateTextColorsKeyValue(sv, l, s);
+			markups.append(create_markup_key_value(s, index0));
+		index0 += s.num + 1;
 	}
+	return markups;
 }
-#endif
 

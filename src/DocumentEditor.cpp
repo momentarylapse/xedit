@@ -62,6 +62,22 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 			}
 	});
 
+	static int xcounter = 0;
+	win->event_x(edit_id, xhui::event_id::Changed, [this] {
+		xcounter ++;
+		xhui::run_later(2.0f, [this] {
+			xcounter --;
+			if (xcounter == 0) {
+				if (auto p = GetParser(filename)) {
+					clear_markings(0, edit->text.explode("\n").num);
+					for (const auto& m: p->create_markup(edit->text, 0))
+						mark_word(m.start, m.end, m.type);
+				}
+
+			}
+		});
+	});
+
 	xhui::run_later(0.1f, [this, win] {
 		win->request_redraw();
 	});
