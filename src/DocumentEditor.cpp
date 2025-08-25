@@ -18,15 +18,15 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 	static int counter = 0;
 	grid_id = format("grid-%d", counter);
 	edit_id = format("edit-%d", counter);
-	lines_id = format("lines-%d", counter);
+//	lines_id = format("lines-%d", counter);
 	counter ++;
 
 	win->set_target("tab");
 	win->add_control("Grid", "", index, 0, grid_id);
 	win->set_options(grid_id, "spacing=0");
 	win->set_target(grid_id);
-	win->add_control("DrawingArea", "", 0, 0, lines_id);
-	win->set_options(lines_id, "width=50");
+//	win->add_control("DrawingArea", "", 0, 0, lines_id);
+//	win->set_options(lines_id, "width=50,hidden");
 	win->add_control("MultilineEdit", "", 1, 0, edit_id);
 	edit = (xhui::MultilineEdit*)win->get_control(edit_id);
 	edit->set_option("focusframe", "no");
@@ -35,32 +35,13 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 //	edit->set_option("fontsize", "13");
 	edit->set_option("lineheightscale", "1.1f");
 	edit->set_option("altbg", "");
+	edit->set_option("linenumbers", "");
 
 	/*win->event(edit_id, [this, win] {
 		int n = edit->cache.lines.num;
 		int digits = log10(n);
 		win->set_options(lines_id, "width=50");
 	});*/
-
-	win->event_xp(lines_id, xhui::event_id::Draw, [this] (Painter* p) {
-		const rect area = p->area();
-		p->set_color(xhui::Theme::_default.background);
-		p->draw_rect(area);
-		p->set_font("monospace", 14, false, false);
-		int cursor_line = edit->index_to_line_pos(edit->cursor_pos).line;
-		float dy = -1;
-		for (const auto& [l, y0]: enumerate(edit->cache.line_y0))
-			if (y0 + edit->cache.line_height[l] > area.y1 and y0 < area.y2) {
-				p->set_color(xhui::Theme::_default.text_disabled);
-				if (l == cursor_line)
-					p->set_color(xhui::Theme::_default.text);
-				if (dy < 0) {
-					auto size = p->get_str_size("0");
-					dy = (edit->cache.line_height[l] - size.y) / 2.0f;
-				}
-				p->draw_str({area.x1, y0 + dy}, format("%3d", l+1));
-			}
-	});
 
 	static int xcounter = 0;
 	win->event_x(edit_id, xhui::event_id::Changed, [this] {

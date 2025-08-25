@@ -30,6 +30,6 @@ public:
 
 	Path filename;
 	xhui::MultilineEdit* edit = nullptr;
-	string grid_id, lines_id, edit_id;
+	string grid_id, __lines_id, edit_id;
 };
 
