@@ -1,9 +1,7 @@
 #include "Button.h"
-
 #include <lib/os/msg.h>
-
 #include "../Painter.h"
-#include "../draw/font.h"
+#include <lib/ygraphics/font.h>
 #include "../Theme.h"
 
 namespace xhui {
@@ -86,7 +84,15 @@ string Button::get_string() {
 
 void Button::_draw(Painter *p) {
 	color bg = Theme::_default.background_button;
-	if (primary) {
+	if (danger) {
+		if (state == State::HOVER) {
+			bg = Theme::_default.background_button_danger_hover;
+		} else if (state == State::PRESSED) {
+			bg = Theme::_default.background_button_danger_active;
+		} else {
+			bg = Theme::_default.background_button_danger;
+		}
+	} else if (primary) {
 		if (state == State::HOVER) {
 			bg = Theme::_default.background_button_primary_hover;
 		} else if (state == State::PRESSED) {
@@ -118,8 +124,19 @@ void Button::set_option(const string& key, const string& value) {
 		float f = value._float();
 		padding = {f, f, f, f};
 		request_redraw();
+	} else if (key == "paddingx") {
+		float f = value._float();
+		padding.x1 = padding.x2 = f;
+		request_redraw();
+	} else if (key == "paddingy") {
+		float f = value._float();
+		padding.y1 = padding.y2 = f;
+		request_redraw();
 	} else if (key == "primary") {
 		primary = true;
+		request_redraw();
+	} else if (key == "danger") {
+		danger = true;
 		request_redraw();
 	} else if (key == "default") {
 		_default = true;
@@ -128,6 +145,8 @@ void Button::set_option(const string& key, const string& value) {
 	} else if (key == "flat") {
 		flat = true;
 		request_redraw();
+	} else if (key == "small" or key == "small" or key == "bold") {
+		label.set_option(key, value);
 	} else {
 		Control::set_option(key, value);
 	}
