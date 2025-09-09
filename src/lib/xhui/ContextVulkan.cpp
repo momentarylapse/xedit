@@ -16,6 +16,7 @@ Context::Context(Window* w, ygfx::Context* ctx) {
 }
 
 Painter* Context::prepare_draw() {
+	context->make_current();
 	if (!swap_chain->acquire_image(&image_index, image_available_semaphore)) {
 		rebuild_default_stuff();
 		return nullptr;
@@ -99,7 +100,6 @@ Context* Context::create(Window* window) {
 
 	static vulkan::Instance* global_instance = nullptr;
 
-	glfwMakeContextCurrent(window->window);
 	if (!global_instance) {
 		global_instance = vulkan::init({"glfw", "validation", "api=1.2", "verbosity=1"});
 	}
