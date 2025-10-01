@@ -64,7 +64,7 @@ void init(const Array<string> &arg, const string& app_name) {
 
 	font::init();
 
-	Array<string> font_names = {"FreeSans", "Cantarell", "OpenSans", "Helvetica", "NotoSans"};
+	Array<string> font_names = {"Cantarell", "FreeSans", "OpenSans", "Helvetica", "NotoSans"};
 
 	for (const string& name: font_names) {
 		if (!default_font_regular)
@@ -77,7 +77,7 @@ void init(const Array<string> &arg, const string& app_name) {
 	if (!default_font_regular)
 		msg_error("no font found...");
 
-	Array<string> font_names_mono = {"Menlo", "Courier New", "FreeMono", "NotoSansMono", "AdwaitaMono"};
+	Array<string> font_names_mono = {"DejaVuSansMono", "Menlo", "NotoSansMono", "AdwaitaMono", "Courier New", "FreeMono"};
 	for (const string& name: font_names_mono) {
 		if (!default_font_mono_regular)
 			default_font_mono_regular = font::load_face(name, false, false);
@@ -188,7 +188,8 @@ void cancel_runner(int id) {
 }
 
 void iterate_runners(float dt) {
-	for (auto r: runners)
+	for (int i=0; i<runners.num; i++) {
+		auto r = runners[i]; // in case a new runner is added
 		if (r->used) {
 			r->t += dt;
 			if (r->t >= r->dt) {
@@ -199,6 +200,7 @@ void iterate_runners(float dt) {
 					r->used = false;
 			}
 		}
+	}
 }
 
 void run() {

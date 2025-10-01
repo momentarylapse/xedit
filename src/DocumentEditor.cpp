@@ -31,7 +31,7 @@ void DocumentEditor::create_controls(xhui::Window* win, int index) {
 	edit = (xhui::MultilineEdit*)win->get_control(edit_id);
 	edit->set_option("focusframe", "no");
 	edit->set_option("monospace", "");
-	edit->set_option("fontsize", "15");
+	edit->set_option("fontsize", "12");
 //	edit->set_option("fontsize", "13");
 	edit->set_option("lineheightscale", "1.1f");
 	edit->set_option("altbg", "");

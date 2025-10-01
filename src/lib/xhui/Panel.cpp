@@ -187,6 +187,8 @@ bool Panel::handle_event(const string &id, const string &msg, bool is_default) {
 			e.f();
 			any_match = true;
 		}
+	if (propagate_events and owner)
+		any_match |= owner->handle_event(id, msg, is_default);
 	return any_match;
 }
 
@@ -198,6 +200,8 @@ bool Panel::handle_event_p(const string &id, const string &msg, Painter *p) {
 			e.fp(p);
 			any_match = true;
 		}
+	if (propagate_events and owner)
+		any_match |= owner->handle_event_p(id, msg, p);
 	return any_match;
 }
 
@@ -326,6 +330,8 @@ void Panel::set_options(const string& id, const string& options) {
 void Panel::set_option(const string& key, const string& value) {
 	if (key == "padding") {
 		padding = value._float();
+	} else if (key == "propagateevents") {
+		propagate_events = true;
 	} else {
 		Control::set_option(key, value);
 	}
@@ -471,6 +477,7 @@ void Panel::embed(const string& target, int x, int y, shared<Panel> p) {
 }
 
 void Panel::unembed(Panel* p) {
+	shared<Panel> tmp = p; // prevent deletion
 	remove_control(p);
 	p->owner = nullptr;
 }
@@ -569,6 +576,7 @@ base::future<void> Panel::open_dialog(shared<Dialog> dialog) {
 	dialog->owner = this;
 	if (auto w = get_window()) {
 		w->dialogs.add(dialog.get());
+		w->_clear_hover();
 	}
 	request_redraw();
 	return dialog->basic_promise.get_future();
@@ -583,7 +591,7 @@ void Panel::close_dialog(Dialog* dialog) {
 		}
 	if (auto w = get_window()) {
 		w->dialogs.pop();
-		w->hover_control = nullptr;
+		w->_clear_hover();
 		w->focus_control = nullptr;
 	}
 	dialog->basic_promise();
