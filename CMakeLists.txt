@@ -267,6 +267,7 @@ add_executable(xedit
 	src/lib/xhui/controls/ToggleButton.cpp
 	src/lib/xhui/controls/Toolbar.cpp
 	src/lib/xhui/controls/Viewport.cpp
+	src/lib/xhui/dialogs/AboutDialog.cpp
 	src/lib/xhui/dialogs/ColorSelectionDialog.cpp
 	src/lib/xhui/dialogs/FileSelectionDialog.cpp
 	src/lib/xhui/dialogs/MenuPopup.cpp
