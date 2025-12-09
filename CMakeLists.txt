@@ -213,6 +213,7 @@ add_executable(xedit
 	src/lib/os/terminal.cpp
 	src/lib/os/time.cpp
 	src/lib/pattern/Observable.cpp
+	src/lib/syntaxhighlight/AutoComplete.cpp
 	src/lib/syntaxhighlight/BaseParser.cpp
 	src/lib/syntaxhighlight/ParserC.cpp
 	src/lib/syntaxhighlight/ParserCmake.cpp
