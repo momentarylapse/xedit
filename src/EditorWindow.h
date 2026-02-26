@@ -24,5 +24,19 @@ public:
 	void update_title();
 
 	DocumentSwitcher* switcher = nullptr;
+
+	struct Message {
+		enum class Type {
+			INFO,
+			WARNING,
+			ERROR
+		};
+		Type type;
+		string message;
+	};
+	Array<Message> messages;
+	void add_message(Message::Type type, const string& message);
+	void info(const string& message);
+	void error(const string& message);
 };
 

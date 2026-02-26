@@ -3,15 +3,39 @@
 #include <lib/xhui/xhui.h>
 #include <lib/xhui/dialogs/FileSelectionDialog.h>
 #include <lib/xhui/controls/MultilineEdit.h>
+#include <lib/xhui/Theme.h>
 #include <lib/os/file.h>
 #include <lib/os/filesystem.h>
 #include <lib/os/msg.h>
 #include <lib/codeeditor/CodeEditor.h>
 
+
+void draw_boxed_str(Painter* p, const vec2& _pos, const string& str, int align, EditorWindow::Message::Type style) {
+	vec2 size = p->get_str_size(str);
+	vec2 pos = _pos;
+	if (align == 0)
+		pos.x -= size.x / 2;
+	if (align == 1)
+		pos.x -= size.x;
+	if (style == EditorWindow::Message::Type::ERROR)
+		p->set_color(color(1, 0.6f, 0.1f, 0.1f));
+	else if (style == EditorWindow::Message::Type::WARNING)
+		p->set_color(xhui::Theme::_default.background_button_danger);
+	else
+		p->set_color(xhui::Theme::_default.background_button);
+	p->set_roundness(7);
+	p->draw_rect(rect(pos, pos + size).grow(7));
+	p->set_color(xhui::Theme::_default.text_label);
+	p->set_roundness(0);
+	p->draw_str(pos, str);
+}
+
 EditorWindow::EditorWindow() : obs::Node<Window>("", 800, 600) {
 	from_source(R"foodelim(
 Window test 'test' padding=0
-	TabControl tab 'a' bar=no
+	Overlay ? ''
+		TabControl tab 'a' bar=no
+		DrawingArea overlay-area '' ignorehover
 )foodelim");
 
 #ifdef OS_MAC
@@ -60,6 +84,11 @@ Window test 'test' padding=0
 			open_dialog(switcher);
 		}
 	});
+	event_xp("overlay-area", xhui::event_id::Draw, [this] (Painter* p) {
+		for (const auto& m : messages) {
+			draw_boxed_str(p, p->area().center(), m.message, 0, m.type);
+		}
+	});
 }
 
 void EditorWindow::on_key_up(int key_code) {
@@ -86,6 +115,12 @@ codeedit::CodeEditor* EditorWindow::create_document_editor() {
 	e->out_changed >> create_sink([this] {
 		update_title();
 	});
+	e->out_no_error >> create_sink([this] {
+		info("no error");
+	});
+	e->out_error >> create_data_sink<string>([this] (const string& m) {
+		error(m);
+	});
 
 
 	set_active(e);
@@ -107,6 +142,21 @@ void EditorWindow::update_title() {
 		set_title(active_editor->title() + " - xedit");
 }
 
+void EditorWindow::add_message(Message::Type type, const string& message) {
+	messages.add({type, message});
+	xhui::run_later(4.0f, [this] {
+		messages.erase(0);
+		request_redraw();
+	});
+	request_redraw();
+}
 
+void EditorWindow::info(const string &message) {
+	add_message(Message::Type::INFO, message);
+}
+
+void EditorWindow::error(const string &message) {
+	add_message(Message::Type::ERROR, message);
+}
 
 
