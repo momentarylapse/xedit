@@ -15,7 +15,7 @@ DocumentSwitcher::DocumentSwitcher(EditorWindow* _editor_window) : Dialog("...",
 	add_control("ListView", "open files", 0, 0, "list");
 
 	for (auto e: weak(editor_window->document_editors))
-		add_string("list", e->filename.basename());
+		add_string("list", e->title());
 	set_int("list", weak(editor_window->document_editors).find(editor_window->active_editor));
 	next();
 }

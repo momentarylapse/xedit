@@ -66,7 +66,20 @@ Window test 'test' padding=0
 			auto e = create_document_editor();
 			e->load(filename);
 		});
-		create_document_editor();
+		//create_document_editor();
+	});
+	event("save", [this] {
+		if (!active_editor)
+			return;
+		if (active_editor->filename) {
+			active_editor->save(active_editor->filename);
+			info("saved");
+		} else {
+			xhui::FileSelectionDialog::ask(this, "save..", os::fs::current_directory(), {"save"}).then([this] (const Path& filename) {
+				active_editor->save(filename);
+				info("saved");
+			});
+		}
 	});
 	event("next-document", [this] {
 		if (switcher) {
@@ -133,13 +146,17 @@ void EditorWindow::set_active(codeedit::CodeEditor* editor) {
 	int index = weak(document_editors).find(editor);
 	set_int("tab", index);
 
-	focus(editor->edit->id);
+	active_editor->activate(editor->id_edit);
 	update_title();
 }
 
 void EditorWindow::update_title() {
-	if (active_editor)
-		set_title(active_editor->title() + " - xedit");
+	if (active_editor) {
+		string x;
+		if (!active_editor->is_save_state())
+			x = "*";
+		set_title(active_editor->title() + x + " - xedit");
+	}
 }
 
 void EditorWindow::add_message(Message::Type type, const string& message) {
