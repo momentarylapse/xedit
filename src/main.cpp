@@ -1,5 +1,5 @@
 #include "EditorWindow.h"
-#include "DocumentEditor.h"
+#include <lib/codeeditor/CodeEditor.h>
 #include <lib/syntaxhighlight/Theme.h>
 #include <lib/syntaxhighlight/BaseParser.h>
 #include <lib/os/msg.h>

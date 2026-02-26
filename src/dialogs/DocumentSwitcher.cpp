@@ -4,7 +4,7 @@
 
 #include "DocumentSwitcher.h"
 #include "../EditorWindow.h"
-#include <DocumentEditor.h>
+#include <lib/codeeditor/CodeEditor.h>
 #include <lib/os/msg.h>
 
 // TODO sort by last-active

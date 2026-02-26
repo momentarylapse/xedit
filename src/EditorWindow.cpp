@@ -1,5 +1,4 @@
 #include "EditorWindow.h"
-#include "DocumentEditor.h"
 #include "dialogs/DocumentSwitcher.h"
 #include <lib/xhui/xhui.h>
 #include <lib/xhui/dialogs/FileSelectionDialog.h>
@@ -7,6 +6,7 @@
 #include <lib/os/file.h>
 #include <lib/os/filesystem.h>
 #include <lib/os/msg.h>
+#include <lib/codeeditor/CodeEditor.h>
 
 EditorWindow::EditorWindow() : obs::Node<Window>("", 800, 600) {
 	from_source(R"foodelim(
@@ -71,20 +71,16 @@ void EditorWindow::on_key_up(int key_code) {
 }
 
 
-DocumentEditor* EditorWindow::create_document_editor() {
+codeedit::CodeEditor* EditorWindow::create_document_editor() {
 	static int counter = 0;
 	string id = format("edit-%d", counter ++);
 
 	set_target("tab");
-	add_control("MultilineEdit", "", document_editors.num, 0, id);
-	auto edit = (xhui::MultilineEdit*)get_control(id);
-	edit->set_option("focusframe", "no");
-	edit->set_option("monospace", "");
-	edit->set_option("fontsize", "11");
+	add_control("Grid", "", document_editors.num, 0, id);
 
 
-	auto e = new DocumentEditor();
-	e->create_controls(this, document_editors.num);
+	auto e = new codeedit::CodeEditor();
+	embed(id, 0, 0, e);
 	document_editors.add(e);
 
 	e->out_changed >> create_sink([this] {
@@ -97,7 +93,7 @@ DocumentEditor* EditorWindow::create_document_editor() {
 	return e;
 }
 
-void EditorWindow::set_active(DocumentEditor* editor) {
+void EditorWindow::set_active(codeedit::CodeEditor* editor) {
 	active_editor = editor;
 	int index = weak(document_editors).find(editor);
 	set_int("tab", index);

@@ -3,7 +3,10 @@
 #include <lib/xhui/Window.h>
 #include <lib/pattern/Observable.h>
 
-class DocumentEditor;
+namespace codeedit {
+	class CodeEditor;
+}
+
 class DocumentSwitcher;
 
 class EditorWindow : public obs::Node<xhui::Window> {
@@ -12,11 +15,11 @@ public:
 
 	void on_key_up(int key) override;
 
-	DocumentEditor* create_document_editor();
+	codeedit::CodeEditor* create_document_editor();
 
-	owned_array<DocumentEditor> document_editors;
-	DocumentEditor* active_editor = nullptr;
-	void set_active(DocumentEditor* editor);
+	shared_array<codeedit::CodeEditor> document_editors;
+	codeedit::CodeEditor* active_editor = nullptr;
+	void set_active(codeedit::CodeEditor* editor);
 
 	void update_title();
 

@@ -100,6 +100,7 @@ add_executable(xedit
 	src/lib/base/array.cpp
 	src/lib/base/pointer.cpp
 	src/lib/base/strings.cpp
+	src/lib/codeeditor/CodeEditor.cpp
 	src/lib/image/color.cpp
 	src/lib/image/image.cpp
 	src/lib/image/image_bmp.cpp
@@ -296,7 +297,6 @@ add_executable(xedit
 	src/lib/ygraphics/Painter.cpp
 	src/lib/ygraphics/PainterGL.cpp
 	src/lib/ygraphics/PainterVulkan.cpp
-	src/DocumentEditor.cpp
 	src/EditorWindow.cpp
 	src/main.cpp)
 target_include_directories(xedit PUBLIC ${INCLUDE_DIRECTORIES})
