@@ -24,10 +24,8 @@ int main(const Array<string>& args) {
 
 	auto w = new EditorWindow();
 	if (args.num >= 2) {
-		for (int i=1; i<args.num; i++) {
-			auto e = w->create_document_editor();
-			e->load(args[i]);
-		}
+		for (int i=1; i<args.num; i++)
+			w->open_document(args[1]);
 	} else {
 		auto e = w->create_document_editor();
 	}

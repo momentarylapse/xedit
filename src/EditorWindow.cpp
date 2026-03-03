@@ -63,10 +63,8 @@ Window test 'test' padding=0
 	});
 	event("open", [this] {
 		xhui::FileSelectionDialog::ask(this, "open..", os::fs::current_directory(), {}).then([this] (const Path& filename) {
-			auto e = create_document_editor();
-			e->load(filename);
+			open_document(filename);
 		});
-		//create_document_editor();
 	});
 	event("save", [this] {
 		if (!active_editor)
@@ -128,16 +126,36 @@ codeedit::CodeEditor* EditorWindow::create_document_editor() {
 	e->out_changed >> create_sink([this] {
 		update_title();
 	});
-	e->out_no_error >> create_sink([this] {
-		info("no error");
+	e->out_info >> create_data_sink<string>([this] (const string& m) {
+		info(m);
 	});
 	e->out_error >> create_data_sink<string>([this] (const string& m) {
 		error(m);
+	});
+	e->out_request_open_file >> create_data_sink<codeedit::CodeEditor::Location>([this] (const codeedit::CodeEditor::Location& l) {
+		if (l.filename) {
+			auto ee = open_document(l.filename);
+			ee->edit->set_cursor_pos(l.offset);
+		}
 	});
 
 
 	set_active(e);
 
+	return e;
+}
+
+codeedit::CodeEditor* EditorWindow::open_document(const Path& _filename) {
+	auto filename = _filename.absolute().canonical();
+
+	for (auto e : weak(document_editors))
+		if (e->filename == filename) {
+			set_active(e);
+			return e;
+		}
+
+	auto e = create_document_editor();
+	e->load(filename);
 	return e;
 }
 

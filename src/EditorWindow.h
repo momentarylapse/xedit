@@ -8,6 +8,7 @@ namespace codeedit {
 }
 
 class DocumentSwitcher;
+class Path;
 
 class EditorWindow : public obs::Node<xhui::Window> {
 public:
@@ -16,6 +17,7 @@ public:
 	void on_key_up(int key) override;
 
 	codeedit::CodeEditor* create_document_editor();
+	codeedit::CodeEditor* open_document(const Path& filename);
 
 	shared_array<codeedit::CodeEditor> document_editors;
 	codeedit::CodeEditor* active_editor = nullptr;
