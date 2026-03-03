@@ -33,10 +33,14 @@ void draw_boxed_str(Painter* p, const vec2& _pos, const string& str, int align, 
 EditorWindow::EditorWindow() : obs::Node<Window>("", 800, 600) {
 	from_source(R"foodelim(
 Window test 'test' padding=0
-	Overlay ? ''
-		TabControl tab 'a' bar=no
-		DrawingArea overlay-area '' ignorehover
+	Grid ? ''
+		FileSelector files '' width=250
+		Overlay ? '' expandx
+			TabControl tab 'a' bar=no
+			DrawingArea overlay-area '' ignorehover
 )foodelim");
+
+	maximize(true);
 
 #ifdef OS_MAC
 	int mod = xhui::KEY_SUPER;
@@ -62,7 +66,10 @@ Window test 'test' padding=0
 		create_document_editor();
 	});
 	event("open", [this] {
-		xhui::FileSelectionDialog::ask(this, "open..", os::fs::current_directory(), {}).then([this] (const Path& filename) {
+		Path dir = os::fs::current_directory();
+		if (active_editor and active_editor->filename)
+			dir = active_editor->filename.parent();
+		xhui::FileSelectionDialog::ask(this, "open..", dir, {}).then([this] (const Path& filename) {
 			open_document(filename);
 		});
 	});
@@ -99,6 +106,12 @@ Window test 'test' padding=0
 		for (const auto& m : messages) {
 			draw_boxed_str(p, p->area().center(), m.message, 0, m.type);
 		}
+	});
+
+	set_options("files", "linkevents");
+	set_options("files", format("directory=%s", os::fs::current_directory()));
+	event("files", [this] {
+		open_document(get_string("files"));
 	});
 }
 
@@ -156,6 +169,7 @@ codeedit::CodeEditor* EditorWindow::open_document(const Path& _filename) {
 
 	auto e = create_document_editor();
 	e->load(filename);
+	set_options("files", format("directory=%s", filename.parent()));
 	return e;
 }
 
