@@ -27,8 +27,9 @@ int main(const Array<string>& args) {
 		for (int i=1; i<args.num; i++)
 			w->open_document(args[1]);
 	} else {
-		auto e = w->create_document_editor();
+		w->create_document_editor();
 	}
+	xhui::fly(w);
 
 	xhui::run();
 
