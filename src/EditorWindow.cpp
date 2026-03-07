@@ -9,6 +9,8 @@
 #include <lib/os/msg.h>
 #include <lib/codeeditor/CodeEditor.h>
 
+#include "lib/xhui/controls/TabControl.h"
+
 
 void draw_boxed_str(Painter* p, const vec2& _pos, const string& str, int align, EditorWindow::Message::Type style) {
 	vec2 size = p->get_str_size(str);
@@ -58,6 +60,7 @@ Window test 'test' padding=0
 	set_key_code("open", xhui::KEY_O + mod);
 	set_key_code("save", xhui::KEY_S + mod);
 	set_key_code("save-as", xhui::KEY_S + mod + xhui::KEY_SHIFT);
+	set_key_code("close-document", xhui::KEY_W + mod);
 	set_key_code("next-document", key_next_doc);
 	set_key_code("previous-document", key_next_doc + xhui::KEY_SHIFT);
 
@@ -102,6 +105,9 @@ Window test 'test' padding=0
 			open_dialog(switcher);
 		}
 	});
+	event("close-document", [this] {
+		close_document(active_editor);
+	});
 	event_xp("overlay-area", xhui::event_id::Draw, [this] (Painter* p) {
 		for (const auto& m : messages) {
 			draw_boxed_str(p, p->area().center(), m.message, 0, m.type);
@@ -125,15 +131,8 @@ void EditorWindow::on_key_up(int key_code) {
 
 
 codeedit::CodeEditor* EditorWindow::create_document_editor() {
-	static int counter = 0;
-	string id = format("edit-%d", counter ++);
-
-	set_target("tab");
-	add_control("Grid", "", document_editors.num, 0, id);
-
-
 	auto e = new codeedit::CodeEditor();
-	embed(id, 0, 0, e);
+	embed("tab", document_editors.num, 0, e);
 	document_editors.add(e);
 
 	e->out_changed >> create_sink([this] {
@@ -178,8 +177,24 @@ void EditorWindow::set_active(codeedit::CodeEditor* editor) {
 	int index = weak(document_editors).find(editor);
 	set_int("tab", index);
 
-	active_editor->activate(editor->id_edit);
+	if (active_editor)
+		active_editor->activate(editor->id_edit);
 	update_title();
+}
+
+void EditorWindow::close_document(codeedit::CodeEditor* editor) {
+	int index = weak(document_editors).find(editor);
+	if (index < 0)
+		return;
+	codeedit::CodeEditor* next = nullptr;
+	if (document_editors.num >= 2)
+		next = weak(document_editors)[(index + 1) % document_editors.num];
+
+	document_editors.erase(index);
+	auto tab = get_control("tab");
+	tab->remove_child(editor);
+
+	set_active(next);
 }
 
 void EditorWindow::update_title() {

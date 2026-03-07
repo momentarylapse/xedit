@@ -22,6 +22,7 @@ public:
 	shared_array<codeedit::CodeEditor> document_editors;
 	codeedit::CodeEditor* active_editor = nullptr;
 	void set_active(codeedit::CodeEditor* editor);
+	void close_document(codeedit::CodeEditor* editor);
 
 	void update_title();
 

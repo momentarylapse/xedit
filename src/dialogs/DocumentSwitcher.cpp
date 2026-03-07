@@ -22,15 +22,18 @@ DocumentSwitcher::DocumentSwitcher(EditorWindow* _editor_window) : Dialog("...",
 
 DocumentSwitcher::~DocumentSwitcher() {
 	int i = get_int("list");
-	editor_window->set_active(weak(editor_window->document_editors)[i]);
+	if (editor_window->document_editors.num > 0)
+		editor_window->set_active(weak(editor_window->document_editors)[i]);
 }
 
 void DocumentSwitcher::next() {
-	set_int("list", loop(get_int("list") + 1, 0, editor_window->document_editors.num));
+	if (editor_window->document_editors.num > 0)
+		set_int("list", loop(get_int("list") + 1, 0, editor_window->document_editors.num));
 }
 
 void DocumentSwitcher::previous() {
-	set_int("list", loop(get_int("list") - 1, 0, editor_window->document_editors.num));
+	if (editor_window->document_editors.num > 0)
+		set_int("list", loop(get_int("list") - 1, 0, editor_window->document_editors.num));
 }
 
 
