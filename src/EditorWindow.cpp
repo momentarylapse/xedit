@@ -60,6 +60,7 @@ Window test 'test' padding=0
 	set_key_code("open", xhui::KEY_O + mod);
 	set_key_code("save", xhui::KEY_S + mod);
 	set_key_code("save-as", xhui::KEY_S + mod + xhui::KEY_SHIFT);
+	set_key_code("exit", xhui::KEY_Q + mod);
 	set_key_code("close-document", xhui::KEY_W + mod);
 	set_key_code("next-document", key_next_doc);
 	set_key_code("previous-document", key_next_doc + xhui::KEY_SHIFT);
@@ -107,6 +108,9 @@ Window test 'test' padding=0
 	});
 	event("close-document", [this] {
 		close_document(active_editor);
+	});
+	event("exit", [this] {
+		request_destroy();
 	});
 	event_xp("overlay-area", xhui::event_id::Draw, [this] (Painter* p) {
 		for (const auto& m : messages) {
