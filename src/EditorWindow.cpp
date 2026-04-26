@@ -9,8 +9,6 @@
 #include <lib/os/msg.h>
 #include <lib/codeeditor/CodeEditor.h>
 
-#include "lib/xhui/controls/TabControl.h"
-
 
 void draw_boxed_str(Painter* p, const vec2& _pos, const string& str, int align, EditorWindow::Message::Type style) {
 	vec2 size = p->get_str_size(str);
