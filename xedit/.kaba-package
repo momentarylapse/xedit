@@ -1,0 +1,5 @@
+version 0.1
+requires xhui
+build xmake sharedlib modulexedit
+run xedit.kaba
+

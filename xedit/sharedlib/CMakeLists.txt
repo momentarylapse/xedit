@@ -1,14 +1,10 @@
 # created by xmake
 
 cmake_minimum_required(VERSION 3.21)
-project(xedit)
-set(CMAKE_CXX_STANDARD 17)
+project(modulexedit)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
-
-if(WIN32)
-	list(APPEND COMPILE_OPTIONS /permissive-)
-endif()
 
 
 #=======================================================================================
@@ -55,21 +51,21 @@ if(VULKAN_OR_GL STREQUAL "gl")
 endif()
 
 
-# lib: shaderc (optional)
-set(LIB_SHADERC_ENABLED true CACHE BOOL "Use shaderc library?")
-pkg_check_modules(SHADERC shaderc)
-if(SHADERC_FOUND)
+# lib: spirv (optional)
+set(LIB_SPIRV_ENABLED true CACHE BOOL "Use spirv library?")
+pkg_check_modules(SPIRV spirv)
+if(SPIRV_FOUND)
 else()
-	set(LIB_SHADERC_ENABLED false CACHE BOOL "shaderc library not found" FORCE)
+	set(LIB_SPIRV_ENABLED false CACHE BOOL "spirv library not found" FORCE)
 endif()
-if(${LIB_SHADERC_ENABLED})
-	list(APPEND INCLUDE_DIRECTORIES ${SHADERC_INCLUDE_DIRS})
-	list(APPEND LINK_DIRECTORIES ${SHADERC_LIBRARY_DIRS})
-	list(APPEND DEPS ${SHADERC_LIBRARIES})
-	list(APPEND COMPILE_OPTIONS ${SHADERC_CFLAGS_OTHER})
-	list(APPEND COMPILE_DEFINITIONS HAS_LIB_SHADERC=1)
+if(${LIB_SPIRV_ENABLED})
+	list(APPEND INCLUDE_DIRECTORIES ${SPIRV_INCLUDE_DIRS})
+	list(APPEND LINK_DIRECTORIES ${SPIRV_LIBRARY_DIRS})
+	list(APPEND DEPS ${SPIRV_LIBRARIES})
+	list(APPEND COMPILE_OPTIONS ${SPIRV_CFLAGS_OTHER})
+	list(APPEND COMPILE_DEFINITIONS HAS_LIB_SPIRV=1)
 else()
-	list(APPEND COMPILE_DEFINITIONS HAS_LIB_SHADERC=0)
+	list(APPEND COMPILE_DEFINITIONS HAS_LIB_SPIRV=0)
 endif()
 
 
@@ -90,10 +86,10 @@ list(APPEND DEPS Threads::Threads)
 
 
 #=======================================================================================
-#    target xedit
+#    target modulexedit
 #=======================================================================================
 
-add_executable(xedit
+add_library(modulexedit SHARED
 	src/dialogs/DocumentSwitcher.cpp
 	src/lib/any/any.cpp
 	src/lib/any/conversion.cpp
@@ -302,22 +298,24 @@ add_executable(xedit
 	src/lib/ygraphics/PainterVulkan.cpp
 	src/EditorWindow.cpp
 	src/main.cpp)
-target_include_directories(xedit PUBLIC ${INCLUDE_DIRECTORIES})
-target_link_directories(xedit PUBLIC ${LINK_DIRECTORIES})
-target_compile_options(xedit PUBLIC ${COMPILE_OPTIONS})
-target_compile_definitions(xedit PUBLIC ${COMPILE_DEFINITIONS}  SOURCE_ROOT="${CMAKE_SOURCE_DIR}" INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
-target_link_libraries(xedit PUBLIC ${DEPS})
-target_include_directories(xedit PUBLIC src)
+target_include_directories(modulexedit PUBLIC ${INCLUDE_DIRECTORIES})
+target_link_directories(modulexedit PUBLIC ${LINK_DIRECTORIES})
+target_compile_options(modulexedit PUBLIC ${COMPILE_OPTIONS})
+target_compile_definitions(modulexedit PUBLIC ${COMPILE_DEFINITIONS}  SOURCE_ROOT="${CMAKE_SOURCE_DIR}" INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(modulexedit PUBLIC ${DEPS})
+if (NOT WIN32)
+	target_compile_options(modulexedit PUBLIC -fvisibility=hidden)
+endif()
+target_include_directories(modulexedit PUBLIC src)
 
 
 #=======================================================================================
 #    install
 #=======================================================================================
 
-set(RESOURCE_DESTINATION share/xedit)
+set(RESOURCE_DESTINATION share/modulexedit)
 
-# binaries
-install(TARGETS xedit DESTINATION bin)	
+# binaries	
 
 # resources
-install(DIRECTORY "static" DESTINATION ${RESOURCE_DESTINATION})
+install(FILES "static/" DESTINATION ${RESOURCE_DESTINATION})

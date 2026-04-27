@@ -1,0 +1,5 @@
+func extern run(args: string[])
+
+func main(args: string[])
+	run(args)
+
