@@ -1,0 +1,55 @@
+use xhui
+use os
+use obs
+
+struct Location
+	var filename: os.Path
+	var offset: i32
+
+class CodeEditor extends xhui.Panel
+	var out_changed: obs.Source
+	var out_info: obs.XSource[string]
+	var out_error: obs.XSource[string]
+	var out_request_open_file: obs.XSource[Location]
+
+	func extern mut load(filename: os.Path)
+	func extern mut save(filename: os.Path)
+	func extern title() -> string
+
+	func extern is_save_state() -> bool
+	func extern mut set_save_state()
+	func extern is_undoable() -> bool
+	func extern is_redoable() -> bool
+	func extern mut undo()
+	func extern mut redo()
+
+
+func extern create_code_editor() -> xfer[CodeEditor]
+
+
+class Test extends Object
+	var ind: obs.InternalNodeData
+	var in_changed: obs.Sink
+	var in_info: obs.XSink[string]
+	var in_error: obs.XSink[string]
+	func override __init__()
+		in_changed.__init2__(&self, func() print("CHANGED!"))
+		in_info.__init2__(&self, func(m: string) print("INFO <{{m}}>"))
+		in_error.__init2__(&self, func(m: string) print("ERROR {{m}}"))
+
+
+func main()
+	var w = new shared xhui.Window("edit", 800, 600)
+	w.from_source("
+Window w ''
+	Grid grid ''")
+	var ed: shared![CodeEditor] = create_code_editor()
+	
+	var t: Test
+	obs.subscribe(&ed.out_changed, &t.in_changed)
+	obs.xsubscribe[string](&ed.out_info, &t.in_info)
+	obs.xsubscribe[string](&ed.out_error, &t.in_error)
+	
+	w.embed("grid", 0, 0, ed)
+	ed.load("codeeditor.kaba")
+	xhui.fly_and_wait(w)

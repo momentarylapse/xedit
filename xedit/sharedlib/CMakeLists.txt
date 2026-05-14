@@ -212,6 +212,7 @@ add_library(modulexedit SHARED
 	src/lib/os/stream.cpp
 	src/lib/os/terminal.cpp
 	src/lib/os/time.cpp
+	src/lib/pattern/_kaba_export.cpp
 	src/lib/pattern/Observable.cpp
 	src/lib/syntaxhighlight/AutoComplete.cpp
 	src/lib/syntaxhighlight/BaseParser.cpp

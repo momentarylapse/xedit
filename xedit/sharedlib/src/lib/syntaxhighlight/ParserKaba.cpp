@@ -225,7 +225,7 @@ void ParserKaba::prepare_symbols(const string &text, const Path& filename) {
 		//msg_error(e.message());
 	}
 
-	for (auto p: weak(reinterpret_cast<kaba::Context*>(context.get())->internal_packages)) {
+	for (auto p: weak(context.get()->internal_packages)) {
 		add_class(this, p->main_module->base_class(), "");
 		//if (p->used_by_default)
 			add_class_content(this, p->main_module->base_class(), "");

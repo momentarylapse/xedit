@@ -321,7 +321,7 @@ const Class *Context::get_dynamic_type(const VirtualBase *p) const {
 	return nullptr;
 }
 
-void Context::register_package_init(const string& name, const Path& dir, std::function<void(Exporter*)> f) {
+void Context::register_package_init(const string& name, const Path& dir, std::function<void(IExporter*)> f) {
 	package_inits.add({name, dir.absolute(), f});
 }
 

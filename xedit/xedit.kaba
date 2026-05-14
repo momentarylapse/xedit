@@ -1,3 +1,6 @@
+use xhui
+#use .codeeditor.*
+
 func extern run(args: string[])
 
 func main(args: string[])
