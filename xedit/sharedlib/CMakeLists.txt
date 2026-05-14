@@ -1,7 +1,7 @@
 # created by xmake
 
 cmake_minimum_required(VERSION 3.21)
-project(modulexedit)
+project(xedit)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
@@ -169,6 +169,7 @@ add_library(modulexedit SHARED
 	src/lib/kaba/Interpreter.cpp
 	src/lib/kaba/kaba.cpp
 	src/lib/kaba/Module.cpp
+	src/lib/kapi/kapi.cpp
 	src/lib/layout/Grid.cpp
 	src/lib/layout/Node.cpp
 	src/lib/math/Box.cpp
@@ -313,7 +314,7 @@ target_include_directories(modulexedit PUBLIC src)
 #    install
 #=======================================================================================
 
-set(RESOURCE_DESTINATION share/modulexedit)
+set(RESOURCE_DESTINATION share/xedit)
 
 # binaries	
 
