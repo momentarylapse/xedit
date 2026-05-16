@@ -57,7 +57,7 @@ void _dummy() {}
 
 
 void export_package_xhui(kaba::IExporter* e) {
-	e->package_info("xhui", "0.9");
+	e->package_info("xhui", "0.10");
 
 	e->declare_class_size("Menu", sizeof(xhui::Menu));
 	e->link_class_func("Menu.__init__", &kaba::generic_init<xhui::Menu>);
@@ -79,6 +79,8 @@ void export_package_xhui(kaba::IExporter* e) {
 	{
 		xhui::Control ctrl("");
 		e->declare_class_size("Control", sizeof(xhui::Control));
+		e->link_class_func("Control.request_redraw", &xhui::Control::request_redraw);
+
 		e->link_virtual("Control.add_child", &xhui::Control::add_child, &ctrl);
 		e->link_virtual("Control.remove_child", &xhui::Control::remove_child, &ctrl);
 		e->link_virtual("Control.set_string", &xhui::Control::set_string, &ctrl);
@@ -230,6 +232,8 @@ void export_package_xhui(kaba::IExporter* e) {
 			e->link_class_func("Window.get_key", &xhui::Window::get_key);*/
 		//	e->link_virtual("Window.on_close_request", &xhui::Window::on_close_request, &win);
 		e->link_class_func("Window.redraw", &xhui::Window::redraw);
+		e->link_class_func("Window.set_key_code", &xhui::Window::set_key_code);
+		e->link_class_func("Window.request_destroy", &xhui::Window::request_destroy);
 	}
 
 

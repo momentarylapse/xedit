@@ -1,0 +1,241 @@
+use xhui
+use os
+use obs
+use .codeeditor.*
+
+
+func find[X](list: X&[], x: X*) -> i32
+	for i=>y in list
+		if y == x
+			return i
+	return -1
+
+
+
+enum MessageType
+	INFO
+	WARNING
+	ERROR
+
+
+func draw_boxed_str(p: xhui.Painter, _pos: vec2, str: string, align: i32, style: MessageType)
+	let size = p.get_str_size(str)
+	var pos = _pos
+	if align == 0
+		pos.x -= size.x / 2
+	if align == 1
+		pos.x -= size.x
+	if style == MessageType.ERROR
+		p.set_color(Color(0.6,0.1,0.1, 1))
+	else if style == MessageType.WARNING
+		p.set_color(Color.ORANGE)#xhui::Theme::_default.background_button_danger)
+	else
+		p.set_color([0.3,0.3,0.3, 1])#xhui::Theme::_default.background_button)
+	p.set_roundness(7)
+	p.draw_rect(Rect(pos, pos + size).grow(7))
+	p.set_color(Color.WHITE)#xhui::Theme::_default.text_label)
+	p.set_roundness(0)
+	p.draw_str(pos, str)
+
+
+
+
+
+
+
+class EditorWindow extends xhui.Window
+	var ind: obs.InternalNodeData
+	var in_changed: obs.Sink
+	var in_info: obs.XSink[string]
+	var in_error: obs.XSink[string]
+
+	var document_editors: shared![CodeEditor][]
+	var active_editor: CodeEditor* = nil
+
+#	DocumentSwitcher* switcher = nullptr;
+
+	struct Message
+		type: MessageType
+		message: string
+	messages: Message[]
+
+
+	func __init__()
+		super.__init__("xedit", 800, 600)
+		from_source("
+Window test 'test' padding=0
+	Grid ? ''
+		FileSelector files '' width=250
+		Overlay ? '' expandx
+			TabControl tab 'a' bar=no
+			DrawingArea overlay-area '' ignorehover")
+
+		set_maximized(true)
+
+		let mod = xhui.KEY_CONTROL
+		let key_next_doc = mod + xhui.KEY_TAB
+	
+		set_key_code("new", xhui.KEY_N + mod)
+		set_key_code("open", xhui.KEY_O + mod)
+		set_key_code("save", xhui.KEY_S + mod)
+		set_key_code("save-as", xhui.KEY_S + mod + xhui.KEY_SHIFT)
+		set_key_code("exit", xhui.KEY_Q + mod)
+		set_key_code("close-document", xhui.KEY_W + mod)
+		set_key_code("next-document", key_next_doc)
+		set_key_code("previous-document", key_next_doc + xhui.KEY_SHIFT)
+
+		let f_new = func()
+			let _ = create_document_editor()
+		let f_close_doc = func()
+			close_document(active_editor)
+
+		event("new", f_new)
+		event("open", on_open)
+		event("save", on_save)
+		event("close-document", f_close_doc)
+		event("exit", request_destroy)
+		event_x("overlay-area", "hui:draw", draw_overlay)
+
+		in_changed.__init2__(&self, update_title)
+		in_info.__init2__(&self, info)
+		in_error.__init2__(&self, error)
+
+		set_options("files", "linkevents")
+		set_options("files", "directory={{os.fs.current_directory()}}")
+		let on_files = func()
+			let _ = open_document(get_string("files"))
+		event("files", on_files)
+
+
+	func mut draw_overlay(p: xhui.Painter)
+		p.set_color(Color.WHITE)
+		for m in messages
+			draw_boxed_str(p, p.area().center(), m.message, 0, m.type)
+
+
+	func mut on_open()
+		var dir = os.fs.current_directory()
+		for e in active_editor
+			if not e.filename.is_empty()
+				dir = e.filename.parent()
+#		xhui::FileSelectionDialog::ask(this, "open..", dir, {}).then([this] (const Path& filename) {
+#			open_document(filename);
+#		});
+
+
+	func mut on_save()
+		for mut e in active_editor
+			if e.filename.is_empty()
+				pass
+		#		xhui::FileSelectionDialog::ask(this, "save..", os::fs::current_directory(), {"save"}).then([this] (const Path& filename) {
+		#			active_editor->save(filename);
+		#			info("saved");
+		#		});
+			else
+				e.save(e.filename)
+				info("saved")
+
+
+	func override on_key_up(key: i32)
+
+
+	func mut create_document_editor() -> CodeEditor&
+		var e: shared![CodeEditor] = create_code_editor()
+		embed("tab", len(document_editors), 0, e)
+		document_editors.add(e)
+
+		obs.subscribe(&e.out_changed, &in_changed)
+		obs.xsubscribe[string](&e.out_info, &in_info)
+		obs.xsubscribe[string](&e.out_error, &in_error)
+
+#		e->out_changed >> create_sink([this] {
+#			update_title();
+#		});
+#		e->out_info >> create_data_sink<string>([this] (const string& m) {
+#			info(m);
+#		});
+#		e->out_error >> create_data_sink<string>([this] (const string& m) {
+#			error(m);
+#		});
+#		e->out_request_open_file >> create_data_sink<codeedit::CodeEditor::Location>([this] (const codeedit::CodeEditor::Location& l) {
+#			if (l.filename) {
+#				auto ee = open_document(l.filename);
+#				ee->edit->set_cursor_pos(l.offset);
+#			}
+#		});
+
+		set_active(weak(e))
+		var p = weak(e) # FIXME kaba (O_O)'
+		return p
+
+
+	func mut open_document(_filename: os.Path) -> CodeEditor&
+		let filename = _filename.absolute().canonical()
+
+		for e in weak(document_editors)
+			if e.filename == filename
+				set_active(e)
+				return e
+
+		var e = create_document_editor()
+		e.load(filename)
+		set_options("files", "directory={{filename.parent()}}")
+		return e
+
+
+	func mut set_active(editor: CodeEditor*)
+		active_editor = editor
+		let index = find(weak(document_editors), editor)
+		set_int("tab", index)
+
+		for mut e in active_editor
+			e.activate(e.id_edit)
+		update_title()
+
+
+	func mut close_document(editor: CodeEditor*)
+		let index = find(weak(document_editors), editor)
+		if (index < 0)
+			return
+		var next = nil as CodeEditor*
+		if len(document_editors) >= 2
+			next = weak(document_editors)[(index + 1) % len(document_editors)]
+	
+		document_editors.remove(index)
+		for mut tab in get_control("tab")
+			tab.remove_child(editor)
+	
+		set_active(next)
+
+
+	func mut update_title()
+		for e in active_editor
+			var x = ""
+			if not e.is_save_state()
+				x = "*"
+			set_title(e.title() + x + " - xedit")
+
+
+	func mut add_message(type: MessageType, message: string)
+		messages.add([type, message])
+		let f = func()
+			messages.remove(0)
+			request_redraw()
+		xhui.run_later(4.0, f)
+		request_redraw()
+	func mut info(message: string)
+		add_message(MessageType.INFO, message)
+	func mut error(message: string)
+		add_message(MessageType.ERROR, message)
+
+
+
+
+
+func main(args: string[])
+	var w = new shared EditorWindow()
+	for a in args
+		let _ = w.open_document(a)
+	if len(args) == 0
+		w.create_document_editor()
+	xhui.fly_and_wait(w)
