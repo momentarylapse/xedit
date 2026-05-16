@@ -39,6 +39,32 @@ func draw_boxed_str(p: xhui.Painter, _pos: vec2, str: string, align: i32, style:
 
 
 
+class DocumentSwitcher extends xhui.Dialog
+	func __init__(_editor_window: EditorWindow&)
+		super.__init__("...", 400, 400, _editor_window, xhui.DialogFlags.NO_HEADER)
+		editor_window := _editor_window
+
+		add_control("ListView", "open files", 0, 0, "list")
+
+		for e in weak(editor_window.document_editors)
+			add_string("list", e.title())
+		set_int("list", find(weak(editor_window.document_editors), editor_window.active_editor))
+		next()
+
+	func override __delete__()
+		let i = get_int("list")
+		if len(editor_window.document_editors) > 0
+			editor_window.set_active(weak(editor_window.document_editors)[i])
+
+	func mut next()
+		if len(editor_window.document_editors) > 0
+			set_int("list", loop(get_int("list") + 1, 0, len(editor_window.document_editors)))
+
+	func mut previous()
+		if len(editor_window.document_editors) > 0
+			set_int("list", loop(get_int("list") - 1, 0, len(editor_window.document_editors)))
+
+	var editor_window: EditorWindow&
 
 
 
@@ -48,11 +74,11 @@ class EditorWindow extends xhui.Window
 	var in_changed: obs.Sink
 	var in_info: obs.XSink[string]
 	var in_error: obs.XSink[string]
+	var in_request_open_file: obs.XSink[Location]
 
 	var document_editors: shared![CodeEditor][]
-	var active_editor: CodeEditor* = nil
-
-#	DocumentSwitcher* switcher = nullptr;
+	var active_editor = nil as CodeEditor*
+	var switcher: shared[DocumentSwitcher]
 
 	struct Message
 		type: MessageType
@@ -92,6 +118,8 @@ Window test 'test' padding=0
 		event("new", f_new)
 		event("open", on_open)
 		event("save", on_save)
+		event("next-document", on_next_document)
+		event("previous-document", on_previous_document)
 		event("close-document", f_close_doc)
 		event("exit", request_destroy)
 		event_x("overlay-area", "hui:draw", draw_overlay)
@@ -99,6 +127,7 @@ Window test 'test' padding=0
 		in_changed.__init2__(&self, update_title)
 		in_info.__init2__(&self, info)
 		in_error.__init2__(&self, error)
+		in_request_open_file.__init2__(&self, on_request_open_file)
 
 		set_options("files", "linkevents")
 		set_options("files", "directory={{os.fs.current_directory()}}")
@@ -118,25 +147,51 @@ Window test 'test' padding=0
 		for e in active_editor
 			if not e.filename.is_empty()
 				dir = e.filename.parent()
-#		xhui::FileSelectionDialog::ask(this, "open..", dir, {}).then([this] (const Path& filename) {
-#			open_document(filename);
-#		});
+		let f = func(filename: os.Path)
+			let _ = open_document(filename)
+		xhui.file_dialog(&self, "open..", dir, []).then(f)
 
 
 	func mut on_save()
 		for mut e in active_editor
 			if e.filename.is_empty()
-				pass
-		#		xhui::FileSelectionDialog::ask(this, "save..", os::fs::current_directory(), {"save"}).then([this] (const Path& filename) {
-		#			active_editor->save(filename);
-		#			info("saved");
-		#		});
+				let f = func(filename: os.Path)
+					e.save(filename)
+					info("saved")
+				xhui.file_dialog(&self, "save..", os.fs.current_directory(), ["save"]).then(f)
 			else
 				e.save(e.filename)
 				info("saved")
 
 
-	func override on_key_up(key: i32)
+	func override on_key_up(key_code: i32)
+		let key = key_code & 0xff
+		if key == xhui.KEY_LEFT_CONTROL or key == xhui.KEY_LEFT_ALT
+			for mut s in switcher
+				s.request_destroy()
+				switcher = nil
+
+
+	func mut on_next_document()
+		for mut s in switcher
+			s.next()
+		else
+			switcher = new DocumentSwitcher(&self)
+			let _ = open_dialog(switcher!)
+
+
+	func mut on_previous_document()
+		for mut s in switcher
+			s.previous()
+		else
+			switcher = new DocumentSwitcher(&self)
+			let _ = open_dialog(switcher!)
+
+
+
+	func mut on_request_open_file(l: Location)
+		var e = open_document(l.filename)
+		e.set_cursor_pos(l.offset)
 
 
 	func mut create_document_editor() -> CodeEditor&
@@ -147,6 +202,7 @@ Window test 'test' padding=0
 		obs.subscribe(&e.out_changed, &in_changed)
 		obs.xsubscribe[string](&e.out_info, &in_info)
 		obs.xsubscribe[string](&e.out_error, &in_error)
+		obs.xsubscribe[Location](&e.out_request_open_file, &in_request_open_file)
 
 #		e->out_changed >> create_sink([this] {
 #			update_title();
@@ -229,13 +285,3 @@ Window test 'test' padding=0
 		add_message(MessageType.ERROR, message)
 
 
-
-
-
-func main(args: string[])
-	var w = new shared EditorWindow()
-	for a in args
-		let _ = w.open_document(a)
-	if len(args) == 0
-		w.create_document_editor()
-	xhui.fly_and_wait(w)

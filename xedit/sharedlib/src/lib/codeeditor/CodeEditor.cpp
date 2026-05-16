@@ -338,6 +338,10 @@ void CodeEditor::show_errors() {
 		}
 	}
 }
+
+void CodeEditor::set_cursor_pos(int pos) {
+	edit->set_cursor_pos(pos);
+}
 }
 
 

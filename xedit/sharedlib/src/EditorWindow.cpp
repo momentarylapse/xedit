@@ -149,7 +149,7 @@ codeedit::CodeEditor* EditorWindow::create_document_editor() {
 	e->out_request_open_file >> create_data_sink<codeedit::CodeEditor::Location>([this] (const codeedit::CodeEditor::Location& l) {
 		if (l.filename) {
 			auto ee = open_document(l.filename);
-			ee->edit->set_cursor_pos(l.offset);
+			ee->set_cursor_pos(l.offset);
 		}
 	});
 

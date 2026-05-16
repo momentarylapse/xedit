@@ -1,8 +1,21 @@
 use xhui
-#use .codeeditor.*
+use .editorwindow.*
 
-func extern run(args: string[])
 
 func main(args: string[])
-	run(args)
+	var w = new shared EditorWindow()
+	for a in args
+		let _ = w.open_document(a)
+	if len(args) == 0
+		w.create_document_editor()
+	xhui.fly_and_wait(w)
+
+
+
+
+
+#func extern run(args: string[])
+
+#func _main(args: string[])
+#	run(args)
 

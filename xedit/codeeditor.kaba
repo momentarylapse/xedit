@@ -26,6 +26,7 @@ class CodeEditor extends xhui.Panel
 	func extern is_redoable() -> bool
 	func extern mut undo()
 	func extern mut redo()
+	func extern mut set_cursor_pos(pos: i32)
 
 
 func extern create_code_editor() -> xfer[CodeEditor]

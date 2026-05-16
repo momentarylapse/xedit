@@ -65,6 +65,7 @@ void export_symbols(kaba::IExporter* e) {
 	e->link_class_func("CodeEditor.is_redoable", &codeedit::CodeEditor::is_redoable);
 	e->link_class_func("CodeEditor.is_save_state", &codeedit::CodeEditor::is_save_state);
 	e->link_class_func("CodeEditor.set_save_state", &codeedit::CodeEditor::set_save_state);
+	e->link_class_func("CodeEditor.set_cursor_pos", &codeedit::CodeEditor::set_cursor_pos);
 
 	e->link_func("create_code_editor", &create_code_editor);
 
