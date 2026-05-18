@@ -178,7 +178,7 @@ int file_line_column_to_offset(const Path& file, int line, int col) {
 	string text = os::fs::read_text(file);
 	int offset = col;
 	auto lines = text.explode("\n");
-	for (int i=0; i<line; i++)
+	for (int i=0; i<line and i<lines.num; i++)
 		offset += lines[i].num + 1;
 	return offset;
 }
@@ -190,8 +190,8 @@ void ParserKaba::prepare_symbols(const string &text, const Path& filename) {
 	current_code = text;
 	errors.clear();
 
-	context = kaba::default_context->create_new_context();
 	module = nullptr;
+	context = kaba::default_context->create_new_context();
 
 	try {
 		//msg_write(kaba::config.directory.str());
