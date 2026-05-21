@@ -1,0 +1,94 @@
+/*
+ * extern.h
+ *
+ *  Created on: May 9, 2021
+ *      Author: michi
+ */
+
+#pragma once
+
+#include <lib/base/base.h>
+#include <lib/kapi/KabaExporter.h>
+
+namespace kaba {
+	struct CommonTypes;
+	struct Package;
+	class Module;
+
+class Context;
+
+class ExternalLinkData {
+public:
+
+	Context* context;
+	struct ExternalLink {
+		string name;
+		void* pointer;
+	};
+	Array<ExternalLink> external_links;
+
+	// also enum values
+	struct ClassOffset {
+		string class_name, element;
+		int offset;
+		bool is_virtual;
+	};
+	Array<ClassOffset> class_offsets;
+
+	struct ClassSize {
+		string class_name;
+		int size;
+	};
+	Array<ClassSize> class_sizes;
+
+	explicit ExternalLinkData(Context* c);
+
+	void reset();
+	void link(const string& name, void* pointer);
+	template<typename T>
+	void link_class_func(const string& name, T pointer) {
+		link(name, mf(pointer));
+	}
+	void declare_class_size(const string& class_name, int offset);
+	void _declare_class_element(const string& name, int offset);
+	template<class T>
+	void declare_class_element(const string& name, T pointer) {
+		_declare_class_element(name, *(int*)(void*)&pointer);
+	}
+	void _link_virtual(const string& name, void* p, void* instance);
+	template<class T>
+	void link_virtual(const string& name, T pointer, void* instance) {
+		_link_virtual(name, mf(pointer), instance);
+	}
+	template<class T>
+	void declare_enum(const string& name, T value) {
+		_declare_class_element(name, (int)value);
+	}
+
+	void *get_link(const string& name);
+	int process_class_offset(const string& class_name, const string& element, int offset);
+	int process_class_size(const string& class_name, int size);
+	int process_class_num_virtuals(const string& class_name, int num_virtual);
+};
+
+
+class Exporter : public IExporter {
+public:
+	Context* ctx;
+	Package* package;
+
+	// for restoring global state
+	Context* secret_lib_context;
+	CommonTypes* x_common_types;
+
+	Exporter(Context* ctx, Package* package);
+	~Exporter() override;
+	void package_info(const string& name, const string& version) override;
+	void declare_class_size(const string& name, int size) override;
+	void _declare_class_element(const string& name, int offset) override;
+	void link(const string& name, void* p) override;
+	void _link_virtual(const string& name, void* p, void* instance) override;
+};
+
+
+}

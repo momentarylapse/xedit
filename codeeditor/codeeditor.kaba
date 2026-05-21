@@ -1,0 +1,36 @@
+use xhui
+use os
+use obs
+
+
+struct Location
+	var filename: os.Path
+	var offset: i32
+
+
+class CodeEditor extends xhui.Panel as obs.Node
+	var out_changed: obs.Source
+	var out_info: obs.XSource[string]
+	var out_error: obs.XSource[string]
+	var out_request_open_file: obs.XSource[Location]
+
+	var filename: os.Path
+	#var edit: xhui.MultilineEdit*
+	var id_edit, id_structure: string
+
+	func extern mut load(filename: os.Path)
+	func extern mut save(filename: os.Path)
+	func extern title() -> string
+
+	func extern is_save_state() -> bool
+	func extern mut set_save_state()
+	func extern is_undoable() -> bool
+	func extern is_redoable() -> bool
+	func extern mut undo()
+	func extern mut redo()
+	func extern mut set_cursor_pos(pos: i32)
+
+
+func extern create_code_editor() -> xfer[CodeEditor]
+
+

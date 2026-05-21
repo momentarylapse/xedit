@@ -1,0 +1,11 @@
+{
+  "dependencies": [
+    "freetype",
+    "glfw3",
+    "opengl",
+    "spirv-tools",
+    "vulkan",
+    "vulkan-headers",
+    "zlib"
+  ]
+}

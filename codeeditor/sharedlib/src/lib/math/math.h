@@ -1,0 +1,84 @@
+/*----------------------------------------------------------------------------*\
+| types                                                                        |
+| -> mathematical types and functions                                          |
+|   -> vector, matrix, matrix3, quaternion, plane, color                       |
+|                                                                              |
+| vital properties:                                                            |
+|                                                                              |
+| last update: 2011.01.15 (c) by MichiSoft TM                                  |
+\*----------------------------------------------------------------------------*/
+
+#ifndef _TYPES_INCLUDED_
+#define _TYPES_INCLUDED_
+
+
+//#include <cmath>
+
+struct color;
+struct vec3;
+struct plane;
+struct complex;
+struct mat4;
+struct mat3;
+struct quaternion;
+struct Ray;
+
+
+#include "../base/base.h"
+
+
+
+template<class T>
+T clamp(T x, T min, T max) {
+	if (min >= max)
+		return min;
+	if (x < min)
+		return min;
+	if (x >= max)
+		return max;
+	return x;
+}
+template<class T>
+T loop(T x, T min, T max);
+template<class T>
+T abs(T x) {
+	if (x < 0)
+		return -x;
+	return x;
+}
+template<class T>
+T sign(T x) {
+	if (x < 0)
+		return -1;
+	if (x == 0)
+		return 0;
+	return 1;
+}
+template<class T>
+T sqr(T x) {
+	return x * x;
+}
+
+
+template<>
+int loop<int>(int x, int min, int max);
+
+template<>
+float loop<float>(float x, float min, float max);
+
+
+
+int _cdecl randi(int m);
+float _cdecl randf(float m);
+
+const float pi = 3.141592654f;
+
+
+// faster functions
+
+bool inf_f(float f);
+
+
+
+
+#endif

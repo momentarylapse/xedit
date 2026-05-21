@@ -96,6 +96,7 @@ add_library(modulexedit SHARED
 	src/lib/base/array.cpp
 	src/lib/base/pointer.cpp
 	src/lib/base/strings.cpp
+	src/lib/codeeditor/_kaba_export.cpp
 	src/lib/codeeditor/CodeEditor.cpp
 	src/lib/image/color.cpp
 	src/lib/image/image.cpp
