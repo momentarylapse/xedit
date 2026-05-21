@@ -69,13 +69,7 @@ class DocumentSwitcher extends xhui.Dialog
 
 
 
-class EditorWindow extends xhui.Window
-	var ind: obs.InternalNodeData
-	var in_changed: obs.Sink
-	var in_info: obs.XSink[string]
-	var in_error: obs.XSink[string]
-	var in_request_open_file: obs.XSink[Location]
-
+class EditorWindow extends xhui.Window as obs.Node
 	var document_editors: shared![CodeEditor][]
 	var active_editor = nil as CodeEditor*
 	var switcher: shared[DocumentSwitcher]
@@ -123,11 +117,6 @@ Window test 'test' padding=0
 		event("close-document", f_close_doc)
 		event("exit", request_destroy)
 		event_x("overlay-area", "hui:draw", draw_overlay)
-
-		in_changed.__init2__(&self, update_title)
-		in_info.__init2__(&self, info)
-		in_error.__init2__(&self, error)
-		in_request_open_file.__init2__(&self, on_request_open_file)
 
 		set_options("files", "linkevents")
 		set_options("files", "directory={{os.fs.current_directory()}}")
@@ -199,26 +188,10 @@ Window test 'test' padding=0
 		embed("tab", len(document_editors), 0, e)
 		document_editors.add(e)
 
-		obs.subscribe(&e.out_changed, &in_changed)
-		obs.xsubscribe[string](&e.out_info, &in_info)
-		obs.xsubscribe[string](&e.out_error, &in_error)
-		obs.xsubscribe[Location](&e.out_request_open_file, &in_request_open_file)
-
-#		e->out_changed >> create_sink([this] {
-#			update_title();
-#		});
-#		e->out_info >> create_data_sink<string>([this] (const string& m) {
-#			info(m);
-#		});
-#		e->out_error >> create_data_sink<string>([this] (const string& m) {
-#			error(m);
-#		});
-#		e->out_request_open_file >> create_data_sink<codeedit::CodeEditor::Location>([this] (const codeedit::CodeEditor::Location& l) {
-#			if (l.filename) {
-#				auto ee = open_document(l.filename);
-#				ee->edit->set_cursor_pos(l.offset);
-#			}
-#		});
+		e.out_changed >> create_sink(update_title)
+		e.out_info >> create_data_sink[string](info)
+		e.out_error >> create_data_sink[string](error)
+		e.out_request_open_file >> create_data_sink[Location](on_request_open_file)
 
 		set_active(weak(e))
 		var p = weak(e) # FIXME kaba (O_O)'
