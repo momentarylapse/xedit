@@ -200,7 +200,10 @@ void Edit::on_key_down(int key) {
 	}
 
 	auto jump_lines = [this, cur_lp, shift] (int dlines) {
-		set_cursor_pos(line_pos_to_index({cur_lp.line + dlines, cur_lp.offset}), shift);
+		int line = cur_lp.line + dlines;
+		int col0 = _cursor_preferred_col;
+		set_cursor_pos(column_to_index(_cursor_preferred_col, line), shift);
+		_cursor_preferred_col = col0;
 	};
 	if (multiline) {
 		if (key_no_shift == KEY_UP) {
@@ -590,6 +593,7 @@ void Edit::set_cursor_pos(Index index, bool selecting) {
 	if (!selecting)
 		selection_start = index;
 	scroll_into_view(cursor_pos);
+	_cursor_preferred_col = index_to_column(cursor_pos);
 	request_redraw();
 }
 
@@ -744,6 +748,43 @@ Edit::Index Edit::line_pos_to_index(const LinePos& lp) const {
 	if (lp.line >= cache.lines.num)
 		return text.num;
 	return cache.line_first_index[lp.line] + clamp(lp.offset, 0, cache.line_num_characters[lp.line]);
+}
+
+int Edit::index_to_column(Index index) const {
+	auto lp = index_to_line_pos(index);
+	int i0 = cache.line_first_index[lp.line];
+	auto line = get_range(i0, i0 + lp.offset);
+	int col = 0;
+	int offset = 0;
+	while (true) {
+		int next = next_utf8_index(line, offset);
+		if (next == offset)
+			break;
+		if (line[offset] == '\t')
+			col = ((col + tab_size) / tab_size) * tab_size;
+		else
+			col ++;
+		offset = next;
+	}
+	return col;
+}
+
+Edit::Index Edit::column_to_index(int col_target, int line_no) const {
+	int i0 = cache.line_first_index[line_no];
+	auto line = get_range(i0, i0 + cache.line_num_characters[line_no]);
+	int col = 0;
+	int offset = 0;
+	while (col < col_target) {
+		int next = next_utf8_index(line, offset);
+		if (next == offset)
+			break;
+		if (line[offset] == '\t')
+			col = ((col + tab_size) / tab_size) * tab_size;
+		else
+			col ++;
+		offset = next;
+	}
+	return i0 + offset;
 }
 
 Edit::Index Edit::next_index(Index index) const {
