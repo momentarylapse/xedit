@@ -186,10 +186,6 @@ add_library(modulecodeeditor SHARED
 	src/lib/math/vec2.cpp
 	src/lib/math/vec3.cpp
 	src/lib/math/vec4.cpp
-	src/lib/net/_kaba_export.cpp
-	src/lib/net/BinaryBuffer.cpp
-	src/lib/net/net.cpp
-	src/lib/net/Socket.cpp
 	src/lib/nix/_kaba_export.cpp
 	src/lib/nix/nix.cpp
 	src/lib/nix/nix_buffer.cpp
