@@ -152,29 +152,49 @@ void Edit::on_key_down(int key) {
 	int key_no_shift = key & ~KEY_SHIFT;
 
 #ifdef OS_MAC
-	int mod = KEY_SUPER;
+	constexpr int mod = KEY_SUPER;
+	constexpr int mod_word = KEY_ALT;
+	constexpr int key_line_begin = KEY_LEFT + KEY_SUPER;
+	constexpr int key_line_end = KEY_RIGHT + KEY_SUPER;
 #else
-	int mod = KEY_CONTROL;
+	constexpr int mod = KEY_CONTROL;
+	constexpr int mod_word = KEY_CONTROL;
+	constexpr int key_line_begin = KEY_HOME;
+	constexpr int key_line_end = KEY_END;
 #endif
 
+	auto smart_line_begin = [this, &cur_lp] {
+		int i0 = cache.line_first_index[cur_lp.line];
+		int i1 = cache.line_first_index[cur_lp.line] + cache.line_num_characters[cur_lp.line];
+		string line = get_range(i0, i1);
+		int ii0 = i0;
+		for (int i=0; i<line.num; i++) {
+			if (line[i] == ' ' or line[i] == '\t')
+				ii0 = i0 + i + 1;
+			else
+				break;
+		}
+		return clamp((cursor_pos == ii0) ? i0 : ii0, 0, text.num);
+	};
+
 	if (key_no_shift == KEY_LEFT) {
-		set_cursor_pos(clamp(prior_index(cursor_pos), 0, text.num), shift);
+		if (cursor_pos != selection_start) {
+			set_cursor_pos(min(cursor_pos, selection_start), shift);
+		} else {
+			set_cursor_pos(clamp(prior_index(cursor_pos), 0, text.num), shift);
+		}
 		prevent_event_propagation();
 	} else if (key_no_shift == KEY_RIGHT) {
-		set_cursor_pos(clamp(next_index(cursor_pos), 0, text.num), shift);
+		if (cursor_pos != selection_start) {
+			set_cursor_pos(max(cursor_pos, selection_start), shift);
+		} else {
+			set_cursor_pos(clamp(next_index(cursor_pos), 0, text.num), shift);
+		}
 		prevent_event_propagation();
-#ifdef OS_MAC
-	} else if (key_no_shift == KEY_LEFT + KEY_ALT) {
-#else
-	} else if (key_no_shift == KEY_HOME) {
-#endif
-		set_cursor_pos(cache.line_first_index[cur_lp.line], shift);
+	} else if (key_no_shift == key_line_begin) {
+		set_cursor_pos(smart_line_begin(), shift);
 		prevent_event_propagation();
-#ifdef OS_MAC
-	} else if (key_no_shift == KEY_RIGHT + KEY_ALT) {
-#else
-	} else if (key_no_shift == KEY_END) {
-#endif
+	} else if (key_no_shift == key_line_end) {
 		set_cursor_pos(cache.line_first_index[cur_lp.line] + cache.line_num_characters[cur_lp.line], shift);
 		prevent_event_propagation();
 	}
@@ -236,24 +256,24 @@ void Edit::on_key_down(int key) {
 			delete_range(cursor_pos, next_index(cursor_pos));
 		}
 		prevent_event_propagation();
-	} else if (key == KEY_BACKSPACE + mod) {
+	} else if (key == KEY_BACKSPACE + mod_word) {
 		if (cursor_pos != selection_start) {
 			delete_selection();
 		} else if (cursor_pos > 0) {
 			delete_range(find_word_start(cursor_pos), cursor_pos);
 		}
 		prevent_event_propagation();
-	} else if (key == KEY_DELETE + mod) {
+	} else if (key == KEY_DELETE + mod_word) {
 		if (cursor_pos != selection_start) {
 			delete_selection();
 		} else if (cursor_pos < text.num) {
 			delete_range(cursor_pos, find_word_end(cursor_pos));
 		}
 		prevent_event_propagation();
-	} else if (key_no_shift == KEY_LEFT + mod) {
+	} else if (key_no_shift == KEY_LEFT + mod_word) {
 		set_cursor_pos(find_word_start(cursor_pos-1), shift);
 		prevent_event_propagation();
-	} else if (key_no_shift == KEY_RIGHT + mod) {
+	} else if (key_no_shift == KEY_RIGHT + mod_word) {
 		set_cursor_pos(find_word_end(cursor_pos+1), shift);
 		prevent_event_propagation();
 	} else if (key == KEY_RETURN) {
